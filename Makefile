@@ -10,5 +10,11 @@ migrateup:
 	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose up
 migratedown:
 	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose down
+sqlc:
+	sqlc generate
+startcontainer:
+	docker container start postgres12
 
-.PHONY: postgres migrate dropdb migrateup migratedown createdb 
+
+
+.PHONY: startcontainer sqlc postgres migrate dropdb migrateup migratedown createdb 
