@@ -14,7 +14,8 @@ sqlc:
 	sqlc generate
 startcontainer:
 	docker container start postgres12
+server:
+	go run main.go
 
 
-
-.PHONY: startcontainer sqlc postgres migrate dropdb migrateup migratedown createdb 
+.PHONY: server startcontainer sqlc postgres migrate dropdb migrateup migratedown createdb 
