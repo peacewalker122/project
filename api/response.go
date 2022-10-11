@@ -35,3 +35,19 @@ func AccountResponse(input db.Account) CreateAccountsResponse {
 		CreatedAt:   input.CreatedAt,
 	}
 }
+
+type CreatePostResponse struct {
+	ID          int64     `json:"id"`
+	PostWord    string    `json:"post_word"`
+	PostPicture []byte    `json:"post_picture"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+func PostResponse(input db.Post) CreatePostResponse {
+	return CreatePostResponse{
+		ID:          input.ID,
+		PostWord:    input.PostWord.String,
+		PostPicture: input.PostPicture,
+		CreatedAt:   input.CreatedAt,
+	}
+}

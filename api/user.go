@@ -6,12 +6,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 	db "github.com/peacewalker122/project/db/sqlc"
+	"github.com/peacewalker122/project/util"
 )
 
 type CreateUserParam struct {
-	Username       string `json:"username" validate:"required,alphanum"`
-	HashedPassword string `json:"hashed_password" validate:"required"`
-	FullName       string `json:"full_name" validate:"required,alpha"`
+	Username       string `json:"username" validate:"required,min=4,max=100"`
+	HashedPassword string `json:"hashed_password" validate:"required,min=6,max=100"`
+	FullName       string `json:"full_name" validate:"required,min=3,max=100"`
 	Email          string `json:"email" validate:"required,email"`
 }
 
@@ -20,12 +21,16 @@ func (s *Server) createUser(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	if err := c.Validate(req); err != nil {
-		return err
+	if errors := ValidationCreateUserRequest(req); errors != nil {
+		return c.JSONPretty(http.StatusBadRequest, errors, "    ")
+	}
+	hashpass, err := util.HashPassword(req.HashedPassword)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	arg := db.CreateUserParams{
 		Username:       req.Username,
-		HashedPassword: req.HashedPassword,
+		HashedPassword: hashpass,
 		FullName:       req.FullName,
 		Email:          req.Email,
 	}
@@ -41,4 +46,20 @@ func (s *Server) createUser(c echo.Context) error {
 	}
 	resp := UserResponse(user)
 	return c.JSON(http.StatusOK, resp)
+}
+
+func ValidationCreateUserRequest(input *CreateUserParam) (errors []string) {
+	if err := ValidateUsername(input.Username); err != nil {
+		errors = append(errors, ValidateError("username", err.Error()))
+	}
+	if err := ValidateFullname(input.FullName); err != nil {
+		errors = append(errors, ValidateError("full_name", err.Error()))
+	}
+	if err := ValidateEmail(input.Email); err != nil {
+		errors = append(errors, ValidateError("email", err.Error()))
+	}
+	if err := validatePassword(input.HashedPassword); err != nil {
+		errors = append(errors, ValidateError("hashed_password", err.Error()))
+	}
+	return errors
 }

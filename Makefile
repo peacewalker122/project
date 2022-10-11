@@ -12,7 +12,7 @@ migratedown:
 	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose down
 sqlc:
 	sqlc generate
-startcontainer:
+startdb:
 	docker container start postgres12
 server:
 	go run main.go

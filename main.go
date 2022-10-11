@@ -6,23 +6,22 @@ import (
 
 	"github.com/peacewalker122/project/api"
 	db "github.com/peacewalker122/project/db/sqlc"
-)
-
-const (
-	driverName    = "postgres"
-	DBsource      = "postgresql://root:rootpass@localhost:4321/project?sslmode=disable"
-	serverAddress = "0.0.0.0:8080"
+	"github.com/peacewalker122/project/util"
 )
 
 func main() {
-	conn, err := sql.Open(driverName, DBsource)
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("can't load config")
+	}
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("unable to establish the connection due: ", err.Error())
 	}
 	store := db.Newstore(conn)
 	server := api.Newserver(store)
 
-	if err := server.Start(serverAddress); err != nil {
+	if err := server.Start(config.HTTPServerAddress); err != nil {
 		log.Fatal("unable to establish the connection due: ", err.Error())
 	}
 }
