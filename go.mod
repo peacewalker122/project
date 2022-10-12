@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/go-playground/validator/v10 v10.11.1
+	github.com/golang/mock v1.4.4
 	github.com/google/uuid v1.1.2
 	github.com/lib/pq v1.10.7
 	github.com/spf13/viper v1.13.0

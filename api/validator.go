@@ -5,15 +5,18 @@ import (
 	"net/http"
 	"net/mail"
 	"regexp"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
+type H = map[string]interface{}
+
 // A for Allow
 var (
-	UsernameCheck = regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
-	FullNameCheck = regexp.MustCompile(`^[a-zA-Z\\s]+$`).MatchString
+	AlphaNumCheck = regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
+	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z\\s]+$`).MatchString
 	InvalidChar   = fmt.Errorf("invalid type must be string or number")
 )
 
@@ -48,22 +51,22 @@ func validateString(target string, minChar, maxChar int) error {
 	return nil
 }
 
-func ValidateUsername(username string) error {
+func ValidateAlphanum(username string) error {
 	if err := validateString(username, 4, 100); err != nil {
 		return err
 	}
 
-	if !UsernameCheck(username) {
+	if !AlphaNumCheck(username) {
 		return fmt.Errorf("illegal type must be string and number")
 	}
 	return nil
 }
 
-func ValidateFullname(fullname string) error {
+func ValidateAlpha(fullname string) error {
 	if err := validateString(fullname, 3, 100); err != nil {
 		return err
 	}
-	if !FullNameCheck(fullname) {
+	if !AlphaCheck(fullname) {
 		return fmt.Errorf("illegal type must be string")
 	}
 	return nil
@@ -88,5 +91,33 @@ func validatePassword(pass string) error {
 	if err := validateString(pass, 5, 100); err != nil {
 		return err
 	}
+	return nil
+}
+
+func ConverterParam(param string) int {
+	var c echo.Context
+	id := c.Param(param)
+
+	num, err := strconv.Atoi(id)
+	if err != nil {
+		return 0
+	}
+	return num
+}
+
+func ValidateID(num int) error {
+	var c echo.Context
+	if num == 0 {
+		return c.JSON(http.StatusBadRequest, ValidateError("id", fmt.Errorf("nvalid number").Error()))
+	}
+	return nil
+}
+
+func ValidateURI(params *GetAccountsParam, URIparam string) error {
+	n := ConverterParam(URIparam)
+	if err := ValidateID(n); err != nil {
+		return err
+	}
+	params.ID = n
 	return nil
 }

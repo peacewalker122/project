@@ -11,7 +11,7 @@ import (
 
 type CreateUserParam struct {
 	Username       string `json:"username" validate:"required,min=4,max=100"`
-	HashedPassword string `json:"hashed_password" validate:"required,min=6,max=100"`
+	HashedPassword string `json:"password" validate:"required,min=6,max=100"`
 	FullName       string `json:"full_name" validate:"required,min=3,max=100"`
 	Email          string `json:"email" validate:"required,email"`
 }
@@ -49,17 +49,17 @@ func (s *Server) createUser(c echo.Context) error {
 }
 
 func ValidationCreateUserRequest(input *CreateUserParam) (errors []string) {
-	if err := ValidateUsername(input.Username); err != nil {
+	if err := ValidateAlphanum(input.Username); err != nil {
 		errors = append(errors, ValidateError("username", err.Error()))
 	}
-	if err := ValidateFullname(input.FullName); err != nil {
+	if err := ValidateAlpha(input.FullName); err != nil {
 		errors = append(errors, ValidateError("full_name", err.Error()))
 	}
 	if err := ValidateEmail(input.Email); err != nil {
 		errors = append(errors, ValidateError("email", err.Error()))
 	}
 	if err := validatePassword(input.HashedPassword); err != nil {
-		errors = append(errors, ValidateError("hashed_password", err.Error()))
+		errors = append(errors, ValidateError("password", err.Error()))
 	}
 	return errors
 }

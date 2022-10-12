@@ -16,6 +16,7 @@ startdb:
 	docker container start postgres12
 server:
 	go run main.go
-
+mock:
+	mockgen -package mockdb -destination db/mock/store.go github.com/peacewalker122/project/db/sqlc Store
 
 .PHONY: server startcontainer sqlc postgres migrate dropdb migrateup migratedown createdb 

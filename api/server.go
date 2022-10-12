@@ -8,12 +8,17 @@ import (
 )
 
 type Server struct {
-	store  *db.Store
+	store  db.Store
 	router *echo.Echo
 }
 
-func Newserver(store *db.Store) *Server {
+func Newserver(store db.Store) *Server {
 	server := &Server{store: store}
+	server.routerhandle()
+	return server
+}
+
+func (s *Server) routerhandle() {
 	router := echo.New()
 	router.Use(middleware.LoggerWithConfig(Logger()))
 	router.Validator = &customValidator{
@@ -21,12 +26,13 @@ func Newserver(store *db.Store) *Server {
 	}
 	router.HTTPErrorHandler = HTTPErrorHandler
 
-	router.POST("/user", server.createUser)
-	router.POST("/account", server.createAccount)
-	router.POST("/post", server.createPost)
-
-	server.router = router
-	return server
+	router.POST("/user", s.createUser)
+	router.POST("/account", s.createAccount)
+	router.GET("/account/:id", s.GetAccounts)
+	router.GET("/account", s.listAccount)
+	router.POST("/post", s.createPost)
+	
+	s.router = router
 }
 
 func (s *Server) Start(path string) error {
