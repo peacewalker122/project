@@ -30,3 +30,5 @@ ALTER TABLE "accounts" ADD FOREIGN KEY ("owner") REFERENCES "users" ("username")
 
 ALTER TABLE "post" ADD FOREIGN KEY ("account_id") REFERENCES "accounts" ("id");
 
+ALTER TABLE "accounts" ADD CONSTRAINT "owner_currency_key" UNIQUE ("owner");
+-- This Code Above To Make Consistent Account Name.

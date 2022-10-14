@@ -79,7 +79,7 @@ func TestCreateUser(t *testing.T) {
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
-				Bodycheck(t, recorder.Body, user)
+				BodycheckUser(t, recorder.Body, user)
 			},
 		},
 		{
@@ -176,7 +176,7 @@ func NewUser(t *testing.T) (user db.User, password string) {
 	return
 }
 
-func Bodycheck(t *testing.T, body *bytes.Buffer, account db.User) {
+func BodycheckUser(t *testing.T, body *bytes.Buffer, account db.User) {
 	data, err := io.ReadAll(body)
 	require.NoError(t, err)
 

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"database/sql"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -33,6 +34,22 @@ func Randomemail() string {
 	return fmt.Sprintf("%v@test.com", Randomstring(7))
 }
 
-func Randombyte() []byte{
+func Randombyte() []byte {
 	return []byte(Randomstring(7))
+}
+
+func Randomint(min, max int64) int64 {
+	return min + rand.Int63n(max-min+1)
+}
+
+func InputSqlString(input string, Min int) (sql sql.NullString, err error) {
+	if len(input) < Min {
+		sql.Valid = false
+		err = fmt.Errorf("length of string Must be Greater Than %v", Min)
+		return sql, err
+	}
+	sql.String = input
+	sql.Valid = true
+
+	return sql, err
 }

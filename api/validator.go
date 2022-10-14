@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/mail"
@@ -17,6 +18,8 @@ type H = map[string]interface{}
 var (
 	AlphaNumCheck = regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
 	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z\\s]+$`).MatchString
+	NumCheckByte  = regexp.MustCompile(`^[0-9]+$`).Match
+	NumCheck      = regexp.MustCompile(`^[0-9]+$`).MatchString
 	InvalidChar   = fmt.Errorf("invalid type must be string or number")
 )
 
@@ -94,30 +97,50 @@ func validatePassword(pass string) error {
 	return nil
 }
 
-func ConverterParam(param string) int {
-	var c echo.Context
-	id := c.Param(param)
+func ConverterParam(context echo.Context, param string) int {
+	if !NumCheck(param) {
+		id := context.Param(param)
 
-	num, err := strconv.Atoi(id)
-	if err != nil {
-		return 0
+		num, err := strconv.Atoi(id)
+		if err != nil {
+			return 0
+		}
+		return num
 	}
-	return num
+	return 0
 }
 
 func ValidateID(num int) error {
-	var c echo.Context
-	if num == 0 {
-		return c.JSON(http.StatusBadRequest, ValidateError("id", fmt.Errorf("nvalid number").Error()))
+	if num < 1 {
+		return fmt.Errorf("invalid number or symbol")
 	}
 	return nil
 }
 
-func ValidateURI(params *GetAccountsParam, URIparam string) error {
-	n := ConverterParam(URIparam)
+func ValidateURI(param *GetAccountsParams, context echo.Context, URIparam string) (*GetAccountsParams, error) {
+	n := ConverterParam(context, URIparam)
 	if err := ValidateID(n); err != nil {
-		return err
+		return nil, err
 	}
-	params.ID = n
+	param.ID = n
+	return param, nil
+}
+
+func ValidateNum(num int) error {
+	s := []byte("num")
+	if NumCheckByte(s) {
+		return errors.New("must be integer")
+	}
+	if num < 1 {
+		return errors.New("must be integer that greater than 0")
+	}
 	return nil
+}
+
+func ValidateQuery(c echo.Context, path ...string) {
+	// var p string
+	// for i := range path {
+	// 	p := path[i]
+	// }
+
 }

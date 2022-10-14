@@ -7,12 +7,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	db "github.com/peacewalker122/project/db/sqlc"
+	"github.com/peacewalker122/project/util"
 )
 
 type CreatePostParams struct {
-	AccountID   int64          `json:"account_id"`
-	PostWord    sql.NullString `json:"post_word"`
-	PostPicture []byte         `json:"post_picture"`
+	AccountID   int64  `json:"account_id"`
+	PostWord    string `json:"post_word"`
+	PostPicture []byte `json:"post_picture"`
 }
 
 func (s *Server) createPost(c echo.Context) error {
@@ -22,6 +23,10 @@ func (s *Server) createPost(c echo.Context) error {
 	}
 	if err := c.Validate(req); err != nil {
 		return err
+	}
+	strings, err := util.InputSqlString(req.PostWord, 3)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ValidateError("post_word", err.Error()))
 	}
 	account, err := s.store.GetAccounts(c.Request().Context(), req.AccountID)
 	if err != nil {
@@ -33,7 +38,7 @@ func (s *Server) createPost(c echo.Context) error {
 
 	arg := db.CreatePostParams{
 		AccountID:   account.ID,
-		PostWord:    req.PostWord,
+		PostWord:    strings,
 		PostPicture: req.PostPicture,
 	}
 

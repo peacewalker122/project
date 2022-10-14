@@ -24,6 +24,7 @@ func (s *Server) createUser(c echo.Context) error {
 	if errors := ValidationCreateUserRequest(req); errors != nil {
 		return c.JSONPretty(http.StatusBadRequest, errors, "    ")
 	}
+
 	hashpass, err := util.HashPassword(req.HashedPassword)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
