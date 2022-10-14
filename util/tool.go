@@ -42,6 +42,10 @@ func Randomint(min, max int64) int64 {
 	return min + rand.Int63n(max-min+1)
 }
 
+func Randomuint() []uint8 {
+	return []uint8(Randomstring(90))
+}
+
 func InputSqlString(input string, Min int) (sql sql.NullString, err error) {
 	if len(input) < Min {
 		sql.Valid = false

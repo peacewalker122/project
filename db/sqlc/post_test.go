@@ -13,11 +13,11 @@ func CreateRandomPost(t *testing.T) Post {
 	account := CreateRandomAccount(t)
 	arg := CreatePostParams{
 		AccountID: account.ID,
-		PostWord: sql.NullString{
+		PictureDescription: sql.NullString{
 			String: util.Randomstring(20),
 			Valid:  true,
 		},
-		PostPicture: util.Randombyte(),
+		PictureID: util.Randomint(1,1000),
 	}
 	post, err := testQueries.CreatePost(context.Background(), arg)
 	require.NoError(t, err)
@@ -30,18 +30,18 @@ func TestCreatePost(t *testing.T) {
 	account := CreateRandomAccount(t)
 	arg := CreatePostParams{
 		AccountID: account.ID,
-		PostWord: sql.NullString{
+		PictureDescription: sql.NullString{
 			String: util.Randomstring(20),
 			Valid:  true,
 		},
-		PostPicture: util.Randombyte(),
+		PictureID: util.Randomint(1,1000),
 	}
 	post, err := testQueries.CreatePost(context.Background(), arg)
 	require.NoError(t, err)
 
 	require.Equal(t, arg.AccountID, post.AccountID)
-	require.Equal(t, arg.PostWord.String, post.PostWord.String)
-	require.Equal(t, arg.PostPicture, post.PostPicture)
+	require.Equal(t, arg.PictureDescription.String, post.PictureDescription.String)
+	require.Equal(t, arg.PictureID, post.PictureID)
 }
 
 func TestGetPost(t *testing.T){
@@ -50,8 +50,8 @@ func TestGetPost(t *testing.T){
 	require.NoError(t,err)
 	require.Equal(t,post.ID,result.ID)
 	require.Equal(t,post.AccountID,result.AccountID)
-	require.Equal(t,post.PostWord.String,result.PostWord.String)
-	require.Equal(t,post.PostPicture,result.PostPicture)
+	require.Equal(t,post.PictureDescription.String,result.PictureDescription.String)
+	require.Equal(t,post.PictureID,result.PictureID)
 }
 
 func TestListPost(t *testing.T){
@@ -72,19 +72,19 @@ func TestListPost(t *testing.T){
 
 func TestUpdatePost(t *testing.T) {
 	NewCaption := util.Randomstring(10)
-	NewPhoto := util.Randombyte()
+	NewPhoto := util.Randomint(1,1000)
 	Post := CreateRandomPost(t)
 	arg := UpdatePostParams{
 		ID:          Post.ID,
-		PostWord:    NullString(NewCaption),
-		PostPicture: NewPhoto,
+		PictureDescription:    NullString(NewCaption),
+		PictureID: NewPhoto,
 	}
 	result,err := testQueries.UpdatePost(context.Background(),arg)
 	require.NoError(t,err)
 	require.Equal(t,Post.ID,result.ID)
 	require.Equal(t,Post.AccountID,result.AccountID)
-	require.Equal(t,NewCaption,result.PostWord.String)
-	require.Equal(t,NewPhoto,result.PostPicture)
+	require.Equal(t,NewCaption,result.PictureDescription.String)
+	require.Equal(t,NewPhoto,result.PictureID)
 }
 
 

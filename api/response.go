@@ -37,17 +37,17 @@ func AccountResponse(input db.Account) CreateAccountsResponse {
 }
 
 type CreatePostResponse struct {
-	ID          int64     `json:"id"`
-	PostWord    string    `json:"post_word"`
-	PostPicture []byte    `json:"post_picture"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID                 int64     `json:"id"`
+	PictureDescription string    `json:"post_word"`
+	PictureID          int64     `json:"post_picture"`
+	CreatedAt          time.Time `json:"created_at"`
 }
 
 func PostResponse(input db.Post) CreatePostResponse {
 	return CreatePostResponse{
-		ID:          input.ID,
-		PostWord:    input.PostWord.String,
-		PostPicture: input.PostPicture,
-		CreatedAt:   input.CreatedAt,
+		ID:                 input.ID,
+		PictureDescription: input.PictureDescription.String,
+		PictureID:          input.PictureID,
+		CreatedAt:          input.CreatedAt,
 	}
 }

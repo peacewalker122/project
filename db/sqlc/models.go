@@ -17,11 +17,11 @@ type Account struct {
 }
 
 type Post struct {
-	ID          int64          `json:"id"`
-	AccountID   int64          `json:"account_id"`
-	PostWord    sql.NullString `json:"post_word"`
-	PostPicture []byte         `json:"post_picture"`
-	CreatedAt   time.Time      `json:"created_at"`
+	ID                 int64          `json:"id"`
+	AccountID          int64          `json:"account_id"`
+	PictureDescription sql.NullString `json:"picture_description"`
+	PictureID          int64          `json:"picture_id"`
+	CreatedAt          time.Time      `json:"created_at"`
 }
 
 type User struct {

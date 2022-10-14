@@ -20,7 +20,7 @@ func (s *Server) testrouterhandle() {
 		validate: validator.New(),
 	}
 	router.HTTPErrorHandler = HTTPErrorHandler
-	router.Binder = new(CustomBinder)
+	// router.Binder = new(CustomBinder)
 
 	router.POST("/user", s.createUser)
 	router.POST("/account", s.createAccount)

@@ -17,8 +17,8 @@ CREATE TABLE "accounts" (
 CREATE TABLE "post" (
   "id" bigserial PRIMARY KEY,
   "account_id" bigint NOT NULL,
-  "post_word" varchar,
-  "post_picture" bytea,
+  "picture_description" varchar,
+  "picture_id" bigint UNIQUE NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 

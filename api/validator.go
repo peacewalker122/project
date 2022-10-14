@@ -20,7 +20,6 @@ var (
 	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z\\s]+$`).MatchString
 	NumCheckByte  = regexp.MustCompile(`^[0-9]+$`).Match
 	NumCheck      = regexp.MustCompile(`^[0-9]+$`).MatchString
-	InvalidChar   = fmt.Errorf("invalid type must be string or number")
 )
 
 type customValidator struct {

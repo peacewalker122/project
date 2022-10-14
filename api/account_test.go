@@ -218,6 +218,7 @@ func TestGetAccount(t *testing.T) {
 
 			url := fmt.Sprintf("/account/%v", tc.id)
 			request := httptest.NewRequest(http.MethodGet, url, nil)
+			
 			request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			server.router.ServeHTTP(recorder, request)
 			tc.recorder(recorder)
