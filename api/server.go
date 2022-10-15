@@ -31,6 +31,7 @@ func (s *Server) routerhandle() {
 	router.GET("/account/:id", s.getAccounts)
 	router.GET("/account", s.listAccount)
 	router.POST("/post", s.createPost)
+	router.GET("/post/:id", s.getPost)
 
 	s.router = router
 }

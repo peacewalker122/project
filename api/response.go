@@ -38,8 +38,8 @@ func AccountResponse(input db.Account) CreateAccountsResponse {
 
 type CreatePostResponse struct {
 	ID                 int64     `json:"id"`
-	PictureDescription string    `json:"post_word"`
-	PictureID          int64     `json:"post_picture"`
+	PictureDescription string    `json:"picture_description"`
+	PictureID          int64     `json:"picture_id"`
 	CreatedAt          time.Time `json:"created_at"`
 }
 

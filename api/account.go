@@ -59,7 +59,7 @@ func (s *Server) getAccounts(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	num, err := ValidateURI(req, c, "id")
+	num, err := ValidateURIAccount(req, c, "id")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}

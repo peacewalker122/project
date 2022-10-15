@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -47,7 +48,87 @@ func TestPost(t *testing.T) {
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, record.Code)
-				//BodycheckPost(t, record.Body, post)
+			},
+		},
+		{
+			name: "Internal-Error(CreatePost)",
+			Body: H{
+				"account_id":          post.AccountID,
+				"picture_description": post.PictureDescription.String,
+				"pictureid":           post.PictureID,
+			},
+			BuildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
+				arg := db.CreatePostParams{
+					AccountID:          acc.ID,
+					PictureDescription: post.PictureDescription,
+					PictureID:          post.PictureID,
+				}
+
+				mock.EXPECT().CreatePost(gomock.Any(), gomock.Eq(arg)).Times(1).Return(db.Post{}, sql.ErrConnDone)
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, record.Code)
+			},
+		},
+		{
+			name: "Internal-Error(GetAccounts)",
+			Body: H{
+				"account_id":          post.AccountID,
+				"picture_description": post.PictureDescription.String,
+				"pictureid":           post.PictureID,
+			},
+			BuildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(db.Account{}, sql.ErrConnDone)
+
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, record.Code)
+			},
+		},
+		{
+			name: "Not-Found(GetAccounts)",
+			Body: H{
+				"account_id":          post.AccountID,
+				"picture_description": post.PictureDescription.String,
+				"pictureid":           post.PictureID,
+			},
+			BuildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(db.Account{}, sql.ErrNoRows)
+
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, record.Code)
+			},
+		},
+		{
+			name: "Wrong-Request(account_id)",
+			Body: H{
+				"account_id":          "post.AccountID",
+				"picture_description": post.PictureDescription.String,
+				"pictureid":           post.PictureID,
+			},
+			BuildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).Times(0)
+
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, record.Code)
+			},
+		},
+		{
+			name: "Wrong-Request(pictureid)",
+			Body: H{
+				"account_id":          post.AccountID,
+				"picture_description": post.PictureDescription.String,
+				"pictureid":           "post.PictureID",
+			},
+			BuildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).Times(0)
+
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, record.Code)
 			},
 		},
 	}
@@ -69,6 +150,81 @@ func TestPost(t *testing.T) {
 
 			url := "/post"
 			req := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(data))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+			server.router.ServeHTTP(recorder, req)
+			tc.CodeRecord(recorder)
+		})
+	}
+}
+
+func TestGetPost(t *testing.T) {
+	user, _ := NewUser(t)
+	acc := NewAcc(user.Username)
+	post := NewPost(int(acc.ID))
+
+	testCases := []struct {
+		name       string
+		id         int64
+		buildStubs func(mock *mockdb.MockStore)
+		CodeRecord func(record *httptest.ResponseRecorder)
+	}{
+		{
+			name: "Ok",
+			id:   post.ID,
+			buildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(1).Return(post, nil)
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, record.Code)
+			},
+		},
+		{
+			name: "Internal-Error",
+			id:   post.ID,
+			buildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(1).Return(db.Post{}, sql.ErrConnDone)
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, record.Code)
+			},
+		},
+		{
+			name: "No-Post",
+			id:   post.ID,
+			buildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(1).Return(db.Post{}, sql.ErrNoRows)
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, record.Code)
+			},
+		},
+		{
+			name: "Wrong-Request",
+			id:   0,
+			buildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(0)
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, record.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := NewTestServer(t, store)
+			recorder := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/post/%v", tc.id)
+			req := httptest.NewRequest(http.MethodGet, url, nil)
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 			server.router.ServeHTTP(recorder, req)

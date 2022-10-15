@@ -111,18 +111,27 @@ func ConverterParam(context echo.Context, param string) int {
 
 func ValidateID(num int) error {
 	if num < 1 {
-		return fmt.Errorf("invalid number or symbol")
+		return fmt.Errorf("invalid number must be greater than 1")
 	}
 	return nil
 }
 
-func ValidateURI(param *GetAccountsParams, context echo.Context, URIparam string) (*GetAccountsParams, error) {
+func ValidateURIAccount(param *GetAccountsParams, context echo.Context, URIparam string) (*GetAccountsParams, error) {
 	n := ConverterParam(context, URIparam)
 	if err := ValidateID(n); err != nil {
 		return nil, err
 	}
 	param.ID = n
 	return param, nil
+}
+
+func ValidateURIPost(param *GetPostParam, context echo.Context, URIparam string) error {
+	n := ConverterParam(context, URIparam)
+	if err := ValidateID(n); err != nil {
+		return err
+	}
+	param.ID = n
+	return nil
 }
 
 func ValidateNum(num int) error {

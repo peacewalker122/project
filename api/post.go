@@ -21,13 +21,14 @@ func (s *Server) createPost(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return err
 	}
-	if err := c.Validate(req); err != nil {
-		return err
+	if err := ValidatePostRequest(req); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 	strings, err := util.InputSqlString(req.PictureDescription, 3)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ValidateError("post_word", err.Error()))
 	}
+
 	account, err := s.store.GetAccounts(c.Request().Context(), req.AccountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -48,4 +49,40 @@ func (s *Server) createPost(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, PostResponse(post))
+}
+
+func ValidatePostRequest(req *CreatePostParams) (errors []string) {
+	if err := ValidateNum(int(req.PictureID)); err != nil {
+		errors = append(errors, ValidateError("pictureid", err.Error()))
+	}
+	if err := ValidateNum(int(req.AccountID)); err != nil {
+		errors = append(errors, ValidateError("account_id", err.Error()))
+	}
+	return errors
+}
+
+type GetPostParam struct {
+	ID int `uri:"id" validate:"required,min=1"`
+}
+
+func (s *Server) getPost(c echo.Context) error {
+	req := new(GetPostParam)
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+	err := ValidateURIPost(req, c, "id")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+	account, err := s.store.GetPost(c.Request().Context(), int64(req.ID))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, PostResponse(account))
 }

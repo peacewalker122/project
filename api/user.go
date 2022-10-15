@@ -49,6 +49,23 @@ func (s *Server) createUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
+type LoginParams struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+func (s *Server) login(c echo.Context) error {
+	req := new(LoginParams)
+	if err := c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := c.Validate(req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, "test")
+}
+
 func ValidationCreateUserRequest(input *CreateUserParam) (errors []string) {
 	if err := ValidateAlphanum(input.Username); err != nil {
 		errors = append(errors, ValidateError("username", err.Error()))

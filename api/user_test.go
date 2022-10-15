@@ -69,9 +69,9 @@ func TestCreateUser(t *testing.T) {
 			},
 			buildstubs: func(mockdb *mockdb.MockStore) {
 				arg := db.CreateUserParams{
-					Username: user.Username,
-					FullName: user.FullName,
-					Email:    user.Email,
+					Username:       user.Username,
+					FullName:       user.FullName,
+					Email:          user.Email,
 					HashedPassword: user.HashedPassword,
 				}
 				mockdb.EXPECT().
@@ -144,7 +144,7 @@ func TestCreateUser(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildstubs(store)
 
-			server := Newserver(store)
+			server := NewTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			// Marshal body data to JSON

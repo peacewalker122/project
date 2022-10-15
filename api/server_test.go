@@ -19,7 +19,8 @@ func (s *Server) testrouterhandle() {
 	router.Validator = &customValidator{
 		validate: validator.New(),
 	}
-	router.HTTPErrorHandler = HTTPErrorHandler
+	// router.HTTPErrorHandler = HTTPErrorHandler
+	// router.Use(middleware.LoggerWithConfig(Logger()))
 	// router.Binder = new(CustomBinder)
 
 	router.POST("/user", s.createUser)
@@ -27,6 +28,7 @@ func (s *Server) testrouterhandle() {
 	router.GET("/account/:id", s.getAccounts)
 	router.GET("/account", s.listAccount)
 	router.POST("/post", s.createPost)
+	router.GET("/post/:id", s.getPost)
 
 	s.router = router
 }
