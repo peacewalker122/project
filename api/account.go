@@ -2,11 +2,13 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 	db "github.com/peacewalker122/project/db/sqlc"
+	"github.com/peacewalker122/project/token"
 )
 
 type CreateAccountParams struct {
@@ -66,7 +68,6 @@ func (s *Server) getAccounts(c echo.Context) error {
 	if err, ok := ValidationGetUser(num); !ok {
 		return c.JSON(http.StatusBadRequest, err)
 	}
-
 	account, err := s.store.GetAccounts(c.Request().Context(), int64(num.ID))
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -74,6 +75,16 @@ func (s *Server) getAccounts(c echo.Context) error {
 		}
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
+	authParam, ok := c.Get(authPayload).(*token.Payload)
+	if !ok {
+		err := errors.New("failed conversion")
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	if account.Owner != authParam.Username {
+		err := errors.New("unauthorized Username for this account")
+		return c.JSON(http.StatusUnauthorized, err.Error())
+	}
+
 	return c.JSON(http.StatusOK, AccountResponse(account))
 }
 

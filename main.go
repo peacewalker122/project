@@ -20,7 +20,10 @@ func main() {
 		log.Fatal("unable to establish the connection due: ", err.Error())
 	}
 	store := db.Newstore(conn)
-	server := api.Newserver(store)
+	server, err := api.Newserver(config, store)
+	if err != nil {
+		log.Fatal("can't establish the connection")
+	}
 
 	if err := server.Start(config.HTTPServerAddress); err != nil {
 		log.Fatal("unable to establish the connection due: ", err.Error())

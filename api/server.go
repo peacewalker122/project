@@ -1,21 +1,35 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	db "github.com/peacewalker122/project/db/sqlc"
+	"github.com/peacewalker122/project/token"
+	"github.com/peacewalker122/project/util"
 )
 
 type Server struct {
+	config util.Config
 	store  db.Store
 	router *echo.Echo
+	token  token.Maker
 }
 
-func Newserver(store db.Store) *Server {
-	server := &Server{store: store}
+func Newserver(c util.Config, store db.Store) (*Server, error) {
+	newtoken, err := token.NewJwt(c.TokenKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token %v", err.Error())
+	}
+	server := &Server{
+		config: c,
+		store:  store,
+		token:  newtoken,
+	}
 	server.routerhandle()
-	return server
+	return server, nil
 }
 
 func (s *Server) routerhandle() {
@@ -25,13 +39,16 @@ func (s *Server) routerhandle() {
 		validate: validator.New(),
 	}
 	router.HTTPErrorHandler = HTTPErrorHandler
-
 	router.POST("/user", s.createUser)
-	router.POST("/account", s.createAccount)
-	router.GET("/account/:id", s.getAccounts)
-	router.GET("/account", s.listAccount)
-	router.POST("/post", s.createPost)
-	router.GET("/post/:id", s.getPost)
+	router.POST("/user/login", s.login)
+
+	authRouter := router.Group("/", authMiddleware(s.token))
+
+	authRouter.POST("/account", s.createAccount)
+	authRouter.GET("/account/:id", s.getAccounts)
+	authRouter.GET("/account", s.listAccount)
+	authRouter.POST("/post", s.createPost)
+	authRouter.GET("/post/:id", s.getPost)
 
 	s.router = router
 }

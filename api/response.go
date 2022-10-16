@@ -3,6 +3,7 @@ package api
 import (
 	"time"
 
+	"github.com/google/uuid"
 	db "github.com/peacewalker122/project/db/sqlc"
 )
 
@@ -50,4 +51,13 @@ func PostResponse(input db.Post) CreatePostResponse {
 		PictureID:          input.PictureID,
 		CreatedAt:          input.CreatedAt,
 	}
+}
+
+type loginResp struct {
+	SessionID             uuid.UUID          `json:"session_id"`
+	RefreshToken          string             `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time          `json:"refresh_token_expires_at"`
+	User                  CreateUserResponse `json:"user"`
+	AccesToken            string             `json:"acc_token"`
+	AccesTokenExpiresAt   time.Time          `json:"acces_token_expire_sat"`
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -56,14 +57,62 @@ type LoginParams struct {
 
 func (s *Server) login(c echo.Context) error {
 	req := new(LoginParams)
+
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := ValidationLoginRequest(req); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 	if err := c.Validate(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, "test")
+	username, err := s.store.GetUser(c.Request().Context(), req.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+		c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	err = util.CheckPassword(req.Password, username.HashedPassword)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, ValidateError("password", err.Error()))
+	}
+
+	token, Accespayload, err := s.token.CreateToken(req.Username, s.config.TokenDuration)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	refreshToken, refreshPayload, err := s.token.CreateToken(req.Username, s.config.RefreshToken)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	arg := db.CreateSessionParams{
+		ID:           refreshPayload.ID,
+		Username:     req.Username,
+		RefreshToken: refreshToken,
+		UserAgent:    c.Request().UserAgent(),
+		ClientIp:     c.RealIP(),
+		IsBlocked:    false,
+		ExpiresAt:    refreshPayload.ExpiredAt,
+	}
+	session, err := s.store.CreateSession(c.Request().Context(), arg)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	resp := loginResp{
+		SessionID:             session.ID,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt.UTC().Local(),
+		User:                  UserResponse(username),
+		AccesToken:            token,
+		AccesTokenExpiresAt:   Accespayload.ExpiredAt.UTC().Local(),
+	}
+	return c.JSON(http.StatusOK, resp)
 }
 
 func ValidationCreateUserRequest(input *CreateUserParam) (errors []string) {
@@ -77,6 +126,16 @@ func ValidationCreateUserRequest(input *CreateUserParam) (errors []string) {
 		errors = append(errors, ValidateError("email", err.Error()))
 	}
 	if err := validatePassword(input.HashedPassword); err != nil {
+		errors = append(errors, ValidateError("password", err.Error()))
+	}
+	return errors
+}
+
+func ValidationLoginRequest(input *LoginParams) (errors []string) {
+	if err := ValidateAlphanum(input.Username); err != nil {
+		errors = append(errors, ValidateError("username", err.Error()))
+	}
+	if err := validatePassword(input.Password); err != nil {
 		errors = append(errors, ValidateError("password", err.Error()))
 	}
 	return errors
