@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	authRefresh    = "RefreshToken"
 	authHeaderkey  = "authorization"
 	authTypeBearer = "bearer"
 	authPayload    = "authorization_payload"

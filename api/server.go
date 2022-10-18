@@ -40,9 +40,10 @@ func (s *Server) routerhandle() {
 	}
 	router.HTTPErrorHandler = HTTPErrorHandler
 	router.POST("/user", s.createUser)
+	router.POST("/token/renew", s.renewToken)
 	router.POST("/user/login", s.login)
 
-	authRouter := router.Group("/", authMiddleware(s.token))
+	authRouter := router.Group("", authMiddleware(s.token))
 
 	authRouter.POST("/account", s.createAccount)
 	authRouter.GET("/account/:id", s.getAccounts)

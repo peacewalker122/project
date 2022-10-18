@@ -24,6 +24,7 @@ func UserResponse(input db.User) CreateUserResponse {
 }
 
 type CreateAccountsResponse struct {
+	ID          int64     `json:"id"`
 	Owner       string    `json:"owner"`
 	AccountType bool      `json:"account_type"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -31,6 +32,7 @@ type CreateAccountsResponse struct {
 
 func AccountResponse(input db.Account) CreateAccountsResponse {
 	return CreateAccountsResponse{
+		ID:          input.ID,
 		Owner:       input.Owner,
 		AccountType: input.AccountType,
 		CreatedAt:   input.CreatedAt,
@@ -40,7 +42,6 @@ func AccountResponse(input db.Account) CreateAccountsResponse {
 type CreatePostResponse struct {
 	ID                 int64     `json:"id"`
 	PictureDescription string    `json:"picture_description"`
-	PictureID          int64     `json:"picture_id"`
 	CreatedAt          time.Time `json:"created_at"`
 }
 
@@ -48,7 +49,6 @@ func PostResponse(input db.Post) CreatePostResponse {
 	return CreatePostResponse{
 		ID:                 input.ID,
 		PictureDescription: input.PictureDescription.String,
-		PictureID:          input.PictureID,
 		CreatedAt:          input.CreatedAt,
 	}
 }
@@ -60,4 +60,9 @@ type loginResp struct {
 	User                  CreateUserResponse `json:"user"`
 	AccesToken            string             `json:"acc_token"`
 	AccesTokenExpiresAt   time.Time          `json:"acces_token_expire_sat"`
+}
+
+type AccesTokenResp struct {
+	RefreshToken          string    `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time `json:"refresh_token_expires_at"`
 }

@@ -125,6 +125,21 @@ func (mr *MockStoreMockRecorder) GetAccounts(arg0, arg1 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccounts", reflect.TypeOf((*MockStore)(nil).GetAccounts), arg0, arg1)
 }
 
+// GetAccountsOwner mocks base method.
+func (m *MockStore) GetAccountsOwner(arg0 context.Context, arg1 string) (db.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccountsOwner", arg0, arg1)
+	ret0, _ := ret[0].(db.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccountsOwner indicates an expected call of GetAccountsOwner.
+func (mr *MockStoreMockRecorder) GetAccountsOwner(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountsOwner", reflect.TypeOf((*MockStore)(nil).GetAccountsOwner), arg0, arg1)
+}
+
 // GetPost mocks base method.
 func (m *MockStore) GetPost(arg0 context.Context, arg1 int64) (db.Post, error) {
 	m.ctrl.T.Helper()

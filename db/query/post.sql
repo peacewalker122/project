@@ -1,10 +1,9 @@
 -- name: CreatePost :one
 INSERT INTO post(
     account_id,
-    picture_description,
-    picture_id
+    picture_description
 ) VALUES(
-    $1,$2,$3
+    $1,$2
 ) RETURNING *;
 
 -- name: GetPost :one
@@ -19,8 +18,7 @@ OFFSET $2;
 
 -- name: UpdatePost :one
 UPDATE post
-SET picture_description = $2, 
-    picture_id = $3
+SET picture_description = $2
 WHERE id = $1
 RETURNING *;
 

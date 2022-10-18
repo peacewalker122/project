@@ -34,18 +34,18 @@ func (s *Server) testrouterhandle() {
 	router.Validator = &customValidator{
 		validate: validator.New(),
 	}
-	router.HTTPErrorHandler = HTTPErrorHandler
+	// router.HTTPErrorHandler = HTTPErrorHandler
 	// router.Use(middleware.LoggerWithConfig(Logger()))
 	// router.Binder = new(CustomBinder)
 	router.POST("/user", s.createUser)
 
-	authRouter := router.Group("/", authMiddleware(s.token))
+	AuthMethod := router.Group("", authMiddleware(s.token))
 
-	authRouter.POST("/account", s.createAccount)
-	authRouter.GET("/account/:id", s.getAccounts)
-	authRouter.GET("/account", s.listAccount)
-	authRouter.POST("/post", s.createPost)
-	authRouter.GET("/post/:id", s.getPost)
+	AuthMethod.POST("/account", s.createAccount)
+	AuthMethod.GET("/account/:id", s.getAccounts)
+	AuthMethod.GET("/account", s.listAccount)
+	AuthMethod.POST("/post", s.createPost)
+	AuthMethod.GET("/post/:id", s.getPost)
 
 	s.router = router
 }

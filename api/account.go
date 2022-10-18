@@ -12,8 +12,7 @@ import (
 )
 
 type CreateAccountParams struct {
-	Owner       string `json:"owner" validate:"require"`
-	AccountType bool   `json:"account_type" validate:"require"`
+	AccountType bool `json:"account_type" validate:"require"`
 }
 
 func (s *Server) createAccount(c echo.Context) error {
@@ -21,12 +20,14 @@ func (s *Server) createAccount(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	if errors := ValidateCreateAccount(req); errors != nil {
-		return c.JSON(http.StatusBadRequest, errors)
+	authParam, ok := c.Get(authPayload).(*token.Payload)
+	if !ok {
+		err := errors.New("failed conversion")
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	arg := db.CreateAccountsParams{
-		Owner:       req.Owner,
+		Owner:       authParam.Username,
 		AccountType: req.AccountType,
 	}
 
@@ -42,14 +43,6 @@ func (s *Server) createAccount(c echo.Context) error {
 	}
 	output := AccountResponse(res)
 	return c.JSON(http.StatusOK, output)
-}
-
-func ValidateCreateAccount(input *CreateAccountParams) (errors []string) {
-	if err := ValidateAlphanum(input.Owner); err != nil {
-		errors = append(errors, ValidateError("owner", err.Error()))
-	}
-
-	return errors
 }
 
 type GetAccountsParams struct {
@@ -114,7 +107,13 @@ func (server *Server) listAccount(c echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		return err
 	}
+	authParam, ok := c.Get(authPayload).(*token.Payload)
+	if !ok {
+		err := errors.New("failed conversion")
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 	arg := db.ListAccountsParams{
+		Owner:  authParam.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}

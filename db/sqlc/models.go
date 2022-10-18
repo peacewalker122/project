@@ -22,7 +22,6 @@ type Post struct {
 	ID                 int64          `json:"id"`
 	AccountID          int64          `json:"account_id"`
 	PictureDescription sql.NullString `json:"picture_description"`
-	PictureID          int64          `json:"picture_id"`
 	CreatedAt          time.Time      `json:"created_at"`
 }
 

@@ -52,8 +52,8 @@ func InputSqlString(input string, Min int) (sql sql.NullString, err error) {
 		err = fmt.Errorf("length of string Must be Greater Than %v", Min)
 		return sql, err
 	}
-	sql.String = input
 	sql.Valid = true
+	sql.String = input
 
 	return sql, err
 }
