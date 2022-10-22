@@ -51,6 +51,51 @@ func (mr *MockStoreMockRecorder) CreateAccounts(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccounts", reflect.TypeOf((*MockStore)(nil).CreateAccounts), arg0, arg1)
 }
 
+// CreateComment_feature mocks base method.
+func (m *MockStore) CreateComment_feature(arg0 context.Context, arg1 db.CreateComment_featureParams) (db.CommentFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateComment_feature", arg0, arg1)
+	ret0, _ := ret[0].(db.CommentFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateComment_feature indicates an expected call of CreateComment_feature.
+func (mr *MockStoreMockRecorder) CreateComment_feature(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateComment_feature", reflect.TypeOf((*MockStore)(nil).CreateComment_feature), arg0, arg1)
+}
+
+// CreateEntries mocks base method.
+func (m *MockStore) CreateEntries(arg0 context.Context, arg1 db.CreateEntriesParams) (db.Entry, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateEntries", arg0, arg1)
+	ret0, _ := ret[0].(db.Entry)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateEntries indicates an expected call of CreateEntries.
+func (mr *MockStoreMockRecorder) CreateEntries(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEntries", reflect.TypeOf((*MockStore)(nil).CreateEntries), arg0, arg1)
+}
+
+// CreateLike_feature mocks base method.
+func (m *MockStore) CreateLike_feature(arg0 context.Context, arg1 db.CreateLike_featureParams) (db.LikeFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateLike_feature", arg0, arg1)
+	ret0, _ := ret[0].(db.LikeFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateLike_feature indicates an expected call of CreateLike_feature.
+func (mr *MockStoreMockRecorder) CreateLike_feature(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLike_feature", reflect.TypeOf((*MockStore)(nil).CreateLike_feature), arg0, arg1)
+}
+
 // CreatePost mocks base method.
 func (m *MockStore) CreatePost(arg0 context.Context, arg1 db.CreatePostParams) (db.Post, error) {
 	m.ctrl.T.Helper()
@@ -64,6 +109,51 @@ func (m *MockStore) CreatePost(arg0 context.Context, arg1 db.CreatePostParams) (
 func (mr *MockStoreMockRecorder) CreatePost(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePost", reflect.TypeOf((*MockStore)(nil).CreatePost), arg0, arg1)
+}
+
+// CreatePost_feature mocks base method.
+func (m *MockStore) CreatePost_feature(arg0 context.Context, arg1 db.CreatePost_featureParams) (db.PostFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePost_feature", arg0, arg1)
+	ret0, _ := ret[0].(db.PostFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreatePost_feature indicates an expected call of CreatePost_feature.
+func (mr *MockStoreMockRecorder) CreatePost_feature(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePost_feature", reflect.TypeOf((*MockStore)(nil).CreatePost_feature), arg0, arg1)
+}
+
+// CreateQouteRetweet_feature mocks base method.
+func (m *MockStore) CreateQouteRetweet_feature(arg0 context.Context, arg1 db.CreateQouteRetweet_featureParams) (db.QouteRetweetFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateQouteRetweet_feature", arg0, arg1)
+	ret0, _ := ret[0].(db.QouteRetweetFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateQouteRetweet_feature indicates an expected call of CreateQouteRetweet_feature.
+func (mr *MockStoreMockRecorder) CreateQouteRetweet_feature(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateQouteRetweet_feature", reflect.TypeOf((*MockStore)(nil).CreateQouteRetweet_feature), arg0, arg1)
+}
+
+// CreateRetweet_feature mocks base method.
+func (m *MockStore) CreateRetweet_feature(arg0 context.Context, arg1 db.CreateRetweet_featureParams) (db.RetweetFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRetweet_feature", arg0, arg1)
+	ret0, _ := ret[0].(db.RetweetFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRetweet_feature indicates an expected call of CreateRetweet_feature.
+func (mr *MockStoreMockRecorder) CreateRetweet_feature(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRetweet_feature", reflect.TypeOf((*MockStore)(nil).CreateRetweet_feature), arg0, arg1)
 }
 
 // CreateSession mocks base method.
@@ -140,6 +230,21 @@ func (mr *MockStoreMockRecorder) GetAccountsOwner(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountsOwner", reflect.TypeOf((*MockStore)(nil).GetAccountsOwner), arg0, arg1)
 }
 
+// GetEntries mocks base method.
+func (m *MockStore) GetEntries(arg0 context.Context, arg1 int64) (db.Entry, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetEntries", arg0, arg1)
+	ret0, _ := ret[0].(db.Entry)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetEntries indicates an expected call of GetEntries.
+func (mr *MockStoreMockRecorder) GetEntries(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEntries", reflect.TypeOf((*MockStore)(nil).GetEntries), arg0, arg1)
+}
+
 // GetPost mocks base method.
 func (m *MockStore) GetPost(arg0 context.Context, arg1 int64) (db.Post, error) {
 	m.ctrl.T.Helper()
@@ -198,6 +303,21 @@ func (m *MockStore) ListAccounts(arg0 context.Context, arg1 db.ListAccountsParam
 func (mr *MockStoreMockRecorder) ListAccounts(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccounts", reflect.TypeOf((*MockStore)(nil).ListAccounts), arg0, arg1)
+}
+
+// ListEntries mocks base method.
+func (m *MockStore) ListEntries(arg0 context.Context, arg1 db.ListEntriesParams) ([]db.Entry, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListEntries", arg0, arg1)
+	ret0, _ := ret[0].([]db.Entry)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListEntries indicates an expected call of ListEntries.
+func (mr *MockStoreMockRecorder) ListEntries(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEntries", reflect.TypeOf((*MockStore)(nil).ListEntries), arg0, arg1)
 }
 
 // ListPost mocks base method.

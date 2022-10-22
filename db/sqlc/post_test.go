@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/peacewalker122/project/util"
@@ -12,11 +11,8 @@ import (
 func CreateRandomPost(t *testing.T) Post {
 	account := CreateRandomAccount(t)
 	arg := CreatePostParams{
-		AccountID: account.ID,
-		PictureDescription: sql.NullString{
-			String: util.Randomstring(20),
-			Valid:  true,
-		},
+		AccountID:          account.AccountsID,
+		PictureDescription: util.Randomstring(32),
 	}
 	post, err := testQueries.CreatePost(context.Background(), arg)
 	require.NoError(t, err)
@@ -28,26 +24,23 @@ func CreateRandomPost(t *testing.T) Post {
 func TestCreatePost(t *testing.T) {
 	account := CreateRandomAccount(t)
 	arg := CreatePostParams{
-		AccountID: account.ID,
-		PictureDescription: sql.NullString{
-			String: util.Randomstring(20),
-			Valid:  true,
-		},
+		AccountID:          account.AccountsID,
+		PictureDescription: util.Randomstring(32),
 	}
 	post, err := testQueries.CreatePost(context.Background(), arg)
 	require.NoError(t, err)
 
 	require.Equal(t, arg.AccountID, post.AccountID)
-	require.Equal(t, arg.PictureDescription.String, post.PictureDescription.String)
+	require.Equal(t, arg.PictureDescription, post.PictureDescription)
 }
 
 func TestGetPost(t *testing.T) {
 	post := CreateRandomPost(t)
-	result, err := testQueries.GetPost(context.Background(), post.ID)
+	result, err := testQueries.GetPost(context.Background(), post.PostID)
 	require.NoError(t, err)
-	require.Equal(t, post.ID, result.ID)
+	require.Equal(t, post.PostID, result.PostID)
 	require.Equal(t, post.AccountID, result.AccountID)
-	require.Equal(t, post.PictureDescription.String, result.PictureDescription.String)
+	require.Equal(t, post.PictureDescription, result.PictureDescription)
 }
 
 func TestListPost(t *testing.T) {
@@ -70,25 +63,12 @@ func TestUpdatePost(t *testing.T) {
 	NewCaption := util.Randomstring(10)
 	Post := CreateRandomPost(t)
 	arg := UpdatePostParams{
-		ID:                 Post.ID,
-		PictureDescription: NullString(NewCaption),
+		PostID:             Post.PostID,
+		PictureDescription: NewCaption,
 	}
 	result, err := testQueries.UpdatePost(context.Background(), arg)
 	require.NoError(t, err)
-	require.Equal(t, Post.ID, result.ID)
+	require.Equal(t, Post.PostID, result.PostID)
 	require.Equal(t, Post.AccountID, result.AccountID)
-	require.Equal(t, NewCaption, result.PictureDescription.String)
-}
-
-func NullString(caption string) sql.NullString {
-	validity := true
-	if len(caption) < 1 {
-		validity = false
-		return sql.NullString{}
-	}
-
-	return sql.NullString{
-		String: caption,
-		Valid:  validity,
-	}
+	require.Equal(t, NewCaption, result.PictureDescription)
 }

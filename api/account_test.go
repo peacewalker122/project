@@ -35,12 +35,12 @@ func TestCreateAccount(t *testing.T) {
 	}{
 		{
 			name: "Ok",
-			body: H{"account_type": acc.AccountType},
+			body: H{"account_type": acc.IsPrivate},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockStore) {
-				arg := db.CreateAccountsParams{Owner: acc.Owner, AccountType: acc.AccountType}
+				arg := db.CreateAccountsParams{Owner: acc.Owner, IsPrivate: acc.IsPrivate}
 				mock.EXPECT().CreateAccounts(gomock.Any(), gomock.Eq(arg)).Times(1).Return(acc, nil)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
@@ -51,7 +51,7 @@ func TestCreateAccount(t *testing.T) {
 		{
 			name: "NonAccount",
 			body: H{
-				"account_type": acc.AccountType,
+				"account_type": acc.IsPrivate,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
@@ -69,7 +69,7 @@ func TestCreateAccount(t *testing.T) {
 			name: "DuplicateAccount",
 			body: H{
 
-				"account_type": acc.AccountType,
+				"account_type": acc.IsPrivate,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
@@ -87,7 +87,7 @@ func TestCreateAccount(t *testing.T) {
 			name: "InternalServerError",
 			body: H{
 
-				"account_type": acc.AccountType,
+				"account_type": acc.IsPrivate,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
@@ -104,7 +104,7 @@ func TestCreateAccount(t *testing.T) {
 		{
 			name: "WrongRequest-account_type",
 			body: H{
-				"account_type": "acc.AccountType",
+				"account_type": "acc.IsPrivate",
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
@@ -159,12 +159,12 @@ func TestGetAccount(t *testing.T) {
 	}{
 		{
 			name: "Ok",
-			id:   int(acc.ID),
+			id:   int(acc.AccountsID),
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockStore) {
-				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.ID)).Times(1).Return(acc, nil)
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.AccountsID)).Times(1).Return(acc, nil)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, record.Code)
@@ -173,12 +173,12 @@ func TestGetAccount(t *testing.T) {
 		},
 		{
 			name: "No-Account",
-			id:   int(acc.ID),
+			id:   int(acc.AccountsID),
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockStore) {
-				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.ID)).Times(1).Return(db.Account{}, sql.ErrNoRows)
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.AccountsID)).Times(1).Return(db.Account{}, sql.ErrNoRows)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, record.Code)
@@ -186,12 +186,12 @@ func TestGetAccount(t *testing.T) {
 		},
 		{
 			name: "Internal-Error",
-			id:   int(acc.ID),
+			id:   int(acc.AccountsID),
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockStore) {
-				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.ID)).Times(1).Return(db.Account{}, sql.ErrConnDone)
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.AccountsID)).Times(1).Return(db.Account{}, sql.ErrConnDone)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, record.Code)
@@ -204,7 +204,7 @@ func TestGetAccount(t *testing.T) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockStore) {
-				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.ID)).Times(0)
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.AccountsID)).Times(0)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, record.Code)
@@ -325,13 +325,10 @@ func TestListAccount(t *testing.T) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockStore) {
-				arg := db.ListAccountsParams{
-					Limit:  int32(n),
-					Offset: 0,
-				}
-				mock.EXPECT().ListAccounts(gomock.Any(), gomock.Eq(arg)).Times(0)
+				mock.EXPECT().ListAccounts(gomock.Any(), gomock.Any()).Times(0)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
+				log.Println(record.Body)
 				require.Equal(t, http.StatusBadRequest, record.Code)
 			},
 		},
@@ -367,9 +364,9 @@ func TestListAccount(t *testing.T) {
 
 func NewAcc(random string) db.Account {
 	return db.Account{
-		ID:          util.Randomint(1, 100),
-		Owner:       random,
-		AccountType: true,
+		AccountsID: util.Randomint(1,1000),
+		Owner:      random,
+		IsPrivate:  false,
 	}
 }
 
@@ -382,7 +379,7 @@ func BodycheckAccount(t *testing.T, body *bytes.Buffer, account db.Account) {
 
 	require.NoError(t, err)
 	require.Equal(t, account.Owner, gotAccount.Owner)
-	require.Equal(t, account.AccountType, gotAccount.AccountType)
+	require.Equal(t, account.IsPrivate, gotAccount.IsPrivate)
 	// Just Create The Testing Like The Returning API
 }
 

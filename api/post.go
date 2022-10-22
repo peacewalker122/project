@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/token"
-	"github.com/peacewalker122/project/util"
 )
 
 type CreatePostParams struct {
@@ -22,9 +21,8 @@ func (s *Server) createPost(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return err
 	}
-	strings, err := util.InputSqlString(req.PictureDescription, 3)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ValidateError("post_word", err.Error()))
+	if err := ValidateAlphanum(req.PictureDescription); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	account, err := s.store.GetAccounts(c.Request().Context(), req.AccountID)
 	if err != nil {
@@ -44,8 +42,8 @@ func (s *Server) createPost(c echo.Context) error {
 	}
 
 	arg := db.CreatePostParams{
-		AccountID:          account.ID,
-		PictureDescription: strings,
+		AccountID:          account.AccountsID,
+		PictureDescription: req.PictureDescription,
 	}
 
 	post, err := s.store.CreatePost(c.Request().Context(), arg)
@@ -92,7 +90,7 @@ func (s *Server) getPost(c echo.Context) error {
 		}
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	if acc.ID != post.AccountID {
+	if acc.AccountsID != post.AccountID {
 		err := errors.New("unauthorized username")
 		return c.JSON(http.StatusUnauthorized, err.Error())
 	}

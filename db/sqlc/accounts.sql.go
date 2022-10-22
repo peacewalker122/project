@@ -12,48 +12,48 @@ import (
 const createAccounts = `-- name: CreateAccounts :one
 INSERT INTO accounts(
     owner,
-    account_type
+    is_private
 ) VALUES(
     $1,$2
-) RETURNING id, owner, account_type, created_at
+) RETURNING accounts_id, owner, is_private, created_at
 `
 
 type CreateAccountsParams struct {
-	Owner       string `json:"owner"`
-	AccountType bool   `json:"account_type"`
+	Owner     string `json:"owner"`
+	IsPrivate bool   `json:"is_private"`
 }
 
 func (q *Queries) CreateAccounts(ctx context.Context, arg CreateAccountsParams) (Account, error) {
-	row := q.db.QueryRowContext(ctx, createAccounts, arg.Owner, arg.AccountType)
+	row := q.db.QueryRowContext(ctx, createAccounts, arg.Owner, arg.IsPrivate)
 	var i Account
 	err := row.Scan(
-		&i.ID,
+		&i.AccountsID,
 		&i.Owner,
-		&i.AccountType,
+		&i.IsPrivate,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getAccounts = `-- name: GetAccounts :one
-SELECT id, owner, account_type, created_at FROM accounts
-WHERE id = $1 LIMIT 1
+SELECT accounts_id, owner, is_private, created_at FROM accounts
+WHERE accounts_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetAccounts(ctx context.Context, id int64) (Account, error) {
-	row := q.db.QueryRowContext(ctx, getAccounts, id)
+func (q *Queries) GetAccounts(ctx context.Context, accountsID int64) (Account, error) {
+	row := q.db.QueryRowContext(ctx, getAccounts, accountsID)
 	var i Account
 	err := row.Scan(
-		&i.ID,
+		&i.AccountsID,
 		&i.Owner,
-		&i.AccountType,
+		&i.IsPrivate,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getAccountsOwner = `-- name: GetAccountsOwner :one
-SELECT id, owner, account_type, created_at FROM accounts
+SELECT accounts_id, owner, is_private, created_at FROM accounts
 WHERE owner = $1 LIMIT 1
 `
 
@@ -61,18 +61,18 @@ func (q *Queries) GetAccountsOwner(ctx context.Context, owner string) (Account, 
 	row := q.db.QueryRowContext(ctx, getAccountsOwner, owner)
 	var i Account
 	err := row.Scan(
-		&i.ID,
+		&i.AccountsID,
 		&i.Owner,
-		&i.AccountType,
+		&i.IsPrivate,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT id, owner, account_type, created_at FROM accounts
+SELECT accounts_id, owner, is_private, created_at FROM accounts
 WHERE owner = $1
-ORDER BY id
+ORDER BY accounts_id
 LIMIT $2
 OFFSET $3
 `
@@ -93,9 +93,9 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 	for rows.Next() {
 		var i Account
 		if err := rows.Scan(
-			&i.ID,
+			&i.AccountsID,
 			&i.Owner,
-			&i.AccountType,
+			&i.IsPrivate,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err

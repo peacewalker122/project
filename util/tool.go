@@ -57,3 +57,9 @@ func InputSqlString(input string, Min int) (sql sql.NullString, err error) {
 
 	return sql, err
 }
+
+func RandomType() string {
+	c := []string{"like", "retweet", "comment", "qoute-retweet"}
+	l := len(c)
+	return c[rand.Intn(l)]
+}

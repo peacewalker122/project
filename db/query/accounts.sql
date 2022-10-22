@@ -1,19 +1,19 @@
 -- name: CreateAccounts :one
 INSERT INTO accounts(
     owner,
-    account_type
+    is_private
 ) VALUES(
     $1,$2
 ) RETURNING *;
 
 -- name: GetAccounts :one
 SELECT * FROM accounts
-WHERE id = $1 LIMIT 1;
+WHERE accounts_id = $1 LIMIT 1;
 
 -- name: ListAccounts :many
 SELECT * FROM accounts
 WHERE owner = $1
-ORDER BY id
+ORDER BY accounts_id
 LIMIT $2
 OFFSET $3;
 

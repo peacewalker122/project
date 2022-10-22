@@ -5,24 +5,70 @@
 package db
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type Account struct {
-	ID          int64     `json:"id"`
-	Owner       string    `json:"owner"`
-	AccountType bool      `json:"account_type"`
-	CreatedAt   time.Time `json:"created_at"`
+	AccountsID int64     `json:"accounts_id"`
+	Owner      string    `json:"owner"`
+	IsPrivate  bool      `json:"is_private"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type CommentFeature struct {
+	FromAccountID int64     `json:"from_account_id"`
+	Comment       string    `json:"comment"`
+	PostID        int64     `json:"post_id"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+type Entry struct {
+	EntriesID     int64     `json:"entries_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	PostID        int64     `json:"post_id"`
+	TypeEntries   string    `json:"type_entries"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+type LikeFeature struct {
+	FromAccountID int64     `json:"from_account_id"`
+	IsLike        bool      `json:"is_like"`
+	PostID        int64     `json:"post_id"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 type Post struct {
-	ID                 int64          `json:"id"`
-	AccountID          int64          `json:"account_id"`
-	PictureDescription sql.NullString `json:"picture_description"`
-	CreatedAt          time.Time      `json:"created_at"`
+	PostID             int64     `json:"post_id"`
+	AccountID          int64     `json:"account_id"`
+	PictureDescription string    `json:"picture_description"`
+	CreatedAt          time.Time `json:"created_at"`
+}
+
+type PostFeature struct {
+	FromAccountID   int64     `json:"from_account_id"`
+	PostID          int64     `json:"post_id"`
+	SumComment      string    `json:"sum_comment"`
+	SumLike         int64     `json:"sum_like"`
+	SumRetweet      int64     `json:"sum_retweet"`
+	SumQouteRetweet int64     `json:"sum_qoute_retweet"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+type QouteRetweetFeature struct {
+	FromAccountID int64     `json:"from_account_id"`
+	QouteRetweet  bool      `json:"qoute_retweet"`
+	Qoute         string    `json:"qoute"`
+	PostID        int64     `json:"post_id"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+type RetweetFeature struct {
+	FromAccountID int64     `json:"from_account_id"`
+	Retweet       bool      `json:"retweet"`
+	PostID        int64     `json:"post_id"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 type Session struct {

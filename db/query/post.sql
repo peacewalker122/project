@@ -8,20 +8,20 @@ INSERT INTO post(
 
 -- name: GetPost :one
 SELECT * FROM post
-WHERE id = $1 LIMIT 1;
+WHERE post_id = $1 LIMIT 1;
 
 -- name: ListPost :many
 SELECT * FROM post
-ORDER BY id
+ORDER BY post_id
 LIMIT $1
 OFFSET $2;
 
 -- name: UpdatePost :one
 UPDATE post
 SET picture_description = $2
-WHERE id = $1
+WHERE post_id = $1
 RETURNING *;
 
 -- name: DeletePost :exec
 DELETE FROM post
-WHERE id = $1;
+WHERE post_id = $1;

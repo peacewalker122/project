@@ -32,9 +32,9 @@ type CreateAccountsResponse struct {
 
 func AccountResponse(input db.Account) CreateAccountsResponse {
 	return CreateAccountsResponse{
-		ID:          input.ID,
+		ID:          input.AccountsID,
 		Owner:       input.Owner,
-		AccountType: input.AccountType,
+		AccountType: input.IsPrivate,
 		CreatedAt:   input.CreatedAt,
 	}
 }
@@ -47,8 +47,8 @@ type CreatePostResponse struct {
 
 func PostResponse(input db.Post) CreatePostResponse {
 	return CreatePostResponse{
-		ID:                 input.ID,
-		PictureDescription: input.PictureDescription.String,
+		ID:                 input.PostID,
+		PictureDescription: input.PictureDescription,
 		CreatedAt:          input.CreatedAt,
 	}
 }

@@ -21,10 +21,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPost(t *testing.T) {
+func TestCreatePost(t *testing.T) {
 	user, _ := NewUser(t)
 	acc := NewAcc(user.Username)
-	post := NewPost(int(acc.ID))
+	post := NewPost(int(acc.AccountsID))
 
 	TestCases := []struct {
 		name       string
@@ -37,7 +37,7 @@ func TestPost(t *testing.T) {
 			name: "Ok",
 			Body: H{
 				"account_id":          post.AccountID,
-				"picture_description": post.PictureDescription.String,
+				"picture_description": post.PictureDescription,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
@@ -45,7 +45,7 @@ func TestPost(t *testing.T) {
 			BuildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
 				arg := db.CreatePostParams{
-					AccountID:          acc.ID,
+					AccountID:          acc.AccountsID,
 					PictureDescription: post.PictureDescription,
 				}
 
@@ -59,7 +59,7 @@ func TestPost(t *testing.T) {
 			name: "Internal-Error(CreatePost)",
 			Body: H{
 				"account_id":          post.AccountID,
-				"picture_description": post.PictureDescription.String,
+				"picture_description": post.PictureDescription,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
@@ -67,7 +67,7 @@ func TestPost(t *testing.T) {
 			BuildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
 				arg := db.CreatePostParams{
-					AccountID:          acc.ID,
+					AccountID:          acc.AccountsID,
 					PictureDescription: post.PictureDescription,
 				}
 
@@ -81,25 +81,7 @@ func TestPost(t *testing.T) {
 			name: "Wrong-Request(account_id)",
 			Body: H{
 				"account_id":          "post.AccountID",
-				"picture_description": post.PictureDescription.String,
-			},
-			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
-			},
-			BuildStubs: func(mock *mockdb.MockStore) {
-				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).Times(0)
-
-			},
-			CodeRecord: func(record *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, record.Code)
-			},
-		},
-		{
-			name: "Wrong-Request(pictureid)",
-			Body: H{
-				"account_id":          post.AccountID,
-				"picture_description": post.PictureDescription.String,
-				"pictureid":           "post.PictureID",
+				"picture_description": post.PictureDescription,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
@@ -145,7 +127,7 @@ func TestGetPost(t *testing.T) {
 	user2, _ := NewUser(t)
 	acc := NewAcc(user.Username)
 	acc2 := NewAcc(user2.Username)
-	post := NewPost(int(acc.ID))
+	post := NewPost(int(acc.AccountsID))
 
 	testCases := []struct {
 		name       string
@@ -156,13 +138,13 @@ func TestGetPost(t *testing.T) {
 	}{
 		{
 			name: "Ok",
-			id:   post.ID,
+			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
-				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(1).Return(post, nil)
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, record.Code)
@@ -171,13 +153,13 @@ func TestGetPost(t *testing.T) {
 		},
 		{
 			name: "Unauthorized-Username",
-			id:   post.ID,
+			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user2.Username, authTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user2.Username)).Times(1).Return(acc2, nil)
-				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(1).Return(post, nil)
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, record.Code)
@@ -185,7 +167,7 @@ func TestGetPost(t *testing.T) {
 		},
 		{
 			name: "Nonexist-Username",
-			id:   post.ID,
+			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
@@ -199,13 +181,13 @@ func TestGetPost(t *testing.T) {
 		},
 		{
 			name: "Internal-Error",
-			id:   post.ID,
+			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
-				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(1).Return(db.Post{}, sql.ErrConnDone)
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(db.Post{}, sql.ErrConnDone)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, record.Code)
@@ -213,7 +195,7 @@ func TestGetPost(t *testing.T) {
 		},
 		{
 			name: "Internal-Error(GetOwner)",
-			id:   post.ID,
+			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
@@ -226,13 +208,13 @@ func TestGetPost(t *testing.T) {
 		},
 		{
 			name: "No-Post",
-			id:   post.ID,
+			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
-				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(1).Return(db.Post{}, sql.ErrNoRows)
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(db.Post{}, sql.ErrNoRows)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, record.Code)
@@ -246,7 +228,7 @@ func TestGetPost(t *testing.T) {
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(0)
-				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(0)
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(0)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, record.Code)
@@ -279,12 +261,9 @@ func TestGetPost(t *testing.T) {
 
 func NewPost(AccID int) db.Post {
 	return db.Post{
-		ID:        util.Randomint(1, 100),
-		AccountID: int64(AccID),
-		PictureDescription: sql.NullString{
-			String: util.Randomusername(),
-			Valid:  true,
-		},
+		PostID:             util.Randomint(1, 100),
+		AccountID:          int64(AccID),
+		PictureDescription: util.Randomusername(),
 	}
 }
 
@@ -296,7 +275,7 @@ func BodycheckPost(t *testing.T, body *bytes.Buffer, Post db.Post) {
 	err = json.Unmarshal(data, &gotPost)
 
 	require.NoError(t, err)
-	require.Equal(t, Post.ID, gotPost.ID)
-	require.Equal(t, Post.PictureDescription.String, gotPost.PictureDescription.String)
+	require.Equal(t, Post.PostID, gotPost.PostID)
+	require.Equal(t, Post.PictureDescription, gotPost.PictureDescription)
 	// Just Create The Testing Like The Returning API
 }

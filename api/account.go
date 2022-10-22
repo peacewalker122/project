@@ -27,8 +27,8 @@ func (s *Server) createAccount(c echo.Context) error {
 	}
 
 	arg := db.CreateAccountsParams{
-		Owner:       authParam.Username,
-		AccountType: req.AccountType,
+		Owner:     authParam.Username,
+		IsPrivate: req.AccountType,
 	}
 
 	res, err := s.store.CreateAccounts(c.Request().Context(), arg)
@@ -105,7 +105,7 @@ func (server *Server) listAccount(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	if err := c.Validate(req); err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	authParam, ok := c.Get(authPayload).(*token.Payload)
 	if !ok {
@@ -120,7 +120,7 @@ func (server *Server) listAccount(c echo.Context) error {
 
 	accounts, err := server.store.ListAccounts(c.Request().Context(), arg)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, accounts)
