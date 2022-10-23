@@ -16,7 +16,7 @@ type H = map[string]interface{}
 
 // A for Allow
 var (
-	AlphaNumCheck = regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
+	AlphaNumCheck = regexp.MustCompile(`^[a-zA-Z0-9_\s]+$`).MatchString
 	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z\\s]+$`).MatchString
 	NumCheckByte  = regexp.MustCompile(`^[0-9]+$`).Match
 	NumCheck      = regexp.MustCompile(`^[0-9]+$`).MatchString
@@ -143,12 +143,4 @@ func ValidateNum(num int) error {
 		return errors.New("must be integer that greater than 0")
 	}
 	return nil
-}
-
-func ValidateQuery(c echo.Context, path ...string) {
-	// var p string
-	// for i := range path {
-	// 	p := path[i]
-	// }
-
 }

@@ -28,12 +28,11 @@ CREATE TABLE "qoute_retweet_feature" (
 );
 
 CREATE TABLE "post_feature" (
-  "from_account_id" bigint NOT NULL,
   "post_id" bigserial PRIMARY KEY,
-  "sum_comment" varchar NOT NULL,
-  "sum_like" bigint NOT NULL,
-  "sum_retweet" bigint NOT NULL,
-  "sum_qoute_retweet" bigint NOT NULL,
+  "sum_comment" bigint NOT NULL DEFAULT 0,
+  "sum_like" bigint NOT NULL DEFAULT 0,
+  "sum_retweet" bigint NOT NULL DEFAULT 0,
+  "sum_qoute_retweet" bigint NOT NULL DEFAULT 0,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
@@ -52,7 +51,5 @@ ALTER TABLE "retweet_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("po
 ALTER TABLE "qoute_retweet_feature" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
 
 ALTER TABLE "qoute_retweet_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");
-
-ALTER TABLE "post_feature" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
 
 ALTER TABLE "post_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");

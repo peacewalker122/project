@@ -8,13 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	L  = "like"
-	R  = "retweet"
-	C  = "comment"
-	QR = "qoute-retweet"
-)
-
 func createRandomEntry(t *testing.T) Entry {
 	acc := CreateRandomAccount(t)
 	post := CreateRandomPost(t)

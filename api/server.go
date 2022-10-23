@@ -50,6 +50,7 @@ func (s *Server) routerhandle() {
 	authRouter.GET("/account", s.listAccount)
 	authRouter.POST("/post", s.createPost)
 	authRouter.GET("/post/:id", s.getPost)
+	authRouter.POST("/post/like", s.LikePost)
 
 	s.router = router
 }

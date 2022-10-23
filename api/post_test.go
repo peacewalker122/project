@@ -25,6 +25,7 @@ func TestCreatePost(t *testing.T) {
 	user, _ := NewUser(t)
 	acc := NewAcc(user.Username)
 	post := NewPost(int(acc.AccountsID))
+	postfeature := NewPostFeature(int(post.PostID))
 
 	TestCases := []struct {
 		name       string
@@ -50,6 +51,7 @@ func TestCreatePost(t *testing.T) {
 				}
 
 				mock.EXPECT().CreatePost(gomock.Any(), gomock.Eq(arg)).Times(1).Return(post, nil)
+				mock.EXPECT().CreatePost_feature(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(postfeature, nil)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, record.Code)
@@ -66,12 +68,28 @@ func TestCreatePost(t *testing.T) {
 			},
 			BuildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
-				arg := db.CreatePostParams{
-					AccountID:          acc.AccountsID,
-					PictureDescription: post.PictureDescription,
-				}
 
-				mock.EXPECT().CreatePost(gomock.Any(), gomock.Eq(arg)).Times(1).Return(db.Post{}, sql.ErrConnDone)
+				mock.EXPECT().CreatePost(gomock.Any(), gomock.Any()).Times(1).Return(db.Post{}, sql.ErrConnDone)
+				mock.EXPECT().CreatePost_feature(gomock.Any(), gomock.Any()).Times(0)
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, record.Code)
+			},
+		},
+		{
+			name: "Internal-Error(CreatePostFeature)",
+			Body: H{
+				"account_id":          post.AccountID,
+				"picture_description": post.PictureDescription,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
+				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+			},
+			BuildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
+
+				mock.EXPECT().CreatePost(gomock.Any(), gomock.Any()).Times(1).Return(post, nil)
+				mock.EXPECT().CreatePost_feature(gomock.Any(), gomock.Any()).Times(1).Return(db.PostFeature{}, sql.ErrConnDone)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, record.Code)
@@ -128,7 +146,7 @@ func TestGetPost(t *testing.T) {
 	acc := NewAcc(user.Username)
 	acc2 := NewAcc(user2.Username)
 	post := NewPost(int(acc.AccountsID))
-
+	postfeature := NewPostFeature(int(post.PostID))
 	testCases := []struct {
 		name       string
 		id         int64
@@ -145,6 +163,7 @@ func TestGetPost(t *testing.T) {
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
+				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(postfeature, nil)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, record.Code)
@@ -160,6 +179,7 @@ func TestGetPost(t *testing.T) {
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user2.Username)).Times(1).Return(acc2, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
+				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(postfeature, nil)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, record.Code)
@@ -173,14 +193,15 @@ func TestGetPost(t *testing.T) {
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Any()).Times(1).Return(db.Account{}, sql.ErrNoRows)
-				//mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.ID)).Times(1).Return(post, nil)
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Any()).Times(0)
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Any()).Times(0)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, record.Code)
 			},
 		},
 		{
-			name: "Internal-Error",
+			name: "Internal-Error(Get-Post)",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
@@ -188,6 +209,22 @@ func TestGetPost(t *testing.T) {
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(db.Post{}, sql.ErrConnDone)
+				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(0)
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, record.Code)
+			},
+		},
+		{
+			name: "Internal-Error(Get-Post_feature)",
+			id:   post.PostID,
+			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
+				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+			},
+			buildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
+				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(1).Return(db.PostFeature{}, sql.ErrConnDone)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, record.Code)
@@ -207,7 +244,7 @@ func TestGetPost(t *testing.T) {
 			},
 		},
 		{
-			name: "No-Post",
+			name: "No-Post(Post)",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
@@ -215,6 +252,22 @@ func TestGetPost(t *testing.T) {
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(db.Post{}, sql.ErrNoRows)
+				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(0)
+			},
+			CodeRecord: func(record *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, record.Code)
+			},
+		},
+		{
+			name: "No-Post(Post-feature)",
+			id:   post.PostID,
+			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
+				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+			},
+			buildStubs: func(mock *mockdb.MockStore) {
+				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
+				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
+				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(1).Return(db.PostFeature{}, sql.ErrNoRows)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, record.Code)
@@ -229,6 +282,7 @@ func TestGetPost(t *testing.T) {
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(0)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(0)
+				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(0)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, record.Code)
@@ -264,6 +318,16 @@ func NewPost(AccID int) db.Post {
 		PostID:             util.Randomint(1, 100),
 		AccountID:          int64(AccID),
 		PictureDescription: util.Randomusername(),
+	}
+}
+
+func NewPostFeature(PostID int) db.PostFeature {
+	return db.PostFeature{
+		PostID:          int64(PostID),
+		SumComment:      util.Randomint(1, 100),
+		SumLike:         util.Randomint(1, 1000),
+		SumRetweet:      util.Randomint(1, 100),
+		SumQouteRetweet: util.Randomint(1, 100),
 	}
 }
 

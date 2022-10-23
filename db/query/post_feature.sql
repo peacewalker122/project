@@ -37,13 +37,22 @@ INSERT INTO qoute_retweet_feature(
 
 -- name: CreatePost_feature :one
 INSERT INTO post_feature(
-    from_account_id,
-    post_id,
-    sum_comment,
-    sum_like,
-    sum_retweet,
-    sum_qoute_retweet
+    post_id
 ) values(
-    $1,$2,$3,$4,$5,$6
+    $1
 ) RETURNING *;
 
+-- name: GetPost_feature :one
+SELECT * FROM post_feature
+WHERE post_id = $1 LIMIT 1;
+
+-- name: GetPost_feature_Update :one
+SELECT * FROM post_feature
+WHERE post_id = $1 LIMIT 1
+FOR NO KEY UPDATE;
+
+-- name: UpdatePost_feature :one
+UPDATE post_feature
+SET sum_comment = $2, sum_like = $3, sum_retweet = $4, sum_qoute_retweet =$5
+WHERE post_id = $1
+RETURNING *; 

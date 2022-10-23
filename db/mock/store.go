@@ -112,7 +112,7 @@ func (mr *MockStoreMockRecorder) CreatePost(arg0, arg1 interface{}) *gomock.Call
 }
 
 // CreatePost_feature mocks base method.
-func (m *MockStore) CreatePost_feature(arg0 context.Context, arg1 db.CreatePost_featureParams) (db.PostFeature, error) {
+func (m *MockStore) CreatePost_feature(arg0 context.Context, arg1 int64) (db.PostFeature, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePost_feature", arg0, arg1)
 	ret0, _ := ret[0].(db.PostFeature)
@@ -260,6 +260,36 @@ func (mr *MockStoreMockRecorder) GetPost(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPost", reflect.TypeOf((*MockStore)(nil).GetPost), arg0, arg1)
 }
 
+// GetPost_feature mocks base method.
+func (m *MockStore) GetPost_feature(arg0 context.Context, arg1 int64) (db.PostFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPost_feature", arg0, arg1)
+	ret0, _ := ret[0].(db.PostFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPost_feature indicates an expected call of GetPost_feature.
+func (mr *MockStoreMockRecorder) GetPost_feature(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPost_feature", reflect.TypeOf((*MockStore)(nil).GetPost_feature), arg0, arg1)
+}
+
+// GetPost_feature_Update mocks base method.
+func (m *MockStore) GetPost_feature_Update(arg0 context.Context, arg1 int64) (db.PostFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPost_feature_Update", arg0, arg1)
+	ret0, _ := ret[0].(db.PostFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPost_feature_Update indicates an expected call of GetPost_feature_Update.
+func (mr *MockStoreMockRecorder) GetPost_feature_Update(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPost_feature_Update", reflect.TypeOf((*MockStore)(nil).GetPost_feature_Update), arg0, arg1)
+}
+
 // GetSession mocks base method.
 func (m *MockStore) GetSession(arg0 context.Context, arg1 uuid.UUID) (db.Session, error) {
 	m.ctrl.T.Helper()
@@ -363,4 +393,19 @@ func (m *MockStore) UpdatePost(arg0 context.Context, arg1 db.UpdatePostParams) (
 func (mr *MockStoreMockRecorder) UpdatePost(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePost", reflect.TypeOf((*MockStore)(nil).UpdatePost), arg0, arg1)
+}
+
+// UpdatePost_feature mocks base method.
+func (m *MockStore) UpdatePost_feature(arg0 context.Context, arg1 db.UpdatePost_featureParams) (db.PostFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePost_feature", arg0, arg1)
+	ret0, _ := ret[0].(db.PostFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdatePost_feature indicates an expected call of UpdatePost_feature.
+func (mr *MockStoreMockRecorder) UpdatePost_feature(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePost_feature", reflect.TypeOf((*MockStore)(nil).UpdatePost_feature), arg0, arg1)
 }

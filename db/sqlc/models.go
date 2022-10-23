@@ -47,9 +47,8 @@ type Post struct {
 }
 
 type PostFeature struct {
-	FromAccountID   int64     `json:"from_account_id"`
 	PostID          int64     `json:"post_id"`
-	SumComment      string    `json:"sum_comment"`
+	SumComment      int64     `json:"sum_comment"`
 	SumLike         int64     `json:"sum_like"`
 	SumRetweet      int64     `json:"sum_retweet"`
 	SumQouteRetweet int64     `json:"sum_qoute_retweet"`

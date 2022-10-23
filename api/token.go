@@ -55,8 +55,8 @@ func (s *Server) renewToken(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	rsp := AccesTokenResp{
-		RefreshToken:          accesToken,
-		RefreshTokenExpiresAt: accesPayload.ExpiredAt.Local().UTC(),
+		AccesToken:          accesToken,
+		AccesTokenExpiresAt: accesPayload.ExpiredAt.Local().UTC(),
 	}
 	return c.JSON(http.StatusOK, rsp)
 }

@@ -16,7 +16,7 @@ type Querier interface {
 	CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error)
 	CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) (LikeFeature, error)
 	CreatePost(ctx context.Context, arg CreatePostParams) (Post, error)
-	CreatePost_feature(ctx context.Context, arg CreatePost_featureParams) (PostFeature, error)
+	CreatePost_feature(ctx context.Context, postID int64) (PostFeature, error)
 	CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (QouteRetweetFeature, error)
 	CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) (RetweetFeature, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
@@ -26,6 +26,8 @@ type Querier interface {
 	GetAccountsOwner(ctx context.Context, owner string) (Account, error)
 	GetEntries(ctx context.Context, entriesID int64) (Entry, error)
 	GetPost(ctx context.Context, postID int64) (Post, error)
+	GetPost_feature(ctx context.Context, postID int64) (PostFeature, error)
+	GetPost_feature_Update(ctx context.Context, postID int64) (PostFeature, error)
 	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
@@ -33,6 +35,7 @@ type Querier interface {
 	ListPost(ctx context.Context, arg ListPostParams) ([]Post, error)
 	ListUser(ctx context.Context, arg ListUserParams) ([]User, error)
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
+	UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error)
 }
 
 var _ Querier = (*Queries)(nil)

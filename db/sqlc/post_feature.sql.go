@@ -67,38 +67,16 @@ func (q *Queries) CreateLike_feature(ctx context.Context, arg CreateLike_feature
 
 const createPost_feature = `-- name: CreatePost_feature :one
 INSERT INTO post_feature(
-    from_account_id,
-    post_id,
-    sum_comment,
-    sum_like,
-    sum_retweet,
-    sum_qoute_retweet
+    post_id
 ) values(
-    $1,$2,$3,$4,$5,$6
-) RETURNING from_account_id, post_id, sum_comment, sum_like, sum_retweet, sum_qoute_retweet, created_at
+    $1
+) RETURNING post_id, sum_comment, sum_like, sum_retweet, sum_qoute_retweet, created_at
 `
 
-type CreatePost_featureParams struct {
-	FromAccountID   int64  `json:"from_account_id"`
-	PostID          int64  `json:"post_id"`
-	SumComment      string `json:"sum_comment"`
-	SumLike         int64  `json:"sum_like"`
-	SumRetweet      int64  `json:"sum_retweet"`
-	SumQouteRetweet int64  `json:"sum_qoute_retweet"`
-}
-
-func (q *Queries) CreatePost_feature(ctx context.Context, arg CreatePost_featureParams) (PostFeature, error) {
-	row := q.db.QueryRowContext(ctx, createPost_feature,
-		arg.FromAccountID,
-		arg.PostID,
-		arg.SumComment,
-		arg.SumLike,
-		arg.SumRetweet,
-		arg.SumQouteRetweet,
-	)
+func (q *Queries) CreatePost_feature(ctx context.Context, postID int64) (PostFeature, error) {
+	row := q.db.QueryRowContext(ctx, createPost_feature, postID)
 	var i PostFeature
 	err := row.Scan(
-		&i.FromAccountID,
 		&i.PostID,
 		&i.SumComment,
 		&i.SumLike,
@@ -168,6 +146,80 @@ func (q *Queries) CreateRetweet_feature(ctx context.Context, arg CreateRetweet_f
 		&i.FromAccountID,
 		&i.Retweet,
 		&i.PostID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getPost_feature = `-- name: GetPost_feature :one
+SELECT post_id, sum_comment, sum_like, sum_retweet, sum_qoute_retweet, created_at FROM post_feature
+WHERE post_id = $1 LIMIT 1
+`
+
+func (q *Queries) GetPost_feature(ctx context.Context, postID int64) (PostFeature, error) {
+	row := q.db.QueryRowContext(ctx, getPost_feature, postID)
+	var i PostFeature
+	err := row.Scan(
+		&i.PostID,
+		&i.SumComment,
+		&i.SumLike,
+		&i.SumRetweet,
+		&i.SumQouteRetweet,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getPost_feature_Update = `-- name: GetPost_feature_Update :one
+SELECT post_id, sum_comment, sum_like, sum_retweet, sum_qoute_retweet, created_at FROM post_feature
+WHERE post_id = $1 LIMIT 1
+FOR NO KEY UPDATE
+`
+
+func (q *Queries) GetPost_feature_Update(ctx context.Context, postID int64) (PostFeature, error) {
+	row := q.db.QueryRowContext(ctx, getPost_feature_Update, postID)
+	var i PostFeature
+	err := row.Scan(
+		&i.PostID,
+		&i.SumComment,
+		&i.SumLike,
+		&i.SumRetweet,
+		&i.SumQouteRetweet,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updatePost_feature = `-- name: UpdatePost_feature :one
+UPDATE post_feature
+SET sum_comment = $2, sum_like = $3, sum_retweet = $4, sum_qoute_retweet =$5
+WHERE post_id = $1
+RETURNING post_id, sum_comment, sum_like, sum_retweet, sum_qoute_retweet, created_at
+`
+
+type UpdatePost_featureParams struct {
+	PostID          int64 `json:"post_id"`
+	SumComment      int64 `json:"sum_comment"`
+	SumLike         int64 `json:"sum_like"`
+	SumRetweet      int64 `json:"sum_retweet"`
+	SumQouteRetweet int64 `json:"sum_qoute_retweet"`
+}
+
+func (q *Queries) UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error) {
+	row := q.db.QueryRowContext(ctx, updatePost_feature,
+		arg.PostID,
+		arg.SumComment,
+		arg.SumLike,
+		arg.SumRetweet,
+		arg.SumQouteRetweet,
+	)
+	var i PostFeature
+	err := row.Scan(
+		&i.PostID,
+		&i.SumComment,
+		&i.SumLike,
+		&i.SumRetweet,
+		&i.SumQouteRetweet,
 		&i.CreatedAt,
 	)
 	return i, err
