@@ -79,8 +79,8 @@ type loginResp struct {
 }
 
 type AccesTokenResp struct {
-	AccesToken          string    `json:"refresh_token"`
-	AccesTokenExpiresAt time.Time `json:"refresh_token_expires_at"`
+	AccesToken          string    `json:"access_token"`
+	AccesTokenExpiresAt time.Time `json:"access_token_expires_at"`
 }
 
 type LikePostResp struct {
@@ -96,3 +96,28 @@ func likeResponse(arg db.PostFeature) LikePostResp {
 		LikeAT:  arg.CreatedAt.UTC(),
 	}
 }
+
+type CommentPostResp struct {
+	PostID     int64     `json:"id"`
+	Comment    string    `json:"comment"`
+	SumComment int64     `json:"sum_comment"`
+	LikeAT     time.Time `json:"like_at"`
+}
+
+func commentResponse(comment string, arg db.PostFeature) CommentPostResp {
+	return CommentPostResp{
+		PostID:     arg.PostID,
+		Comment:    comment,
+		SumComment: arg.SumComment,
+		LikeAT:     arg.CreatedAt.UTC(),
+	}
+}
+
+// TO BE IMPLEMENTED (GENERIC RETURN)
+// type anyFeature interface {
+// 	LikePostResp | CommentPostResp
+// }
+
+// func FeatureResponse[v anyFeature](arg v) v {
+// 	return v[string]
+// }

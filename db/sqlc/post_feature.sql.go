@@ -16,7 +16,7 @@ INSERT INTO comment_feature(
     post_id
 ) VALUES(
     $1,$2,$3
-) RETURNING from_account_id, comment, post_id, created_at
+) RETURNING comment
 `
 
 type CreateComment_featureParams struct {
@@ -25,16 +25,11 @@ type CreateComment_featureParams struct {
 	PostID        int64  `json:"post_id"`
 }
 
-func (q *Queries) CreateComment_feature(ctx context.Context, arg CreateComment_featureParams) (CommentFeature, error) {
+func (q *Queries) CreateComment_feature(ctx context.Context, arg CreateComment_featureParams) (string, error) {
 	row := q.db.QueryRowContext(ctx, createComment_feature, arg.FromAccountID, arg.Comment, arg.PostID)
-	var i CommentFeature
-	err := row.Scan(
-		&i.FromAccountID,
-		&i.Comment,
-		&i.PostID,
-		&i.CreatedAt,
-	)
-	return i, err
+	var comment string
+	err := row.Scan(&comment)
+	return comment, err
 }
 
 const createLike_feature = `-- name: CreateLike_feature :one
@@ -44,7 +39,7 @@ INSERT INTO like_feature(
     post_id
 ) VALUES(
     $1,$2,$3
-) RETURNING from_account_id, is_like, post_id, created_at
+) RETURNING is_like
 `
 
 type CreateLike_featureParams struct {
@@ -53,16 +48,11 @@ type CreateLike_featureParams struct {
 	PostID        int64 `json:"post_id"`
 }
 
-func (q *Queries) CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) (LikeFeature, error) {
+func (q *Queries) CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) (bool, error) {
 	row := q.db.QueryRowContext(ctx, createLike_feature, arg.FromAccountID, arg.IsLike, arg.PostID)
-	var i LikeFeature
-	err := row.Scan(
-		&i.FromAccountID,
-		&i.IsLike,
-		&i.PostID,
-		&i.CreatedAt,
-	)
-	return i, err
+	var is_like bool
+	err := row.Scan(&is_like)
+	return is_like, err
 }
 
 const createPost_feature = `-- name: CreatePost_feature :one
@@ -95,7 +85,7 @@ INSERT INTO qoute_retweet_feature(
     post_id
 ) VALUES(
     $1,$2,$3,$4
-) RETURNING from_account_id, qoute_retweet, qoute, post_id, created_at
+) RETURNING qoute_retweet
 `
 
 type CreateQouteRetweet_featureParams struct {
@@ -105,22 +95,16 @@ type CreateQouteRetweet_featureParams struct {
 	PostID        int64  `json:"post_id"`
 }
 
-func (q *Queries) CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (QouteRetweetFeature, error) {
+func (q *Queries) CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (bool, error) {
 	row := q.db.QueryRowContext(ctx, createQouteRetweet_feature,
 		arg.FromAccountID,
 		arg.QouteRetweet,
 		arg.Qoute,
 		arg.PostID,
 	)
-	var i QouteRetweetFeature
-	err := row.Scan(
-		&i.FromAccountID,
-		&i.QouteRetweet,
-		&i.Qoute,
-		&i.PostID,
-		&i.CreatedAt,
-	)
-	return i, err
+	var qoute_retweet bool
+	err := row.Scan(&qoute_retweet)
+	return qoute_retweet, err
 }
 
 const createRetweet_feature = `-- name: CreateRetweet_feature :one
@@ -130,7 +114,7 @@ INSERT INTO retweet_feature(
     post_id
 ) VALUES(
     $1,$2,$3
-) RETURNING from_account_id, retweet, post_id, created_at
+) RETURNING retweet
 `
 
 type CreateRetweet_featureParams struct {
@@ -139,15 +123,86 @@ type CreateRetweet_featureParams struct {
 	PostID        int64 `json:"post_id"`
 }
 
-func (q *Queries) CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) (RetweetFeature, error) {
+func (q *Queries) CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) (bool, error) {
 	row := q.db.QueryRowContext(ctx, createRetweet_feature, arg.FromAccountID, arg.Retweet, arg.PostID)
-	var i RetweetFeature
+	var retweet bool
+	err := row.Scan(&retweet)
+	return retweet, err
+}
+
+const getCommentInfo = `-- name: GetCommentInfo :one
+SELECT from_account_id, comment, post_id, created_at from comment_feature
+WHERE from_account_id = $1 and post_id = $2 and comment = $3 LIMIT 1
+`
+
+type GetCommentInfoParams struct {
+	FromAccountID int64  `json:"from_account_id"`
+	PostID        int64  `json:"post_id"`
+	Comment       string `json:"comment"`
+}
+
+func (q *Queries) GetCommentInfo(ctx context.Context, arg GetCommentInfoParams) (CommentFeature, error) {
+	row := q.db.QueryRowContext(ctx, getCommentInfo, arg.FromAccountID, arg.PostID, arg.Comment)
+	var i CommentFeature
 	err := row.Scan(
 		&i.FromAccountID,
-		&i.Retweet,
+		&i.Comment,
 		&i.PostID,
 		&i.CreatedAt,
 	)
+	return i, err
+}
+
+const getLikeInfo = `-- name: GetLikeInfo :one
+SELECT from_account_id, is_like, post_id, created_at from like_feature
+WHERE from_account_id = $1 and post_id = $2 LIMIT 1
+`
+
+type GetLikeInfoParams struct {
+	FromAccountID int64 `json:"from_account_id"`
+	PostID        int64 `json:"post_id"`
+}
+
+func (q *Queries) GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeFeature, error) {
+	row := q.db.QueryRowContext(ctx, getLikeInfo, arg.FromAccountID, arg.PostID)
+	var i LikeFeature
+	err := row.Scan(
+		&i.FromAccountID,
+		&i.IsLike,
+		&i.PostID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getLikejoin = `-- name: GetLikejoin :one
+SELECT like_feature.is_like from like_feature
+INNER JOIN post ON post.post_id = like_feature.post_id
+WHERE post.post_id = $1
+`
+
+func (q *Queries) GetLikejoin(ctx context.Context, postID int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, getLikejoin, postID)
+	var is_like bool
+	err := row.Scan(&is_like)
+	return is_like, err
+}
+
+const getPostJoin = `-- name: GetPostJoin :one
+SELECT post.post_id,post.account_id FROM post
+INNER JOIN post_feature ON post_feature.post_id = post.post_id
+WHERE post.post_id = $1
+`
+
+type GetPostJoinRow struct {
+	PostID    int64 `json:"post_id"`
+	AccountID int64 `json:"account_id"`
+}
+
+func (q *Queries) GetPostJoin(ctx context.Context, postID int64) (GetPostJoinRow, error) {
+	row := q.db.QueryRowContext(ctx, getPostJoin, postID)
+	var i GetPostJoinRow
+	err := row.Scan(&i.PostID, &i.AccountID)
 	return i, err
 }
 
@@ -188,6 +243,26 @@ func (q *Queries) GetPost_feature_Update(ctx context.Context, postID int64) (Pos
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const updateLike = `-- name: UpdateLike :one
+UPDATE like_feature
+set is_like = $1
+WHERE post_id = $2 and from_account_id = $3
+RETURNING is_like
+`
+
+type UpdateLikeParams struct {
+	IsLike        bool  `json:"is_like"`
+	PostID        int64 `json:"post_id"`
+	FromAccountID int64 `json:"from_account_id"`
+}
+
+func (q *Queries) UpdateLike(ctx context.Context, arg UpdateLikeParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, updateLike, arg.IsLike, arg.PostID, arg.FromAccountID)
+	var is_like bool
+	err := row.Scan(&is_like)
+	return is_like, err
 }
 
 const updatePost_feature = `-- name: UpdatePost_feature :one

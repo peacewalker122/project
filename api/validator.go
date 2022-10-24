@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,9 +18,16 @@ type H = map[string]interface{}
 // A for Allow
 var (
 	AlphaNumCheck = regexp.MustCompile(`^[a-zA-Z0-9_\s]+$`).MatchString
-	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z\\s]+$`).MatchString
+	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z_\s'"?!]+$`).MatchString
 	NumCheckByte  = regexp.MustCompile(`^[0-9]+$`).Match
 	NumCheck      = regexp.MustCompile(`^[0-9]+$`).MatchString
+)
+
+const (
+	like     = "like"
+	retweet  = "retweet"
+	comment  = "comment"
+	qretweet = "qoute-retweet"
 )
 
 type customValidator struct {
@@ -143,4 +151,21 @@ func ValidateNum(num int) error {
 		return errors.New("must be integer that greater than 0")
 	}
 	return nil
+}
+
+func GetErrorValidator(c echo.Context, err error) error {
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	return err
+}
+
+func CreateErrorValidator(c echo.Context, err error) error {
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	return err
 }

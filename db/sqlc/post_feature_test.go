@@ -51,9 +51,14 @@ func TestGetPostFeature(t *testing.T) {
 		SumQouteRetweet: result.SumQouteRetweet + 1,
 	})
 
-	
 	require.NoError(t, err)
 	require.Equal(t, post.PostID, update.PostID)
 	require.Equal(t, int64(1), update.SumComment)
 	require.Equal(t, int64(1), update.SumRetweet)
+}
+
+func TestJoinTable(t *testing.T) {
+	join, err := testQueries.GetPostJoin(context.Background(), int64(69))
+	require.NoError(t, err)
+	require.Equal(t, int64(143), join.AccountID)
 }
