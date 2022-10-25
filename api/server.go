@@ -35,23 +35,25 @@ func Newserver(c util.Config, store db.Store) (*Server, error) {
 func (s *Server) routerhandle() {
 	router := echo.New()
 	router.Use(middleware.LoggerWithConfig(Logger()))
+	//router.Use(middleware.HTTPSRedirectWithConfig(Redirect()))
 	router.Validator = &customValidator{
 		validate: validator.New(),
 	}
 	router.HTTPErrorHandler = HTTPErrorHandler
+
 	router.POST("/user", s.createUser)
 	router.POST("/token/renew", s.renewToken)
 	router.POST("/user/login", s.login)
 
 	authRouter := router.Group("", authMiddleware(s.token))
-
 	authRouter.POST("/account", s.createAccount)
 	authRouter.GET("/account/:id", s.getAccounts)
 	authRouter.GET("/account", s.listAccount)
 	authRouter.POST("/post", s.createPost)
 	authRouter.GET("/post/:id", s.getPost)
-	authRouter.POST("/post/like", s.LikePost)
-	authRouter.POST("/post/comment", s.CommentPost)
+	authRouter.POST("/post/like", s.likePost)
+	authRouter.POST("/post/comment", s.commentPost)
+	authRouter.POST("/post/retweet", s.retweetPost)
 
 	s.router = router
 }

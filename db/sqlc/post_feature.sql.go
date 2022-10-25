@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createComment_feature = `-- name: CreateComment_feature :one
@@ -32,7 +33,7 @@ func (q *Queries) CreateComment_feature(ctx context.Context, arg CreateComment_f
 	return comment, err
 }
 
-const createLike_feature = `-- name: CreateLike_feature :one
+const createLike_feature = `-- name: CreateLike_feature :exec
 INSERT INTO like_feature(
     from_account_id,
     is_like,
@@ -48,11 +49,9 @@ type CreateLike_featureParams struct {
 	PostID        int64 `json:"post_id"`
 }
 
-func (q *Queries) CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, createLike_feature, arg.FromAccountID, arg.IsLike, arg.PostID)
-	var is_like bool
-	err := row.Scan(&is_like)
-	return is_like, err
+func (q *Queries) CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) error {
+	_, err := q.db.ExecContext(ctx, createLike_feature, arg.FromAccountID, arg.IsLike, arg.PostID)
+	return err
 }
 
 const createPost_feature = `-- name: CreatePost_feature :one
@@ -107,7 +106,7 @@ func (q *Queries) CreateQouteRetweet_feature(ctx context.Context, arg CreateQout
 	return qoute_retweet, err
 }
 
-const createRetweet_feature = `-- name: CreateRetweet_feature :one
+const createRetweet_feature = `-- name: CreateRetweet_feature :exec
 INSERT INTO retweet_feature(
     from_account_id,
     retweet,
@@ -123,34 +122,9 @@ type CreateRetweet_featureParams struct {
 	PostID        int64 `json:"post_id"`
 }
 
-func (q *Queries) CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, createRetweet_feature, arg.FromAccountID, arg.Retweet, arg.PostID)
-	var retweet bool
-	err := row.Scan(&retweet)
-	return retweet, err
-}
-
-const getCommentInfo = `-- name: GetCommentInfo :one
-SELECT from_account_id, comment, post_id, created_at from comment_feature
-WHERE from_account_id = $1 and post_id = $2 and comment = $3 LIMIT 1
-`
-
-type GetCommentInfoParams struct {
-	FromAccountID int64  `json:"from_account_id"`
-	PostID        int64  `json:"post_id"`
-	Comment       string `json:"comment"`
-}
-
-func (q *Queries) GetCommentInfo(ctx context.Context, arg GetCommentInfoParams) (CommentFeature, error) {
-	row := q.db.QueryRowContext(ctx, getCommentInfo, arg.FromAccountID, arg.PostID, arg.Comment)
-	var i CommentFeature
-	err := row.Scan(
-		&i.FromAccountID,
-		&i.Comment,
-		&i.PostID,
-		&i.CreatedAt,
-	)
-	return i, err
+func (q *Queries) CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) error {
+	_, err := q.db.ExecContext(ctx, createRetweet_feature, arg.FromAccountID, arg.Retweet, arg.PostID)
+	return err
 }
 
 const getLikeInfo = `-- name: GetLikeInfo :one
@@ -245,7 +219,85 @@ func (q *Queries) GetPost_feature_Update(ctx context.Context, postID int64) (Pos
 	return i, err
 }
 
-const updateLike = `-- name: UpdateLike :one
+const getRetweet = `-- name: GetRetweet :one
+SELECT from_account_id, retweet, post_id, created_at from retweet_feature
+WHERE from_account_id = $1 and post_id = $2 LIMIT 1
+`
+
+type GetRetweetParams struct {
+	FromAccountID int64 `json:"from_account_id"`
+	PostID        int64 `json:"post_id"`
+}
+
+func (q *Queries) GetRetweet(ctx context.Context, arg GetRetweetParams) (RetweetFeature, error) {
+	row := q.db.QueryRowContext(ctx, getRetweet, arg.FromAccountID, arg.PostID)
+	var i RetweetFeature
+	err := row.Scan(
+		&i.FromAccountID,
+		&i.Retweet,
+		&i.PostID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getRetweetJoin = `-- name: GetRetweetJoin :one
+SELECT retweet_feature.retweet from retweet_feature
+INNER JOIN post ON post.post_id = retweet_feature.post_id
+WHERE post.post_id = $1
+`
+
+func (q *Queries) GetRetweetJoin(ctx context.Context, postID int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, getRetweetJoin, postID)
+	var retweet bool
+	err := row.Scan(&retweet)
+	return retweet, err
+}
+
+const listComment = `-- name: ListComment :many
+SELECT from_account_id,comment,created_at from comment_feature
+WHERE post_id = $1
+ORDER by from_account_id
+LIMIT $2
+OFFSET $3
+`
+
+type ListCommentParams struct {
+	PostID int64 `json:"post_id"`
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type ListCommentRow struct {
+	FromAccountID int64     `json:"from_account_id"`
+	Comment       string    `json:"comment"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+func (q *Queries) ListComment(ctx context.Context, arg ListCommentParams) ([]ListCommentRow, error) {
+	rows, err := q.db.QueryContext(ctx, listComment, arg.PostID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCommentRow{}
+	for rows.Next() {
+		var i ListCommentRow
+		if err := rows.Scan(&i.FromAccountID, &i.Comment, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateLike = `-- name: UpdateLike :exec
 UPDATE like_feature
 set is_like = $1
 WHERE post_id = $2 and from_account_id = $3
@@ -258,11 +310,9 @@ type UpdateLikeParams struct {
 	FromAccountID int64 `json:"from_account_id"`
 }
 
-func (q *Queries) UpdateLike(ctx context.Context, arg UpdateLikeParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, updateLike, arg.IsLike, arg.PostID, arg.FromAccountID)
-	var is_like bool
-	err := row.Scan(&is_like)
-	return is_like, err
+func (q *Queries) UpdateLike(ctx context.Context, arg UpdateLikeParams) error {
+	_, err := q.db.ExecContext(ctx, updateLike, arg.IsLike, arg.PostID, arg.FromAccountID)
+	return err
 }
 
 const updatePost_feature = `-- name: UpdatePost_feature :one
@@ -298,4 +348,22 @@ func (q *Queries) UpdatePost_feature(ctx context.Context, arg UpdatePost_feature
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const updateRetweet = `-- name: UpdateRetweet :exec
+UPDATE retweet_feature
+set retweet = $1
+WHERE post_id = $2 and from_account_id = $3
+RETURNING retweet
+`
+
+type UpdateRetweetParams struct {
+	Retweet       bool  `json:"retweet"`
+	PostID        int64 `json:"post_id"`
+	FromAccountID int64 `json:"from_account_id"`
+}
+
+func (q *Queries) UpdateRetweet(ctx context.Context, arg UpdateRetweetParams) error {
+	_, err := q.db.ExecContext(ctx, updateRetweet, arg.Retweet, arg.PostID, arg.FromAccountID)
+	return err
 }

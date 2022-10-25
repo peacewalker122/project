@@ -81,3 +81,20 @@ func (q *Queries) GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	)
 	return i, err
 }
+
+const getSessionuser = `-- name: GetSessionuser :one
+SELECT is_blocked,expires_at from sessions
+WHERE username = $1 LIMIT 1
+`
+
+type GetSessionuserRow struct {
+	IsBlocked bool      `json:"is_blocked"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+func (q *Queries) GetSessionuser(ctx context.Context, username string) (GetSessionuserRow, error) {
+	row := q.db.QueryRowContext(ctx, getSessionuser, username)
+	var i GetSessionuserRow
+	err := row.Scan(&i.IsBlocked, &i.ExpiresAt)
+	return i, err
+}

@@ -11,6 +11,7 @@ type Config struct {
 	DBSource          string        `mapstructure:"DB_SOURCE"`
 	HTTPServerAddress string        `mapstructure:"HTTP_SERVER_ADDRESS"`
 	TokenKey          string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
+	AuthErrorAddres   string        `mapstructure:"REDIRECT_AUTH_TOKEN"`
 	TokenDuration     time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 	RefreshToken      time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 }

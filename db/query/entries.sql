@@ -18,6 +18,6 @@ ORDER BY entries_id
 LIMIT $2
 OFFSET $3;
 
--- name: GetEntriesFull :one
+-- name: GetEntriesFull :exec
 SELECT * FROM entries
 WHERE post_id = $1 and from_account_id = $2 and type_entries = $3 LIMIT 1;

@@ -15,3 +15,7 @@ RETURNING *;
 -- name: GetSession :one
 SELECT * FROM sessions
 WHERE id = $1 LIMIT 1;
+
+-- name: GetSessionuser :one
+SELECT is_blocked,expires_at from sessions
+WHERE username = $1 LIMIT 1;

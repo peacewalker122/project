@@ -18,16 +18,22 @@ type H = map[string]interface{}
 // A for Allow
 var (
 	AlphaNumCheck = regexp.MustCompile(`^[a-zA-Z0-9_\s]+$`).MatchString
-	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z_\s'"?!]+$`).MatchString
+	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z_\s]+$`).MatchString
 	NumCheckByte  = regexp.MustCompile(`^[0-9]+$`).Match
 	NumCheck      = regexp.MustCompile(`^[0-9]+$`).MatchString
+	StringsCheck  = regexp.MustCompile(`^[a-zA-Z0-9_\s'"?!,.&%$@]+$`).MatchString
 )
 
 const (
-	like     = "like"
-	retweet  = "retweet"
-	comment  = "comment"
-	qretweet = "qoute-retweet"
+	like       = "like"
+	unlike     = "unlike"
+	retweet    = "retweet"
+	unretweet  = "unretweet"
+	comment    = "comment"
+	qretweet   = "qoute-retweet"
+	unqretweet = "unqoute-retweet"
+	posttag    = "post"
+	accountag  = "account"
 )
 
 type customValidator struct {
@@ -104,6 +110,13 @@ func validatePassword(pass string) error {
 	return nil
 }
 
+func ValidateString(strings string) error {
+	if !StringsCheck(strings) {
+		return errors.New("invalid character must be alphabet,num and symbol")
+	}
+	return nil
+}
+
 func ConverterParam(context echo.Context, param string) int {
 	if !NumCheck(param) {
 		id := context.Param(param)
@@ -153,9 +166,10 @@ func ValidateNum(num int) error {
 	return nil
 }
 
-func GetErrorValidator(c echo.Context, err error) error {
+func GetErrorValidator(c echo.Context, err error, tag string) error {
 	if err != nil {
 		if err == sql.ErrNoRows {
+			err := fmt.Errorf("%v not found", tag)
 			return c.JSON(http.StatusNotFound, err.Error())
 		}
 		return c.JSON(http.StatusInternalServerError, err.Error())

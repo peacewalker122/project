@@ -1,4 +1,4 @@
--- name: CreateLike_feature :one
+-- name: CreateLike_feature :exec
 INSERT INTO like_feature(
     from_account_id,
     is_like,
@@ -16,7 +16,7 @@ INSERT INTO comment_feature(
     $1,$2,$3
 ) RETURNING comment;
 
--- name: CreateRetweet_feature :one
+-- name: CreateRetweet_feature :exec
 INSERT INTO retweet_feature(
     from_account_id,
     retweet,
@@ -71,12 +71,32 @@ WHERE post.post_id = $1;
 SELECT * from like_feature
 WHERE from_account_id = $1 and post_id = $2 LIMIT 1;
 
--- name: UpdateLike :one
+-- name: UpdateLike :exec
 UPDATE like_feature
 set is_like = $1
 WHERE post_id = $2 and from_account_id = $3
 RETURNING is_like;
 
--- name: GetCommentInfo :one
-SELECT * from comment_feature
-WHERE from_account_id = $1 and post_id = $2 and comment = $3 LIMIT 1;
+-- name: ListComment :many
+SELECT from_account_id,comment,created_at from comment_feature
+WHERE post_id = $1
+ORDER by from_account_id
+LIMIT $2
+OFFSET $3;
+
+-- name: GetRetweet :one
+SELECT * from retweet_feature
+WHERE from_account_id = $1 and post_id = $2 LIMIT 1;
+
+-- name: UpdateRetweet :exec
+UPDATE retweet_feature
+set retweet = $1
+WHERE post_id = $2 and from_account_id = $3
+RETURNING retweet;
+
+-- name: GetRetweetJoin :one
+SELECT retweet_feature.retweet from retweet_feature
+INNER JOIN post ON post.post_id = retweet_feature.post_id
+WHERE post.post_id = $1;
+
+-- name: Get

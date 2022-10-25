@@ -56,7 +56,7 @@ func (q *Queries) GetEntries(ctx context.Context, entriesID int64) (Entry, error
 	return i, err
 }
 
-const getEntriesFull = `-- name: GetEntriesFull :one
+const getEntriesFull = `-- name: GetEntriesFull :exec
 SELECT entries_id, from_account_id, post_id, type_entries, created_at FROM entries
 WHERE post_id = $1 and from_account_id = $2 and type_entries = $3 LIMIT 1
 `
@@ -67,17 +67,9 @@ type GetEntriesFullParams struct {
 	TypeEntries   string `json:"type_entries"`
 }
 
-func (q *Queries) GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) (Entry, error) {
-	row := q.db.QueryRowContext(ctx, getEntriesFull, arg.PostID, arg.FromAccountID, arg.TypeEntries)
-	var i Entry
-	err := row.Scan(
-		&i.EntriesID,
-		&i.FromAccountID,
-		&i.PostID,
-		&i.TypeEntries,
-		&i.CreatedAt,
-	)
-	return i, err
+func (q *Queries) GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error {
+	_, err := q.db.ExecContext(ctx, getEntriesFull, arg.PostID, arg.FromAccountID, arg.TypeEntries)
+	return err
 }
 
 const listEntries = `-- name: ListEntries :many

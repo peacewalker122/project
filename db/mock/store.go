@@ -82,12 +82,11 @@ func (mr *MockStoreMockRecorder) CreateEntries(arg0, arg1 interface{}) *gomock.C
 }
 
 // CreateLike_feature mocks base method.
-func (m *MockStore) CreateLike_feature(arg0 context.Context, arg1 db.CreateLike_featureParams) (bool, error) {
+func (m *MockStore) CreateLike_feature(arg0 context.Context, arg1 db.CreateLike_featureParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateLike_feature", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // CreateLike_feature indicates an expected call of CreateLike_feature.
@@ -142,12 +141,11 @@ func (mr *MockStoreMockRecorder) CreateQouteRetweet_feature(arg0, arg1 interface
 }
 
 // CreateRetweet_feature mocks base method.
-func (m *MockStore) CreateRetweet_feature(arg0 context.Context, arg1 db.CreateRetweet_featureParams) (bool, error) {
+func (m *MockStore) CreateRetweet_feature(arg0 context.Context, arg1 db.CreateRetweet_featureParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRetweet_feature", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // CreateRetweet_feature indicates an expected call of CreateRetweet_feature.
@@ -230,21 +228,6 @@ func (mr *MockStoreMockRecorder) GetAccountsOwner(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountsOwner", reflect.TypeOf((*MockStore)(nil).GetAccountsOwner), arg0, arg1)
 }
 
-// GetCommentInfo mocks base method.
-func (m *MockStore) GetCommentInfo(arg0 context.Context, arg1 db.GetCommentInfoParams) (db.CommentFeature, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCommentInfo", arg0, arg1)
-	ret0, _ := ret[0].(db.CommentFeature)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCommentInfo indicates an expected call of GetCommentInfo.
-func (mr *MockStoreMockRecorder) GetCommentInfo(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCommentInfo", reflect.TypeOf((*MockStore)(nil).GetCommentInfo), arg0, arg1)
-}
-
 // GetEntries mocks base method.
 func (m *MockStore) GetEntries(arg0 context.Context, arg1 int64) (db.Entry, error) {
 	m.ctrl.T.Helper()
@@ -261,12 +244,11 @@ func (mr *MockStoreMockRecorder) GetEntries(arg0, arg1 interface{}) *gomock.Call
 }
 
 // GetEntriesFull mocks base method.
-func (m *MockStore) GetEntriesFull(arg0 context.Context, arg1 db.GetEntriesFullParams) (db.Entry, error) {
+func (m *MockStore) GetEntriesFull(arg0 context.Context, arg1 db.GetEntriesFullParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEntriesFull", arg0, arg1)
-	ret0, _ := ret[0].(db.Entry)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // GetEntriesFull indicates an expected call of GetEntriesFull.
@@ -365,6 +347,36 @@ func (mr *MockStoreMockRecorder) GetPost_feature_Update(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPost_feature_Update", reflect.TypeOf((*MockStore)(nil).GetPost_feature_Update), arg0, arg1)
 }
 
+// GetRetweet mocks base method.
+func (m *MockStore) GetRetweet(arg0 context.Context, arg1 db.GetRetweetParams) (db.RetweetFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRetweet", arg0, arg1)
+	ret0, _ := ret[0].(db.RetweetFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRetweet indicates an expected call of GetRetweet.
+func (mr *MockStoreMockRecorder) GetRetweet(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRetweet", reflect.TypeOf((*MockStore)(nil).GetRetweet), arg0, arg1)
+}
+
+// GetRetweetJoin mocks base method.
+func (m *MockStore) GetRetweetJoin(arg0 context.Context, arg1 int64) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRetweetJoin", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRetweetJoin indicates an expected call of GetRetweetJoin.
+func (mr *MockStoreMockRecorder) GetRetweetJoin(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRetweetJoin", reflect.TypeOf((*MockStore)(nil).GetRetweetJoin), arg0, arg1)
+}
+
 // GetSession mocks base method.
 func (m *MockStore) GetSession(arg0 context.Context, arg1 uuid.UUID) (db.Session, error) {
 	m.ctrl.T.Helper()
@@ -378,6 +390,21 @@ func (m *MockStore) GetSession(arg0 context.Context, arg1 uuid.UUID) (db.Session
 func (mr *MockStoreMockRecorder) GetSession(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockStore)(nil).GetSession), arg0, arg1)
+}
+
+// GetSessionuser mocks base method.
+func (m *MockStore) GetSessionuser(arg0 context.Context, arg1 string) (db.GetSessionuserRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSessionuser", arg0, arg1)
+	ret0, _ := ret[0].(db.GetSessionuserRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSessionuser indicates an expected call of GetSessionuser.
+func (mr *MockStoreMockRecorder) GetSessionuser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSessionuser", reflect.TypeOf((*MockStore)(nil).GetSessionuser), arg0, arg1)
 }
 
 // GetUser mocks base method.
@@ -408,6 +435,21 @@ func (m *MockStore) ListAccounts(arg0 context.Context, arg1 db.ListAccountsParam
 func (mr *MockStoreMockRecorder) ListAccounts(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccounts", reflect.TypeOf((*MockStore)(nil).ListAccounts), arg0, arg1)
+}
+
+// ListComment mocks base method.
+func (m *MockStore) ListComment(arg0 context.Context, arg1 db.ListCommentParams) ([]db.ListCommentRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListComment", arg0, arg1)
+	ret0, _ := ret[0].([]db.ListCommentRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListComment indicates an expected call of ListComment.
+func (mr *MockStoreMockRecorder) ListComment(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListComment", reflect.TypeOf((*MockStore)(nil).ListComment), arg0, arg1)
 }
 
 // ListEntries mocks base method.
@@ -456,12 +498,11 @@ func (mr *MockStoreMockRecorder) ListUser(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // UpdateLike mocks base method.
-func (m *MockStore) UpdateLike(arg0 context.Context, arg1 db.UpdateLikeParams) (bool, error) {
+func (m *MockStore) UpdateLike(arg0 context.Context, arg1 db.UpdateLikeParams) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateLike", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateLike indicates an expected call of UpdateLike.
@@ -498,4 +539,18 @@ func (m *MockStore) UpdatePost_feature(arg0 context.Context, arg1 db.UpdatePost_
 func (mr *MockStoreMockRecorder) UpdatePost_feature(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePost_feature", reflect.TypeOf((*MockStore)(nil).UpdatePost_feature), arg0, arg1)
+}
+
+// UpdateRetweet mocks base method.
+func (m *MockStore) UpdateRetweet(arg0 context.Context, arg1 db.UpdateRetweetParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateRetweet", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateRetweet indicates an expected call of UpdateRetweet.
+func (mr *MockStoreMockRecorder) UpdateRetweet(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRetweet", reflect.TypeOf((*MockStore)(nil).UpdateRetweet), arg0, arg1)
 }

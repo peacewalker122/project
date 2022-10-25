@@ -12,22 +12,40 @@ import (
 )
 
 type CreateAccountParams struct {
-	AccountType bool `json:"account_type" validate:"require"`
+	Owner       string `json:"owner_is" validate:"require"`
+	AccountType bool   `json:"is_private" `
 }
 
 func (s *Server) createAccount(c echo.Context) error {
 	req := new(CreateAccountParams)
+
 	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return err
 	}
+	if err := ValidateAlphanum(req.Owner); err != nil {
+		return c.JSON(http.StatusBadRequest, ValidateError("owner", err.Error()))
+	}
+
 	authParam, ok := c.Get(authPayload).(*token.Payload)
 	if !ok {
 		err := errors.New("failed conversion")
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
+	_, err := s.store.GetSessionuser(c.Request().Context(), req.Owner)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, "no session")
+		}
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	if authParam.Username != req.Owner {
+		err := errors.New("unauthorized account")
+		return c.JSON(http.StatusUnauthorized, err.Error())
+	}
 
 	arg := db.CreateAccountsParams{
-		Owner:     authParam.Username,
+		Owner:     req.Owner,
 		IsPrivate: req.AccountType,
 	}
 
