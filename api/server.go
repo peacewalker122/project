@@ -54,6 +54,7 @@ func (s *Server) routerhandle() {
 	authRouter.POST("/post/like", s.likePost)
 	authRouter.POST("/post/comment", s.commentPost)
 	authRouter.POST("/post/retweet", s.retweetPost)
+	authRouter.POST("/post/qoute/retweet", s.qouteretweetPost)
 
 	s.router = router
 }

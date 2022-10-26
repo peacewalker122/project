@@ -33,7 +33,7 @@ INSERT INTO qoute_retweet_feature(
     post_id
 ) VALUES(
     $1,$2,$3,$4
-) RETURNING qoute_retweet;
+) RETURNING qoute;
 
 -- name: CreatePost_feature :one
 INSERT INTO post_feature(
@@ -99,4 +99,24 @@ SELECT retweet_feature.retweet from retweet_feature
 INNER JOIN post ON post.post_id = retweet_feature.post_id
 WHERE post.post_id = $1;
 
--- name: Get
+-- name: GetQouteRetweet :one
+SELECT * from qoute_retweet_feature
+WHERE from_account_id=$1 and post_id = $2 LIMIT 1;
+
+-- name: GetQouteRetweetRows :execrows
+SELECT * from qoute_retweet_feature
+WHERE from_account_id=$1 and post_id = $2 LIMIT 1;
+
+-- name: GetQouteRetweetJoin :one
+SELECT qoute_retweet_feature.qoute_retweet from qoute_retweet_feature
+INNER JOIN post on post.post_id = qoute_retweet_feature.post_id
+WHERE qoute_retweet_feature.post_id = $1;
+
+-- name: UpdateQouteRetweet :exec
+UPDATE qoute_retweet_feature
+set qoute_retweet = $1
+WHERE post_id = $2 and from_account_id = $3;
+
+-- name: DeleteQouteRetweet :exec
+delete from qoute_retweet_feature
+WHERE post_id = $1 and from_account_id = $2;

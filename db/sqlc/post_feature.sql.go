@@ -84,7 +84,7 @@ INSERT INTO qoute_retweet_feature(
     post_id
 ) VALUES(
     $1,$2,$3,$4
-) RETURNING qoute_retweet
+) RETURNING qoute
 `
 
 type CreateQouteRetweet_featureParams struct {
@@ -94,16 +94,16 @@ type CreateQouteRetweet_featureParams struct {
 	PostID        int64  `json:"post_id"`
 }
 
-func (q *Queries) CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (bool, error) {
+func (q *Queries) CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (string, error) {
 	row := q.db.QueryRowContext(ctx, createQouteRetweet_feature,
 		arg.FromAccountID,
 		arg.QouteRetweet,
 		arg.Qoute,
 		arg.PostID,
 	)
-	var qoute_retweet bool
-	err := row.Scan(&qoute_retweet)
-	return qoute_retweet, err
+	var qoute string
+	err := row.Scan(&qoute)
+	return qoute, err
 }
 
 const createRetweet_feature = `-- name: CreateRetweet_feature :exec
@@ -124,6 +124,21 @@ type CreateRetweet_featureParams struct {
 
 func (q *Queries) CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) error {
 	_, err := q.db.ExecContext(ctx, createRetweet_feature, arg.FromAccountID, arg.Retweet, arg.PostID)
+	return err
+}
+
+const deleteQouteRetweet = `-- name: DeleteQouteRetweet :exec
+delete from qoute_retweet_feature
+WHERE post_id = $1 and from_account_id = $2
+`
+
+type DeleteQouteRetweetParams struct {
+	PostID        int64 `json:"post_id"`
+	FromAccountID int64 `json:"from_account_id"`
+}
+
+func (q *Queries) DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweetParams) error {
+	_, err := q.db.ExecContext(ctx, deleteQouteRetweet, arg.PostID, arg.FromAccountID)
 	return err
 }
 
@@ -217,6 +232,60 @@ func (q *Queries) GetPost_feature_Update(ctx context.Context, postID int64) (Pos
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getQouteRetweet = `-- name: GetQouteRetweet :one
+SELECT from_account_id, qoute_retweet, qoute, post_id, created_at from qoute_retweet_feature
+WHERE from_account_id=$1 and post_id = $2 LIMIT 1
+`
+
+type GetQouteRetweetParams struct {
+	FromAccountID int64 `json:"from_account_id"`
+	PostID        int64 `json:"post_id"`
+}
+
+func (q *Queries) GetQouteRetweet(ctx context.Context, arg GetQouteRetweetParams) (QouteRetweetFeature, error) {
+	row := q.db.QueryRowContext(ctx, getQouteRetweet, arg.FromAccountID, arg.PostID)
+	var i QouteRetweetFeature
+	err := row.Scan(
+		&i.FromAccountID,
+		&i.QouteRetweet,
+		&i.Qoute,
+		&i.PostID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getQouteRetweetJoin = `-- name: GetQouteRetweetJoin :one
+SELECT qoute_retweet_feature.qoute_retweet from qoute_retweet_feature
+INNER JOIN post on post.post_id = qoute_retweet_feature.post_id
+WHERE qoute_retweet_feature.post_id = $1
+`
+
+func (q *Queries) GetQouteRetweetJoin(ctx context.Context, postID int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, getQouteRetweetJoin, postID)
+	var qoute_retweet bool
+	err := row.Scan(&qoute_retweet)
+	return qoute_retweet, err
+}
+
+const getQouteRetweetRows = `-- name: GetQouteRetweetRows :execrows
+SELECT from_account_id, qoute_retweet, qoute, post_id, created_at from qoute_retweet_feature
+WHERE from_account_id=$1 and post_id = $2 LIMIT 1
+`
+
+type GetQouteRetweetRowsParams struct {
+	FromAccountID int64 `json:"from_account_id"`
+	PostID        int64 `json:"post_id"`
+}
+
+func (q *Queries) GetQouteRetweetRows(ctx context.Context, arg GetQouteRetweetRowsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, getQouteRetweetRows, arg.FromAccountID, arg.PostID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const getRetweet = `-- name: GetRetweet :one
@@ -348,6 +417,23 @@ func (q *Queries) UpdatePost_feature(ctx context.Context, arg UpdatePost_feature
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const updateQouteRetweet = `-- name: UpdateQouteRetweet :exec
+UPDATE qoute_retweet_feature
+set qoute_retweet = $1
+WHERE post_id = $2 and from_account_id = $3
+`
+
+type UpdateQouteRetweetParams struct {
+	QouteRetweet  bool  `json:"qoute_retweet"`
+	PostID        int64 `json:"post_id"`
+	FromAccountID int64 `json:"from_account_id"`
+}
+
+func (q *Queries) UpdateQouteRetweet(ctx context.Context, arg UpdateQouteRetweetParams) error {
+	_, err := q.db.ExecContext(ctx, updateQouteRetweet, arg.QouteRetweet, arg.PostID, arg.FromAccountID)
+	return err
 }
 
 const updateRetweet = `-- name: UpdateRetweet :exec

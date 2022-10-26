@@ -31,7 +31,7 @@ const (
 	unretweet  = "unretweet"
 	comment    = "comment"
 	qretweet   = "qoute-retweet"
-	unqretweet = "unqoute-retweet"
+	unqretweet = "unqoute-retweet(Delete)"
 	posttag    = "post"
 	accountag  = "account"
 )
@@ -151,7 +151,7 @@ func ValidateURIPost(param *GetPostParam, context echo.Context, URIparam string)
 	if err := ValidateID(n); err != nil {
 		return err
 	}
-	param.ID = n
+	param.ID = int64(n)
 	return nil
 }
 

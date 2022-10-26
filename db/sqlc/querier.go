@@ -17,11 +17,12 @@ type Querier interface {
 	CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) error
 	CreatePost(ctx context.Context, arg CreatePostParams) (Post, error)
 	CreatePost_feature(ctx context.Context, postID int64) (PostFeature, error)
-	CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (bool, error)
+	CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (string, error)
 	CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeletePost(ctx context.Context, postID int64) error
+	DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweetParams) error
 	GetAccounts(ctx context.Context, accountsID int64) (Account, error)
 	GetAccountsOwner(ctx context.Context, owner string) (Account, error)
 	GetEntries(ctx context.Context, entriesID int64) (Entry, error)
@@ -32,6 +33,9 @@ type Querier interface {
 	GetPostJoin(ctx context.Context, postID int64) (GetPostJoinRow, error)
 	GetPost_feature(ctx context.Context, postID int64) (PostFeature, error)
 	GetPost_feature_Update(ctx context.Context, postID int64) (PostFeature, error)
+	GetQouteRetweet(ctx context.Context, arg GetQouteRetweetParams) (QouteRetweetFeature, error)
+	GetQouteRetweetJoin(ctx context.Context, postID int64) (bool, error)
+	GetQouteRetweetRows(ctx context.Context, arg GetQouteRetweetRowsParams) (int64, error)
 	GetRetweet(ctx context.Context, arg GetRetweetParams) (RetweetFeature, error)
 	GetRetweetJoin(ctx context.Context, postID int64) (bool, error)
 	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
@@ -45,6 +49,7 @@ type Querier interface {
 	UpdateLike(ctx context.Context, arg UpdateLikeParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
 	UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error)
+	UpdateQouteRetweet(ctx context.Context, arg UpdateQouteRetweetParams) error
 	UpdateRetweet(ctx context.Context, arg UpdateRetweetParams) error
 }
 
