@@ -121,11 +121,10 @@ WHERE post_id = $2 and from_account_id = $3;
 delete from qoute_retweet_feature
 WHERE post_id = $1 and from_account_id = $2;
 
--- name: GetPostJoin_QouteRetweet :one
-SELECT qoute_retweet  from qoute_retweet_feature as q
-INNER JOIN post as p on p.post_id = q.post_id
-WHERE q.from_account_id = $2 and q.post_id = $1;
-
 -- name: DeletePostFeature :exec
 delete from post_feature p
 WHERE p.post_id = $1;
+
+-- name: DeleteRetweet :exec
+delete from retweet_feature
+WHERE post_id=$1 and from_account_id=$2;

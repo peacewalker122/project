@@ -226,6 +226,20 @@ func (mr *MockStoreMockRecorder) DeleteQouteRetweet(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteQouteRetweet", reflect.TypeOf((*MockStore)(nil).DeleteQouteRetweet), arg0, arg1)
 }
 
+// DeleteRetweet mocks base method.
+func (m *MockStore) DeleteRetweet(arg0 context.Context, arg1 db.DeleteRetweetParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRetweet", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRetweet indicates an expected call of DeleteRetweet.
+func (mr *MockStoreMockRecorder) DeleteRetweet(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRetweet", reflect.TypeOf((*MockStore)(nil).DeleteRetweet), arg0, arg1)
+}
+
 // GetAccounts mocks base method.
 func (m *MockStore) GetAccounts(arg0 context.Context, arg1 int64) (db.Account, error) {
 	m.ctrl.T.Helper()
@@ -330,21 +344,6 @@ func (mr *MockStoreMockRecorder) GetPost(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPost", reflect.TypeOf((*MockStore)(nil).GetPost), arg0, arg1)
 }
 
-// GetPostInfoJoin mocks base method.
-func (m *MockStore) GetPostInfoJoin(arg0 context.Context, arg1 db.GetPostInfoJoinParams) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPostInfoJoin", arg0, arg1)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPostInfoJoin indicates an expected call of GetPostInfoJoin.
-func (mr *MockStoreMockRecorder) GetPostInfoJoin(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostInfoJoin", reflect.TypeOf((*MockStore)(nil).GetPostInfoJoin), arg0, arg1)
-}
-
 // GetPostJoin mocks base method.
 func (m *MockStore) GetPostJoin(arg0 context.Context, arg1 int64) (db.GetPostJoinRow, error) {
 	m.ctrl.T.Helper()
@@ -360,19 +359,19 @@ func (mr *MockStoreMockRecorder) GetPostJoin(arg0, arg1 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostJoin", reflect.TypeOf((*MockStore)(nil).GetPostJoin), arg0, arg1)
 }
 
-// GetPostJoin_QouteRetweet mocks base method.
-func (m *MockStore) GetPostJoin_QouteRetweet(arg0 context.Context, arg1 db.GetPostJoin_QouteRetweetParams) (bool, error) {
+// GetPostQRetweetJoin mocks base method.
+func (m *MockStore) GetPostQRetweetJoin(arg0 context.Context, arg1 db.GetPostQRetweetJoinParams) (db.GetPostQRetweetJoinRow, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPostJoin_QouteRetweet", arg0, arg1)
-	ret0, _ := ret[0].(bool)
+	ret := m.ctrl.Call(m, "GetPostQRetweetJoin", arg0, arg1)
+	ret0, _ := ret[0].(db.GetPostQRetweetJoinRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetPostJoin_QouteRetweet indicates an expected call of GetPostJoin_QouteRetweet.
-func (mr *MockStoreMockRecorder) GetPostJoin_QouteRetweet(arg0, arg1 interface{}) *gomock.Call {
+// GetPostQRetweetJoin indicates an expected call of GetPostQRetweetJoin.
+func (mr *MockStoreMockRecorder) GetPostQRetweetJoin(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostJoin_QouteRetweet", reflect.TypeOf((*MockStore)(nil).GetPostJoin_QouteRetweet), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostQRetweetJoin", reflect.TypeOf((*MockStore)(nil).GetPostQRetweetJoin), arg0, arg1)
 }
 
 // GetPost_feature mocks base method.
@@ -403,6 +402,21 @@ func (m *MockStore) GetPost_feature_Update(arg0 context.Context, arg1 int64) (db
 func (mr *MockStoreMockRecorder) GetPost_feature_Update(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPost_feature_Update", reflect.TypeOf((*MockStore)(nil).GetPost_feature_Update), arg0, arg1)
+}
+
+// GetPostidretweetJoin mocks base method.
+func (m *MockStore) GetPostidretweetJoin(arg0 context.Context, arg1 db.GetPostidretweetJoinParams) (db.GetPostidretweetJoinRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostidretweetJoin", arg0, arg1)
+	ret0, _ := ret[0].(db.GetPostidretweetJoinRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPostidretweetJoin indicates an expected call of GetPostidretweetJoin.
+func (mr *MockStoreMockRecorder) GetPostidretweetJoin(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostidretweetJoin", reflect.TypeOf((*MockStore)(nil).GetPostidretweetJoin), arg0, arg1)
 }
 
 // GetQouteRetweet mocks base method.
@@ -478,6 +492,21 @@ func (m *MockStore) GetRetweetJoin(arg0 context.Context, arg1 int64) (bool, erro
 func (mr *MockStoreMockRecorder) GetRetweetJoin(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRetweetJoin", reflect.TypeOf((*MockStore)(nil).GetRetweetJoin), arg0, arg1)
+}
+
+// GetRetweetRows mocks base method.
+func (m *MockStore) GetRetweetRows(arg0 context.Context, arg1 db.GetRetweetRowsParams) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRetweetRows", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRetweetRows indicates an expected call of GetRetweetRows.
+func (mr *MockStoreMockRecorder) GetRetweetRows(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRetweetRows", reflect.TypeOf((*MockStore)(nil).GetRetweetRows), arg0, arg1)
 }
 
 // GetSession mocks base method.

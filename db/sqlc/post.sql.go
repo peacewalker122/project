@@ -66,22 +66,68 @@ func (q *Queries) GetPost(ctx context.Context, postID int64) (Post, error) {
 	return i, err
 }
 
-const getPostInfoJoin = `-- name: GetPostInfoJoin :one
-SELECT p.post_id  from post p  
-LEFT JOIN qoute_retweet_feature qrf  on p.is_retweet  = qrf.qoute_retweet 
+const getPostQRetweetJoin = `-- name: GetPostQRetweetJoin :one
+SELECT p.post_id,qrf.qoute_retweet  from post p  
+INNER JOIN qoute_retweet_feature qrf  on p.is_retweet  = qrf.qoute_retweet 
 WHERE qrf.from_account_id = $2 and qrf.post_id = $1
 `
 
-type GetPostInfoJoinParams struct {
+type GetPostQRetweetJoinParams struct {
 	PostID        int64 `json:"post_id"`
 	FromAccountID int64 `json:"from_account_id"`
 }
 
-func (q *Queries) GetPostInfoJoin(ctx context.Context, arg GetPostInfoJoinParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, getPostInfoJoin, arg.PostID, arg.FromAccountID)
-	var post_id int64
-	err := row.Scan(&post_id)
-	return post_id, err
+type GetPostQRetweetJoinRow struct {
+	PostID       int64 `json:"post_id"`
+	QouteRetweet bool  `json:"qoute_retweet"`
+}
+
+func (q *Queries) GetPostQRetweetJoin(ctx context.Context, arg GetPostQRetweetJoinParams) (GetPostQRetweetJoinRow, error) {
+	row := q.db.QueryRowContext(ctx, getPostQRetweetJoin, arg.PostID, arg.FromAccountID)
+	var i GetPostQRetweetJoinRow
+	err := row.Scan(&i.PostID, &i.QouteRetweet)
+	return i, err
+}
+
+const getPostidretweetJoin = `-- name: GetPostidretweetJoin :one
+SELECT p.post_id,rf.retweet  from post p  
+INNER JOIN retweet_feature rf ON p.is_retweet  = rf.retweet 
+WHERE rf.from_account_id = $2 and rf.post_id = $1
+`
+
+type GetPostidretweetJoinParams struct {
+	PostID        int64 `json:"post_id"`
+	FromAccountID int64 `json:"from_account_id"`
+}
+
+type GetPostidretweetJoinRow struct {
+	PostID  int64 `json:"post_id"`
+	Retweet bool  `json:"retweet"`
+}
+
+func (q *Queries) GetPostidretweetJoin(ctx context.Context, arg GetPostidretweetJoinParams) (GetPostidretweetJoinRow, error) {
+	row := q.db.QueryRowContext(ctx, getPostidretweetJoin, arg.PostID, arg.FromAccountID)
+	var i GetPostidretweetJoinRow
+	err := row.Scan(&i.PostID, &i.Retweet)
+	return i, err
+}
+
+const getRetweetRows = `-- name: GetRetweetRows :execrows
+SELECT from_account_id, retweet, post_id, created_at from retweet_feature
+WHERE from_account_id=$1 and post_id = $2 LIMIT 1
+`
+
+type GetRetweetRowsParams struct {
+	FromAccountID int64 `json:"from_account_id"`
+	PostID        int64 `json:"post_id"`
+}
+
+func (q *Queries) GetRetweetRows(ctx context.Context, arg GetRetweetRowsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, getRetweetRows, arg.FromAccountID, arg.PostID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const listPost = `-- name: ListPost :many

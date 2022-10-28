@@ -152,6 +152,21 @@ func (q *Queries) DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweet
 	return err
 }
 
+const deleteRetweet = `-- name: DeleteRetweet :exec
+delete from retweet_feature
+WHERE post_id=$1 and from_account_id=$2
+`
+
+type DeleteRetweetParams struct {
+	PostID        int64 `json:"post_id"`
+	FromAccountID int64 `json:"from_account_id"`
+}
+
+func (q *Queries) DeleteRetweet(ctx context.Context, arg DeleteRetweetParams) error {
+	_, err := q.db.ExecContext(ctx, deleteRetweet, arg.PostID, arg.FromAccountID)
+	return err
+}
+
 const getLikeInfo = `-- name: GetLikeInfo :one
 SELECT from_account_id, is_like, post_id, created_at from like_feature
 WHERE from_account_id = $1 and post_id = $2 LIMIT 1
@@ -203,24 +218,6 @@ func (q *Queries) GetPostJoin(ctx context.Context, postID int64) (GetPostJoinRow
 	var i GetPostJoinRow
 	err := row.Scan(&i.PostID, &i.AccountID)
 	return i, err
-}
-
-const getPostJoin_QouteRetweet = `-- name: GetPostJoin_QouteRetweet :one
-SELECT qoute_retweet  from qoute_retweet_feature as q
-INNER JOIN post as p on p.post_id = q.post_id
-WHERE q.from_account_id = $2 and q.post_id = $1
-`
-
-type GetPostJoin_QouteRetweetParams struct {
-	PostID        int64 `json:"post_id"`
-	FromAccountID int64 `json:"from_account_id"`
-}
-
-func (q *Queries) GetPostJoin_QouteRetweet(ctx context.Context, arg GetPostJoin_QouteRetweetParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, getPostJoin_QouteRetweet, arg.PostID, arg.FromAccountID)
-	var qoute_retweet bool
-	err := row.Scan(&qoute_retweet)
-	return qoute_retweet, err
 }
 
 const getPost_feature = `-- name: GetPost_feature :one

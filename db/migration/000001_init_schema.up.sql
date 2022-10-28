@@ -35,7 +35,7 @@ CREATE TABLE "entries" (
 
 CREATE INDEX ON "accounts" ("owner");
 
-CREATE INDEX ON "post" ("account_id");
+CREATE INDEX ON "post" ("post_id");
 
 CREATE INDEX ON "entries" ("post_id");
 

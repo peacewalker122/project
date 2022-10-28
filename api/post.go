@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -41,6 +42,10 @@ type (
 		Qoute         string `json:"qoute" form:"qoute" validate:"required"`
 		PostID        int64  `json:"post_id" validate:"required"`
 	}
+	FollowAccountRequest struct {
+		FromAccountID int64 `json:"from_account_id" validate:"required"`
+		ToAccountID   int64 `json:"to_account_id" validate:"required"`
+	}
 )
 
 func (s *Server) createPost(c echo.Context) error {
@@ -52,22 +57,12 @@ func (s *Server) createPost(c echo.Context) error {
 	if err := ValidateString(req.PictureDescription, 1, 70); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	account, err := s.store.GetAccounts(c.Request().Context(), req.AccountID)
-	if err := GetErrorValidator(c, err, accountag); err != nil {
+	if err := s.AuthAccount(c, req.AccountID); err != nil {
 		return err
-	}
-	authParam, ok := c.Get(authPayload).(*token.Payload)
-	if !ok {
-		err := errors.New("failed conversion")
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	if account.Owner != authParam.Username {
-		err := errors.New("unauthorized username")
-		return c.JSON(http.StatusUnauthorized, err.Error())
 	}
 
 	arg := db.CreatePostParams{
-		AccountID:          account.AccountsID,
+		AccountID:          req.AccountID,
 		PictureDescription: req.PictureDescription,
 	}
 
@@ -95,18 +90,11 @@ func (s *Server) getPost(c echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		return err
 	}
-
-	authParam, ok := c.Get(authPayload).(*token.Payload)
-	if !ok {
-		err := errors.New("failed conversion")
-		return c.JSON(http.StatusInternalServerError, err.Error())
+	if err := s.AuthAccount(c, req.Fromaccid); err != nil {
+		return err
 	}
 
 	post, err := s.store.GetPost(c.Request().Context(), int64(req.ID))
-	if err := GetErrorValidator(c, err, posttag); err != nil {
-		return err
-	}
-	accowner, err := s.store.GetAccounts(c.Request().Context(), req.Fromaccid)
 	if err := GetErrorValidator(c, err, posttag); err != nil {
 		return err
 	}
@@ -123,10 +111,6 @@ func (s *Server) getPost(c echo.Context) error {
 		}
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	if authParam.Username != accowner.Owner {
-		err := errors.New("unauthorized username")
-		return c.JSON(http.StatusUnauthorized, err.Error())
-	}
 	return c.JSON(http.StatusOK, GetPostResponse(post, postFeature, comment))
 }
 
@@ -138,20 +122,17 @@ func (s *Server) likePost(c echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		return err
 	}
-
-	authParam, ok := c.Get(authPayload).(*token.Payload)
-	if !ok {
-		err := errors.New("failed conversion")
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	acc, err := s.store.GetAccounts(c.Request().Context(), req.FromAccountID)
-	if err := GetErrorValidator(c, err, accountag); err != nil {
+	if err := s.AuthAccount(c, req.FromAccountID); err != nil {
 		return err
 	}
-	if acc.Owner != authParam.Username {
-		err := errors.New("unauthorized Username for this account")
-		return c.JSON(http.StatusUnauthorized, err.Error())
+
+	ok, err := s.store.GetLikejoin(c.Request().Context(), req.PostID)
+	if err := GetErrorValidator(c, err, like); err != nil {
+		return err
+	}
+
+	if ok && req.IsLike {
+		return c.JSON(http.StatusBadRequest, "already like")
 	}
 
 	_, err = s.store.GetLikeInfo(c.Request().Context(), db.GetLikeInfoParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
@@ -173,10 +154,6 @@ func (s *Server) likePost(c echo.Context) error {
 		return err
 	}
 
-	ok, err = s.store.GetLikejoin(c.Request().Context(), req.PostID)
-	if err := GetErrorValidator(c, err, like); err != nil {
-		return err
-	}
 	if !ok {
 		if req.IsLike {
 			post.SumLike++
@@ -280,6 +257,14 @@ func (s *Server) commentPost(c echo.Context) error {
 }
 
 func (s *Server) retweetPost(c echo.Context) error {
+	var (
+		err   error
+		num   int64
+		ok    bool
+		Cpost db.Post
+		Fpost db.PostFeature
+	)
+
 	req := new(RetweetPostRequest)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -287,30 +272,31 @@ func (s *Server) retweetPost(c echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		return err
 	}
-
-	authParam, ok := c.Get(authPayload).(*token.Payload)
-	if !ok {
-		err := errors.New("failed conversion")
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	acc, err := s.store.GetAccounts(c.Request().Context(), req.FromAccountID)
-	if err := GetErrorValidator(c, err, accountag); err != nil {
+	if err := s.AuthAccount(c, req.FromAccountID); err != nil {
 		return err
 	}
-	if acc.Owner != authParam.Username {
-		err := errors.New("unauthorized Username for this account")
-		c.JSON(http.StatusUnauthorized, err.Error())
-		return c.Redirect(http.StatusPermanentRedirect, s.config.AuthErrorAddres)
-	}
 
-	_, err = s.store.GetRetweet(c.Request().Context(), db.GetRetweetParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if req.IsRetweet {
+		num, err = s.store.GetRetweetRows(c.Request().Context(), db.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
+		if err := GetErrorValidator(c, err, retweet); err != nil {
+			return err
+		}
+		if num == 0 {
 			err = s.store.CreateRetweet_feature(c.Request().Context(), db.CreateRetweet_featureParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
 			if err := CreateErrorValidator(c, err); err != nil {
 				return err
 			}
-			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		ok, err := s.store.GetPostidretweetJoin(c.Request().Context(), db.GetPostidretweetJoinParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
+		if err := GetErrorValidator(c, err, qretweet); err != nil {
+			return err
+		}
+		if !ok.Retweet {
+			// to validate if the Retweet&qoute_retweet is false then execute below.
+			Cpost, Fpost, err = s.createRetweetPost(req, c)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -318,10 +304,13 @@ func (s *Server) retweetPost(c echo.Context) error {
 	if err := GetErrorValidator(c, err, posttag); err != nil {
 		return err
 	}
-
 	ok, err = s.store.GetRetweetJoin(c.Request().Context(), req.PostID)
 	if err := GetErrorValidator(c, err, retweet); err != nil {
 		return err
+	}
+
+	if ok && req.IsRetweet {
+		return c.JSON(http.StatusBadRequest, "already retweet")
 	}
 
 	if !ok {
@@ -329,10 +318,9 @@ func (s *Server) retweetPost(c echo.Context) error {
 			post.SumRetweet++
 		}
 	}
-	if ok {
-		if !req.IsRetweet {
-			post.SumRetweet--
-		}
+
+	if !req.IsRetweet {
+		return s.deleteRetweetpost(req, c, post)
 	}
 
 	err = s.store.UpdateRetweet(c.Request().Context(), db.UpdateRetweetParams{Retweet: req.IsRetweet, PostID: req.PostID, FromAccountID: req.FromAccountID})
@@ -360,16 +348,18 @@ func (s *Server) retweetPost(c echo.Context) error {
 		SumRetweet:      post.SumRetweet,
 		SumQouteRetweet: post.SumQouteRetweet,
 	}
-	update, err := s.store.UpdatePost_feature(c.Request().Context(), arg)
+	_, err = s.store.UpdatePost_feature(c.Request().Context(), arg)
 	if err := CreateErrorValidator(c, err); err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, retweetResponse(update))
+	return c.JSON(http.StatusOK, retweetResponse(Fpost, Cpost))
 }
 
 func (s *Server) qouteretweetPost(c echo.Context) error {
 	var (
+		err   error
+		ok    bool
 		num   int64
 		Cpost db.Post
 		Fpost db.PostFeature
@@ -385,19 +375,8 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		return err
 	}
-	authParam, ok := c.Get(authPayload).(*token.Payload)
-	if !ok {
-		err := errors.New("failed conversion")
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	acc, err := s.store.GetAccounts(c.Request().Context(), req.FromAccountID)
-	if err := GetErrorValidator(c, err, accountag); err != nil {
+	if err := s.AuthAccount(c, req.FromAccountID); err != nil {
 		return err
-	}
-	if acc.Owner != authParam.Username {
-		err := errors.New("unauthorized Username for this account")
-		c.JSON(http.StatusUnauthorized, err.Error())
-		return c.Redirect(http.StatusPermanentRedirect, s.config.AuthErrorAddres)
 	}
 
 	if req.IsRetweet {
@@ -411,13 +390,13 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 				return c.JSON(http.StatusInternalServerError, err.Error())
 			}
 		}
-		ok, err = s.store.GetPostJoin_QouteRetweet(c.Request().Context(), db.GetPostJoin_QouteRetweetParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
+		res, err := s.store.GetPostQRetweetJoin(c.Request().Context(), db.GetPostQRetweetJoinParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
 		if err := GetErrorValidator(c, err, qretweet); err != nil {
 			return err
 		}
-		if !ok {
+		if !res.QouteRetweet {
 			// to validate if the Retweet&qoute_retweet is false then execute below.
-			Cpost, Fpost, err = s.createRetweetPost(req, c)
+			Cpost, Fpost, err = s.createQouteRetweetPost(req, c)
 			if err != nil {
 				return err
 			}
@@ -431,12 +410,10 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 		}
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-
 	ok, err = s.store.GetQouteRetweetJoin(c.Request().Context(), req.PostID)
-	if err := GetErrorValidator(c, err, qretweet); err != nil {
+	if err := CreateErrorValidator(c, err); err != nil {
 		return err
 	}
-
 	if ok && req.IsRetweet {
 		return c.JSON(http.StatusBadRequest, "already created")
 	}
@@ -444,15 +421,12 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 	if !ok {
 		if req.IsRetweet {
 			post.SumQouteRetweet++
+			log.Println(post.SumQouteRetweet)
 		}
 	}
 
 	if !req.IsRetweet {
-		num, err = s.store.GetPostInfoJoin(c.Request().Context(), db.GetPostInfoJoinParams{PostID: req.PostID, FromAccountID: req.FromAccountID})
-		if err := GetErrorValidator(c, err, qretweet); err != nil {
-			return err
-		}
-		err = s.deleteQouteRetweet(req, c, post, num)
+		err = s.deleteQouteRetweet(req, c, post)
 		return err
 	}
 
@@ -483,3 +457,17 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, qouteretweetResponse(Cpost, Fpost, req.Qoute))
 }
+
+// func (s *Server) followAccount(c echo.Context) error {
+// 	req := new(FollowAccountRequest)
+// 	if err := c.Bind(req); err != nil {
+// 		return err
+// 	}
+// 	if err := c.Validate(req); err != nil {
+// 		return err
+// 	}
+// 	if err := s.AuthAccount(c, req.FromAccountID); err != nil {
+// 		return err
+// 	}
+
+// }

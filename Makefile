@@ -1,7 +1,7 @@
 postgres:
 	docker run --name postgres12 -p 4321:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=rootpass -d postgres:latest
 migrate:
-	migrate create -ext sql -dir db/migration -seq
+	migrate create -ext sql -dir db/migration -seq account_feature
 dropdb:
 	docker exec -it postgres12 dropdb project
 createdb:

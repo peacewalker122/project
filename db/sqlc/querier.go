@@ -24,6 +24,7 @@ type Querier interface {
 	DeletePost(ctx context.Context, postID int64) error
 	DeletePostFeature(ctx context.Context, postID int64) error
 	DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweetParams) error
+	DeleteRetweet(ctx context.Context, arg DeleteRetweetParams) error
 	GetAccounts(ctx context.Context, accountsID int64) (Account, error)
 	GetAccountsOwner(ctx context.Context, owner string) (Account, error)
 	GetEntries(ctx context.Context, entriesID int64) (Entry, error)
@@ -31,16 +32,17 @@ type Querier interface {
 	GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeFeature, error)
 	GetLikejoin(ctx context.Context, postID int64) (bool, error)
 	GetPost(ctx context.Context, postID int64) (Post, error)
-	GetPostInfoJoin(ctx context.Context, arg GetPostInfoJoinParams) (int64, error)
 	GetPostJoin(ctx context.Context, postID int64) (GetPostJoinRow, error)
-	GetPostJoin_QouteRetweet(ctx context.Context, arg GetPostJoin_QouteRetweetParams) (bool, error)
+	GetPostQRetweetJoin(ctx context.Context, arg GetPostQRetweetJoinParams) (GetPostQRetweetJoinRow, error)
 	GetPost_feature(ctx context.Context, postID int64) (PostFeature, error)
 	GetPost_feature_Update(ctx context.Context, postID int64) (PostFeature, error)
+	GetPostidretweetJoin(ctx context.Context, arg GetPostidretweetJoinParams) (GetPostidretweetJoinRow, error)
 	GetQouteRetweet(ctx context.Context, arg GetQouteRetweetParams) (QouteRetweetFeature, error)
 	GetQouteRetweetJoin(ctx context.Context, postID int64) (bool, error)
 	GetQouteRetweetRows(ctx context.Context, arg GetQouteRetweetRowsParams) (int64, error)
 	GetRetweet(ctx context.Context, arg GetRetweetParams) (RetweetFeature, error)
 	GetRetweetJoin(ctx context.Context, postID int64) (bool, error)
+	GetRetweetRows(ctx context.Context, arg GetRetweetRowsParams) (int64, error)
 	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	GetSessionuser(ctx context.Context, username string) (GetSessionuserRow, error)
 	GetUser(ctx context.Context, username string) (User, error)

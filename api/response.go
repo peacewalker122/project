@@ -74,9 +74,9 @@ type (
 		CreatedAt     int64  `json:"created_at"`
 	}
 	RetweetPostResp struct {
-		PostID     int64 `json:"id"`
-		SumRetweet int64 `json:"sum_retweet"`
-		RetweetAt  int64 `json:"retweet_at"`
+		PostID      int64              `json:"id"`
+		Postfeature CreatePostResponse `json:"post_feature"`
+		RetweetAt   int64              `json:"retweet_at"`
 	}
 	QouteRetweetPostResp struct {
 		Qoute       string             `json:"qoute"`
@@ -167,11 +167,11 @@ func commentResponse(comment string, arg db.PostFeature) CommentPostResp {
 	}
 }
 
-func retweetResponse(arg db.PostFeature) RetweetPostResp {
+func retweetResponse(postFeature db.PostFeature, post db.Post) RetweetPostResp {
 	return RetweetPostResp{
-		PostID:     arg.PostID,
-		SumRetweet: arg.SumRetweet,
-		RetweetAt:  arg.CreatedAt.Unix(),
+		PostID:      post.PostID,
+		Postfeature: PostResponse(post, postFeature),
+		RetweetAt:   post.CreatedAt.Unix(),
 	}
 }
 

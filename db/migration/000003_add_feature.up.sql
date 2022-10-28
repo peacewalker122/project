@@ -38,10 +38,10 @@ CREATE TABLE "post_feature" (
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
-CREATE INDEX ON "like_feature" ("created_at");
-CREATE INDEX ON "comment_feature" ("created_at");
-CREATE INDEX ON "retweet_feature" ("created_at");
-CREATE INDEX ON "like_feature" ("created_at");
+CREATE INDEX ON like_feature ("created_at" DESC);
+CREATE INDEX ON "comment_feature" ("comment_id");
+CREATE INDEX ON "retweet_feature" ("created_at" DESC);
+CREATE INDEX ON "like_feature" ("created_at" DESC);
 
 ALTER TABLE "like_feature" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
 

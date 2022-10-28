@@ -27,7 +27,16 @@ RETURNING *;
 DELETE FROM post
 WHERE post_id = $1;
 
--- name: GetPostInfoJoin :one
-SELECT p.post_id  from post p  
-LEFT JOIN qoute_retweet_feature qrf  on p.is_retweet  = qrf.qoute_retweet 
+-- name: GetPostQRetweetJoin :one
+SELECT p.post_id,qrf.qoute_retweet  from post p  
+INNER JOIN qoute_retweet_feature qrf  on p.is_retweet  = qrf.qoute_retweet 
 WHERE qrf.from_account_id = $2 and qrf.post_id = $1;
+
+-- name: GetPostidretweetJoin :one
+SELECT p.post_id,rf.retweet  from post p  
+INNER JOIN retweet_feature rf ON p.is_retweet  = rf.retweet 
+WHERE rf.from_account_id = $2 and rf.post_id = $1;
+
+-- name: GetRetweetRows :execrows
+SELECT * from retweet_feature
+WHERE from_account_id=$1 and post_id = $2 LIMIT 1;

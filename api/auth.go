@@ -50,3 +50,21 @@ func authMiddleware(token token.Maker) echo.MiddlewareFunc {
 		}
 	}
 }
+
+func (s *Server) AuthAccount(c echo.Context, accountID int64) error {
+	authParam, ok := c.Get(authPayload).(*token.Payload)
+	if !ok {
+		err := errors.New("failed conversion")
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	acc, err := s.store.GetAccounts(c.Request().Context(), accountID)
+	if err := GetErrorValidator(c, err, accountag); err != nil {
+		return err
+	}
+	if acc.Owner != authParam.Username {
+		err := errors.New("unauthorized Username for this account")
+		c.JSON(http.StatusUnauthorized, err.Error())
+		return c.Redirect(http.StatusPermanentRedirect, s.config.AuthErrorAddres)
+	}
+	return nil
+}
