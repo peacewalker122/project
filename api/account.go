@@ -6,62 +6,9 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/lib/pq"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/token"
 )
-
-type CreateAccountParams struct {
-	Owner       string `json:"owner_is" validate:"require"`
-	AccountType bool   `json:"is_private" `
-}
-
-func (s *Server) createAccount(c echo.Context) error {
-	req := new(CreateAccountParams)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-	if err := ValidateAlphanum(req.Owner); err != nil {
-		return c.JSON(http.StatusBadRequest, ValidateError("owner", err.Error()))
-	}
-
-	authParam, ok := c.Get(authPayload).(*token.Payload)
-	if !ok {
-		err := errors.New("failed conversion")
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	_, err := s.store.GetSessionuser(c.Request().Context(), req.Owner)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusNotFound, "no session")
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	if authParam.Username != req.Owner {
-		err := errors.New("unauthorized account")
-		return c.JSON(http.StatusUnauthorized, err.Error())
-	}
-
-	arg := db.CreateAccountsParams{
-		Owner:     req.Owner,
-		IsPrivate: req.AccountType,
-	}
-
-	res, err := s.store.CreateAccounts(c.Request().Context(), arg)
-	if err != nil {
-		if pqerr, ok := err.(*pq.Error); ok {
-			switch pqerr.Code.Name() {
-			case "unique_violation", "foreign_key_violation":
-				return c.JSON(http.StatusForbidden, err.Error())
-			}
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	output := AccountResponse(res)
-	return c.JSON(http.StatusOK, output)
-}
 
 type GetAccountsParams struct {
 	ID int `uri:"id" validate:"required,min=1"`

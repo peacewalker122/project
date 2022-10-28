@@ -9,29 +9,39 @@ import (
 
 type (
 	CreateUserResponse struct {
-		Username  string `json:"username"`
-		FullName  string `json:"full_name"`
-		Email     string `json:"email"`
-		CreatedAt int64  `json:"created_at"`
+		Username  string                 `json:"username"`
+		FullName  string                 `json:"full_name"`
+		Email     string                 `json:"email"`
+		Account   CreateAccountsResponse `json:"account"`
+		CreatedAt int64                  `json:"created_at"`
 	}
 	CreateAccountsResponse struct {
 		ID          int64  `json:"id"`
 		Owner       string `json:"owner"`
-		AccountType bool   `json:"account_type"`
+		AccountType bool   `json:"is_private"`
 		CreatedAt   int64  `json:"created_at"`
 	}
 	CreatePostResponse struct {
+		ID                 int64               `json:"post_id"`
+		PictureDescription string              `json:"picture_description"`
+		PostFeature        postfeatureresponse `json:"post_feature"`
+		IsRetweet          bool                `json:"is_retweet"`
+		CreatedAt          int64               `json:"created_at"`
+	}
+	postfeatureresponse struct {
+		ID              int64 `json:"post_id"`
+		SumComment      int64 `json:"sum_comment"`
+		SumLike         int64 `json:"sum_like"`
+		SumRetweet      int64 `json:"sum_retweet"`
+		SumQouteRetweet int64 `json:"sum_qoute_retweet"`
+		CreatedAt       int64 `json:"created_at"`
+	}
+	GetPostResponses struct {
 		ID                 int64          `json:"id"`
 		PictureDescription string         `json:"picture_description"`
 		PostFeature        db.PostFeature `json:"post_feature"`
+		PostComment        []commentresp  `json:"post_comment"`
 		CreatedAt          int64          `json:"created_at"`
-	}
-	GetPostResponses struct {
-		ID                 int64               `json:"id"`
-		PictureDescription string              `json:"picture_description"`
-		PostFeature        db.PostFeature      `json:"post_feature"`
-		PostComment        []db.ListCommentRow `json:"post_comment"`
-		CreatedAt          int64               `json:"created_at"`
 	}
 	loginResp struct {
 		SessionID             uuid.UUID          `json:"session_id"`
@@ -56,24 +66,34 @@ type (
 		SumComment int64  `json:"sum_comment"`
 		LikeAT     int64  `json:"like_at"`
 	}
-	// commentresp struct {
-	// 	FromAccountID int64  `json:"from_account_id"`
-	// 	Comment       string `json:"comment"`
-	// 	CreatedAt     int    `json:"created_at"`
-	// }
+	commentresp struct {
+		FromAccountID int64  `json:"from_account_id"`
+		CommentID     int64  `json:"comment_id"`
+		Comment       string `json:"comment"`
+		SumLike       int64  `json:"sum_like"`
+		CreatedAt     int64  `json:"created_at"`
+	}
 	RetweetPostResp struct {
 		PostID     int64 `json:"id"`
 		SumRetweet int64 `json:"sum_retweet"`
 		RetweetAt  int64 `json:"retweet_at"`
 	}
 	QouteRetweetPostResp struct {
-		PostID          int64  `json:"id"`
-		Qoute           string `json:"qoute"`
-		SumQouteRetweet int64  `json:"sum_qoute-retweet"`
-		RetweetAt       int64  `json:"retweet_at"`
+		Qoute       string             `json:"qoute"`
+		PostFeature CreatePostResponse `json:"post_feature"`
+		RetweetAt   int64              `json:"retweet_at"`
 	}
 )
 
+func CreateUserResponses(input db.User, input2 CreateAccountsResponse) CreateUserResponse {
+	return CreateUserResponse{
+		Username:  input.Username,
+		FullName:  input.FullName,
+		Email:     input.Email,
+		Account:   input2,
+		CreatedAt: input.CreatedAt.Unix(),
+	}
+}
 func UserResponse(input db.User) CreateUserResponse {
 	return CreateUserResponse{
 		Username:  input.Username,
@@ -91,12 +111,32 @@ func AccountResponse(input db.Account) CreateAccountsResponse {
 		CreatedAt:   input.CreatedAt.Unix(),
 	}
 }
+func postfeatureresp(input db.PostFeature) postfeatureresponse {
+	return postfeatureresponse{
+		ID:              input.PostID,
+		SumComment:      input.SumComment,
+		SumLike:         input.SumLike,
+		SumRetweet:      input.SumRetweet,
+		SumQouteRetweet: input.SumQouteRetweet,
+		CreatedAt:       input.CreatedAt.Unix(),
+	}
+}
 
 func PostResponse(input db.Post, input2 db.PostFeature) CreatePostResponse {
 	return CreatePostResponse{
 		ID:                 input.PostID,
 		PictureDescription: input.PictureDescription,
-		PostFeature:        input2,
+		PostFeature:        postfeatureresp(input2),
+		IsRetweet:          input.IsRetweet,
+		CreatedAt:          input.CreatedAt.Unix(),
+	}
+}
+func PostResponsePointer(input *db.Post, input2 db.PostFeature) CreatePostResponse {
+	return CreatePostResponse{
+		ID:                 input.PostID,
+		PictureDescription: input.PictureDescription,
+		PostFeature:        postfeatureresp(input2),
+		IsRetweet:          input.IsRetweet,
 		CreatedAt:          input.CreatedAt.Unix(),
 	}
 }
@@ -105,7 +145,7 @@ func GetPostResponse(input db.Post, input2 db.PostFeature, comment []db.ListComm
 		ID:                 input.PostID,
 		PictureDescription: input.PictureDescription,
 		PostFeature:        input2,
-		PostComment:        comment,
+		PostComment:        commentconverter(comment),
 		CreatedAt:          input.CreatedAt.Unix(),
 	}
 }
@@ -135,12 +175,11 @@ func retweetResponse(arg db.PostFeature) RetweetPostResp {
 	}
 }
 
-func qouteretweetResponse(arg db.PostFeature, qoute string) QouteRetweetPostResp {
+func qouteretweetResponse(post db.Post, postFeature db.PostFeature, qoute string) QouteRetweetPostResp {
 	return QouteRetweetPostResp{
-		PostID:          arg.PostID,
-		Qoute:           qoute,
-		SumQouteRetweet: arg.SumQouteRetweet,
-		RetweetAt:       arg.CreatedAt.Unix(),
+		Qoute:       qoute,
+		PostFeature: PostResponse(post, postFeature),
+		RetweetAt:   postFeature.CreatedAt.Unix(),
 	}
 }
 
@@ -153,14 +192,15 @@ func qouteretweetResponse(arg db.PostFeature, qoute string) QouteRetweetPostResp
 // 	return v[string]
 // }
 
-// func commentconverter(arg []db.ListCommentRow) <-chan []commentresp {
-// 	lenarg := len(arg)
-// 	res := make(chan []commentresp, lenarg)
-// 	for i := range arg {
-// 		select {
-// 		case <-res:
-
-// 		}
-// 	}
-// 	return res
-// }
+func commentconverter(arg []db.ListCommentRow) []commentresp {
+	result := make([]commentresp, len(arg))
+	for i := range arg {
+		result[i].Comment = arg[i].Comment
+		result[i].FromAccountID = arg[i].FromAccountID
+		result[i].CommentID = arg[i].CommentID
+		result[i].SumLike = arg[i].SumLike
+		result[i].SumLike = arg[i].SumLike
+		result[i].CreatedAt = arg[i].CreatedAt.Unix()
+	}
+	return result
+}

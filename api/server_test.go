@@ -41,7 +41,7 @@ func (s *Server) testrouterhandle() {
 
 	AuthMethod := router.Group("", authMiddleware(s.token))
 
-	AuthMethod.POST("/account", s.createAccount)
+	//AuthMethod.POST("/account", s.createAccount)
 	AuthMethod.GET("/account/:id", s.getAccounts)
 	AuthMethod.GET("/account", s.listAccount)
 	AuthMethod.POST("/post", s.createPost)

@@ -11,13 +11,17 @@ CREATE TABLE "accounts" (
   "accounts_id" bigserial PRIMARY KEY,
   "owner" varchar NOT NULL,
   "is_private" boolean NOT NULL DEFAULT true,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "follower" bigint NOT NULL DEFAULT 0,
+  "following" bigint NOT NULL DEFAULT 0
 );
+
 -- considered to add picture id in post.
 CREATE TABLE "post" (
   "post_id" bigserial PRIMARY KEY,
   "account_id" bigint NOT NULL,
   "picture_description" varchar NOT NULL,
+  "is_retweet" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 

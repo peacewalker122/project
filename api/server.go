@@ -46,7 +46,7 @@ func (s *Server) routerhandle() {
 	router.POST("/user/login", s.login)
 
 	authRouter := router.Group("", authMiddleware(s.token))
-	authRouter.POST("/account", s.createAccount)
+	//authRouter.POST("/account", s.createAccount)
 	authRouter.GET("/account/:id", s.getAccounts)
 	authRouter.GET("/account", s.listAccount)
 	authRouter.POST("/post", s.createPost)

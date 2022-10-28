@@ -15,11 +15,15 @@ type Account struct {
 	Owner      string    `json:"owner"`
 	IsPrivate  bool      `json:"is_private"`
 	CreatedAt  time.Time `json:"created_at"`
+	Follower   int64     `json:"follower"`
+	Following  int64     `json:"following"`
 }
 
 type CommentFeature struct {
+	CommentID     int64     `json:"comment_id"`
 	FromAccountID int64     `json:"from_account_id"`
 	Comment       string    `json:"comment"`
+	SumLike       int64     `json:"sum_like"`
 	PostID        int64     `json:"post_id"`
 	CreatedAt     time.Time `json:"created_at"`
 }
@@ -43,6 +47,7 @@ type Post struct {
 	PostID             int64     `json:"post_id"`
 	AccountID          int64     `json:"account_id"`
 	PictureDescription string    `json:"picture_description"`
+	IsRetweet          bool      `json:"is_retweet"`
 	CreatedAt          time.Time `json:"created_at"`
 }
 

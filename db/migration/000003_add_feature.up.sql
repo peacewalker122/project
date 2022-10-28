@@ -6,8 +6,10 @@ CREATE TABLE "like_feature" (
 );
 
 CREATE TABLE "comment_feature" (
+  "comment_id" bigserial NOT NULL,
   "from_account_id" bigint NOT NULL,
   "comment" varchar NOT NULL,
+  "sum_like" bigint NOT NULL DEFAULT 0,
   "post_id" bigint NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
@@ -28,7 +30,7 @@ CREATE TABLE "qoute_retweet_feature" (
 );
 
 CREATE TABLE "post_feature" (
-  "post_id" bigserial PRIMARY KEY,
+  "post_id" bigint PRIMARY KEY,
   "sum_comment" bigint NOT NULL DEFAULT 0,
   "sum_like" bigint NOT NULL DEFAULT 0,
   "sum_retweet" bigint NOT NULL DEFAULT 0,

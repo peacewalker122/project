@@ -21,7 +21,7 @@ var (
 	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z_\s]+$`).MatchString
 	NumCheckByte  = regexp.MustCompile(`^[0-9]+$`).Match
 	NumCheck      = regexp.MustCompile(`^[0-9]+$`).MatchString
-	StringsCheck  = regexp.MustCompile(`^[a-zA-Z0-9_\s'"?!,.&%$@]+$`).MatchString
+	StringsCheck  = regexp.MustCompile(`^[a-zA-Z0-9_\s'"?!,.&%$@-]+$`).MatchString
 )
 
 const (
@@ -67,8 +67,8 @@ func validateString(target string, minChar, maxChar int) error {
 	return nil
 }
 
-func ValidateAlphanum(username string) error {
-	if err := validateString(username, 4, 100); err != nil {
+func ValidateAlphanum(username string, min, max int) error {
+	if err := validateString(username, min, max); err != nil {
 		return err
 	}
 
@@ -78,8 +78,8 @@ func ValidateAlphanum(username string) error {
 	return nil
 }
 
-func ValidateAlpha(fullname string) error {
-	if err := validateString(fullname, 3, 100); err != nil {
+func ValidateAlpha(fullname string, min, max int) error {
+	if err := validateString(fullname, min, max); err != nil {
 		return err
 	}
 	if !AlphaCheck(fullname) {
@@ -88,8 +88,8 @@ func ValidateAlpha(fullname string) error {
 	return nil
 }
 
-func ValidateEmail(email string) error {
-	if err := validateString(email, 4, 100); err != nil {
+func ValidateEmail(email string, min, max int) error {
+	if err := validateString(email, min, max); err != nil {
 		return err
 	}
 	_, err := mail.ParseAddress(email)
@@ -103,14 +103,18 @@ func ValidateError(errorTag, errorString string) string {
 	return fmt.Sprintf("error happen in %v due: %v", errorTag, errorString)
 }
 
-func validatePassword(pass string) error {
-	if err := validateString(pass, 5, 100); err != nil {
+func validatePassword(pass string, min, max int) error {
+	if err := validateString(pass, min, max); err != nil {
 		return err
 	}
 	return nil
 }
 
-func ValidateString(strings string) error {
+func ValidateString(strings string, min, max int) error {
+	if err := validateString(strings, min, max); err != nil {
+		return err
+	}
+
 	if !StringsCheck(strings) {
 		return errors.New("invalid character must be alphabet,num and symbol")
 	}

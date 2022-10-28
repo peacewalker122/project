@@ -127,6 +127,16 @@ func (q *Queries) CreateRetweet_feature(ctx context.Context, arg CreateRetweet_f
 	return err
 }
 
+const deletePostFeature = `-- name: DeletePostFeature :exec
+delete from post_feature p
+WHERE p.post_id = $1
+`
+
+func (q *Queries) DeletePostFeature(ctx context.Context, postID int64) error {
+	_, err := q.db.ExecContext(ctx, deletePostFeature, postID)
+	return err
+}
+
 const deleteQouteRetweet = `-- name: DeleteQouteRetweet :exec
 delete from qoute_retweet_feature
 WHERE post_id = $1 and from_account_id = $2
@@ -193,6 +203,24 @@ func (q *Queries) GetPostJoin(ctx context.Context, postID int64) (GetPostJoinRow
 	var i GetPostJoinRow
 	err := row.Scan(&i.PostID, &i.AccountID)
 	return i, err
+}
+
+const getPostJoin_QouteRetweet = `-- name: GetPostJoin_QouteRetweet :one
+SELECT qoute_retweet  from qoute_retweet_feature as q
+INNER JOIN post as p on p.post_id = q.post_id
+WHERE q.from_account_id = $2 and q.post_id = $1
+`
+
+type GetPostJoin_QouteRetweetParams struct {
+	PostID        int64 `json:"post_id"`
+	FromAccountID int64 `json:"from_account_id"`
+}
+
+func (q *Queries) GetPostJoin_QouteRetweet(ctx context.Context, arg GetPostJoin_QouteRetweetParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, getPostJoin_QouteRetweet, arg.PostID, arg.FromAccountID)
+	var qoute_retweet bool
+	err := row.Scan(&qoute_retweet)
+	return qoute_retweet, err
 }
 
 const getPost_feature = `-- name: GetPost_feature :one
@@ -324,7 +352,7 @@ func (q *Queries) GetRetweetJoin(ctx context.Context, postID int64) (bool, error
 }
 
 const listComment = `-- name: ListComment :many
-SELECT from_account_id,comment,created_at from comment_feature
+SELECT comment_id,from_account_id,comment,sum_like,created_at from comment_feature
 WHERE post_id = $1
 ORDER by from_account_id
 LIMIT $2
@@ -338,8 +366,10 @@ type ListCommentParams struct {
 }
 
 type ListCommentRow struct {
+	CommentID     int64     `json:"comment_id"`
 	FromAccountID int64     `json:"from_account_id"`
 	Comment       string    `json:"comment"`
+	SumLike       int64     `json:"sum_like"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
@@ -352,7 +382,13 @@ func (q *Queries) ListComment(ctx context.Context, arg ListCommentParams) ([]Lis
 	items := []ListCommentRow{}
 	for rows.Next() {
 		var i ListCommentRow
-		if err := rows.Scan(&i.FromAccountID, &i.Comment, &i.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&i.CommentID,
+			&i.FromAccountID,
+			&i.Comment,
+			&i.SumLike,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

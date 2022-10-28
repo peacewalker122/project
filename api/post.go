@@ -3,9 +3,7 @@ package api
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	db "github.com/peacewalker122/project/db/sqlc"
@@ -51,7 +49,7 @@ func (s *Server) createPost(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return err
 	}
-	if err := ValidateString(req.PictureDescription); err != nil {
+	if err := ValidateString(req.PictureDescription, 1, 70); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	account, err := s.store.GetAccounts(c.Request().Context(), req.AccountID)
@@ -231,7 +229,7 @@ func (s *Server) commentPost(c echo.Context) error {
 	if err := c.Validate(req); err != nil {
 		return err
 	}
-	err := ValidateString(req.Comment)
+	err := ValidateString(req.Comment, 1, 70)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ValidateError("comment", err.Error()))
 	}
@@ -371,15 +369,22 @@ func (s *Server) retweetPost(c echo.Context) error {
 }
 
 func (s *Server) qouteretweetPost(c echo.Context) error {
-	var num int64
+	var (
+		num   int64
+		Cpost db.Post
+		Fpost db.PostFeature
+	)
+
 	req := new(QouteRetweetPostRequest)
 	if err := c.Bind(req); err != nil {
 		return err
 	}
+	if err := ValidateString(req.Qoute, 1, 70); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
 	if err := c.Validate(req); err != nil {
 		return err
 	}
-
 	authParam, ok := c.Get(authPayload).(*token.Payload)
 	if !ok {
 		err := errors.New("failed conversion")
@@ -395,15 +400,10 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 		return c.Redirect(http.StatusPermanentRedirect, s.config.AuthErrorAddres)
 	}
 
-	log.Println("after auth")
-
 	if req.IsRetweet {
 		num, err = s.store.GetQouteRetweetRows(c.Request().Context(), db.GetQouteRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return c.JSON(http.StatusNotFound, err.Error())
-			}
-			return c.JSON(http.StatusInternalServerError, err.Error())
+		if err := GetErrorValidator(c, err, qretweet); err != nil {
+			return err
 		}
 		if num == 0 {
 			_, err = s.store.CreateQouteRetweet_feature(c.Request().Context(), db.CreateQouteRetweet_featureParams{FromAccountID: req.FromAccountID, PostID: req.PostID, Qoute: req.Qoute})
@@ -411,9 +411,19 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 				return c.JSON(http.StatusInternalServerError, err.Error())
 			}
 		}
+		ok, err = s.store.GetPostJoin_QouteRetweet(c.Request().Context(), db.GetPostJoin_QouteRetweetParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
+		if err := GetErrorValidator(c, err, qretweet); err != nil {
+			return err
+		}
+		if !ok {
+			// to validate if the Retweet&qoute_retweet is false then execute below.
+			Cpost, Fpost, err = s.createRetweetPost(req, c)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	log.Println("middle get")
 	post, err := s.store.GetPost_feature_Update(c.Request().Context(), req.PostID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -422,13 +432,14 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	log.Println("after")
 	ok, err = s.store.GetQouteRetweetJoin(c.Request().Context(), req.PostID)
 	if err := GetErrorValidator(c, err, qretweet); err != nil {
 		return err
 	}
-	log.Println("retweetDB: ", ok)
-	log.Println("retweet: ", req.IsRetweet)
+
+	if ok && req.IsRetweet {
+		return c.JSON(http.StatusBadRequest, "already created")
+	}
 
 	if !ok {
 		if req.IsRetweet {
@@ -437,7 +448,11 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 	}
 
 	if !req.IsRetweet {
-		err = s.DeleteQouteRetweet(req, c, post)
+		num, err = s.store.GetPostInfoJoin(c.Request().Context(), db.GetPostInfoJoinParams{PostID: req.PostID, FromAccountID: req.FromAccountID})
+		if err := GetErrorValidator(c, err, qretweet); err != nil {
+			return err
+		}
+		err = s.deleteQouteRetweet(req, c, post, num)
 		return err
 	}
 
@@ -455,46 +470,6 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	log.Println("this line printed")
-	result, err := s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
-		PostID:          post.PostID,
-		SumComment:      post.SumComment,
-		SumLike:         post.SumLike,
-		SumRetweet:      post.SumRetweet,
-		SumQouteRetweet: post.SumQouteRetweet,
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(http.StatusOK, qouteretweetResponse(result, req.Qoute))
-}
-
-func (s *Server) DeleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context, post db.PostFeature) error {
-	_, err := s.store.GetQouteRetweet(c.Request().Context(), db.GetQouteRetweetParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusNotFound, "no specify qoute-retweet in database")
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
-		FromAccountID: arg.FromAccountID,
-		PostID:        arg.PostID,
-		TypeEntries:   unqretweet,
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	err = s.store.DeleteQouteRetweet(c.Request().Context(), db.DeleteQouteRetweetParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	// Delete first then decrement
-	post.SumQouteRetweet--
 	_, err = s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
 		PostID:          post.PostID,
 		SumComment:      post.SumComment,
@@ -506,8 +481,5 @@ func (s *Server) DeleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusCreated, echo.Map{
-		"Delete":    true,
-		"DeletedAt": time.Now().Unix(),
-	})
+	return c.JSON(http.StatusOK, qouteretweetResponse(Cpost, Fpost, req.Qoute))
 }

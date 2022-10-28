@@ -15,7 +15,7 @@ INSERT INTO accounts(
     is_private
 ) VALUES(
     $1,$2
-) RETURNING accounts_id, owner, is_private, created_at
+) RETURNING accounts_id, owner, is_private, created_at, follower, following
 `
 
 type CreateAccountsParams struct {
@@ -31,12 +31,14 @@ func (q *Queries) CreateAccounts(ctx context.Context, arg CreateAccountsParams) 
 		&i.Owner,
 		&i.IsPrivate,
 		&i.CreatedAt,
+		&i.Follower,
+		&i.Following,
 	)
 	return i, err
 }
 
 const getAccounts = `-- name: GetAccounts :one
-SELECT accounts_id, owner, is_private, created_at FROM accounts
+SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
 WHERE accounts_id = $1 LIMIT 1
 `
 
@@ -48,12 +50,14 @@ func (q *Queries) GetAccounts(ctx context.Context, accountsID int64) (Account, e
 		&i.Owner,
 		&i.IsPrivate,
 		&i.CreatedAt,
+		&i.Follower,
+		&i.Following,
 	)
 	return i, err
 }
 
 const getAccountsOwner = `-- name: GetAccountsOwner :one
-SELECT accounts_id, owner, is_private, created_at FROM accounts
+SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
 WHERE owner = $1 LIMIT 1
 `
 
@@ -65,12 +69,14 @@ func (q *Queries) GetAccountsOwner(ctx context.Context, owner string) (Account, 
 		&i.Owner,
 		&i.IsPrivate,
 		&i.CreatedAt,
+		&i.Follower,
+		&i.Following,
 	)
 	return i, err
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT accounts_id, owner, is_private, created_at FROM accounts
+SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
 WHERE owner = $1
 ORDER BY accounts_id
 LIMIT $2
@@ -97,6 +103,8 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 			&i.Owner,
 			&i.IsPrivate,
 			&i.CreatedAt,
+			&i.Follower,
+			&i.Following,
 		); err != nil {
 			return nil, err
 		}

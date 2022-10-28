@@ -46,7 +46,23 @@ func (s *Server) createUser(c echo.Context) error {
 		}
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	resp := UserResponse(user)
+
+	argaccount := db.CreateAccountsParams{
+		Owner: req.Username,
+	}
+
+	res, err := s.store.CreateAccounts(c.Request().Context(), argaccount)
+	if err != nil {
+		if pqerr, ok := err.(*pq.Error); ok {
+			switch pqerr.Code.Name() {
+			case "unique_violation", "foreign_key_violation":
+				return c.JSON(http.StatusForbidden, err.Error())
+			}
+		}
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	output := AccountResponse(res)
+	resp := CreateUserResponses(user, output)
 	return c.JSON(http.StatusOK, resp)
 }
 
@@ -116,26 +132,26 @@ func (s *Server) login(c echo.Context) error {
 }
 
 func ValidationCreateUserRequest(input *CreateUserParam) (errors []string) {
-	if err := ValidateAlphanum(input.Username); err != nil {
+	if err := ValidateAlphanum(input.Username, 4, 20); err != nil {
 		errors = append(errors, ValidateError("username", err.Error()))
 	}
-	if err := ValidateAlpha(input.FullName); err != nil {
+	if err := ValidateAlpha(input.FullName, 3, 50); err != nil {
 		errors = append(errors, ValidateError("full_name", err.Error()))
 	}
-	if err := ValidateEmail(input.Email); err != nil {
+	if err := ValidateEmail(input.Email, 5, 50); err != nil {
 		errors = append(errors, ValidateError("email", err.Error()))
 	}
-	if err := validatePassword(input.HashedPassword); err != nil {
+	if err := validatePassword(input.HashedPassword, 5, 30); err != nil {
 		errors = append(errors, ValidateError("password", err.Error()))
 	}
 	return errors
 }
 
 func ValidationLoginRequest(input *LoginParams) (errors []string) {
-	if err := ValidateAlphanum(input.Username); err != nil {
+	if err := ValidateAlphanum(input.Username, 4, 20); err != nil {
 		errors = append(errors, ValidateError("username", err.Error()))
 	}
-	if err := validatePassword(input.Password); err != nil {
+	if err := validatePassword(input.Password, 5, 30); err != nil {
 		errors = append(errors, ValidateError("password", err.Error()))
 	}
 	return errors
