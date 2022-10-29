@@ -19,6 +19,20 @@ type Account struct {
 	Following  int64     `json:"following"`
 }
 
+type AccountsFollow struct {
+	FromAccountID int64     `json:"from_account_id"`
+	ToAccountID   int64     `json:"to_account_id"`
+	Follow        bool      `json:"follow"`
+	FollowAt      time.Time `json:"follow_at"`
+}
+
+type AccountsQueue struct {
+	FromAccountID int64     `json:"from_account_id"`
+	Queue         bool      `json:"queue"`
+	ToAccountID   int64     `json:"to_account_id"`
+	QueueAt       time.Time `json:"queue_at"`
+}
+
 type CommentFeature struct {
 	CommentID     int64     `json:"comment_id"`
 	FromAccountID int64     `json:"from_account_id"`
@@ -31,6 +45,7 @@ type CommentFeature struct {
 type Entry struct {
 	EntriesID     int64     `json:"entries_id"`
 	FromAccountID int64     `json:"from_account_id"`
+	ToAccountID   int64     `json:"to_account_id"`
 	PostID        int64     `json:"post_id"`
 	TypeEntries   string    `json:"type_entries"`
 	CreatedAt     time.Time `json:"created_at"`

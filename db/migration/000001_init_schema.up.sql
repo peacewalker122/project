@@ -25,19 +25,9 @@ CREATE TABLE "post" (
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
-CREATE TABLE "entries" (
-  "entries_id" bigserial PRIMARY KEY,
-  "from_account_id" bigint NOT NULL,
-  "post_id" bigint NOT NULL,
-  "type_entries" varchar NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
-);
-
 CREATE INDEX ON "accounts" ("owner");
 
 CREATE INDEX ON "post" ("post_id");
-
-CREATE INDEX ON "entries" ("post_id");
 
 ALTER TABLE "accounts" ADD FOREIGN KEY ("owner") REFERENCES "users" ("username");
 
@@ -45,7 +35,3 @@ ALTER TABLE "post" ADD FOREIGN KEY ("account_id") REFERENCES "accounts" ("accoun
 
 ALTER TABLE "accounts" ADD CONSTRAINT "owner_currency_key" UNIQUE ("owner");
 -- This Code Above To Make Consistent Account Name.
-
-ALTER TABLE "entries" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
-
-ALTER TABLE "entries" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");

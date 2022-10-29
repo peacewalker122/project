@@ -74,6 +74,15 @@ func TestListAccount(t *testing.T) {
 
 	for _, output := range result {
 		require.NotEmpty(t, output)
-		require.Equal(t,acc.Owner,output.Owner)
+		require.Equal(t, acc.Owner, output.Owner)
 	}
+}
+
+func TestAddFollower(t *testing.T) {
+	acc := CreateRandomAccount(t)
+
+	result, err := testQueries.AddAccountFollower(context.Background(), acc.AccountsID)
+	require.NoError(t, err)
+	require.NotEmpty(t, result)
+	require.Equal(t, int64(1), result.Follower)
 }

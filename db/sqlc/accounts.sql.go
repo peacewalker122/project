@@ -9,6 +9,48 @@ import (
 	"context"
 )
 
+const addAccountFollower = `-- name: AddAccountFollower :one
+UPDATE accounts
+SET follower = follower + 1
+WHERE accounts_id = $1
+RETURNING accounts_id, owner, is_private, created_at, follower, following
+`
+
+func (q *Queries) AddAccountFollower(ctx context.Context, accountsID int64) (Account, error) {
+	row := q.db.QueryRowContext(ctx, addAccountFollower, accountsID)
+	var i Account
+	err := row.Scan(
+		&i.AccountsID,
+		&i.Owner,
+		&i.IsPrivate,
+		&i.CreatedAt,
+		&i.Follower,
+		&i.Following,
+	)
+	return i, err
+}
+
+const addAccountFollowing = `-- name: AddAccountFollowing :one
+UPDATE accounts
+SET following = following + 1
+WHERE accounts_id = $1
+RETURNING accounts_id, owner, is_private, created_at, follower, following
+`
+
+func (q *Queries) AddAccountFollowing(ctx context.Context, accountsID int64) (Account, error) {
+	row := q.db.QueryRowContext(ctx, addAccountFollowing, accountsID)
+	var i Account
+	err := row.Scan(
+		&i.AccountsID,
+		&i.Owner,
+		&i.IsPrivate,
+		&i.CreatedAt,
+		&i.Follower,
+		&i.Following,
+	)
+	return i, err
+}
+
 const createAccounts = `-- name: CreateAccounts :one
 INSERT INTO accounts(
     owner,
@@ -25,6 +67,26 @@ type CreateAccountsParams struct {
 
 func (q *Queries) CreateAccounts(ctx context.Context, arg CreateAccountsParams) (Account, error) {
 	row := q.db.QueryRowContext(ctx, createAccounts, arg.Owner, arg.IsPrivate)
+	var i Account
+	err := row.Scan(
+		&i.AccountsID,
+		&i.Owner,
+		&i.IsPrivate,
+		&i.CreatedAt,
+		&i.Follower,
+		&i.Following,
+	)
+	return i, err
+}
+
+const getAccountForUpdate = `-- name: GetAccountForUpdate :one
+SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
+WHERE accounts_id = $1 LIMIT 1
+FOR NO KEY UPDATE
+`
+
+func (q *Queries) GetAccountForUpdate(ctx context.Context, accountsID int64) (Account, error) {
+	row := q.db.QueryRowContext(ctx, getAccountForUpdate, accountsID)
 	var i Account
 	err := row.Scan(
 		&i.AccountsID,

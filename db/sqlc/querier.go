@@ -11,7 +11,11 @@ import (
 )
 
 type Querier interface {
+	AddAccountFollower(ctx context.Context, accountsID int64) (Account, error)
+	AddAccountFollowing(ctx context.Context, accountsID int64) (Account, error)
+	CreateAccountQueue(ctx context.Context, arg CreateAccountQueueParams) (AccountsQueue, error)
 	CreateAccounts(ctx context.Context, arg CreateAccountsParams) (Account, error)
+	CreateAccountsFollow(ctx context.Context, arg CreateAccountsFollowParams) (AccountsFollow, error)
 	CreateComment_feature(ctx context.Context, arg CreateComment_featureParams) (string, error)
 	CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error)
 	CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) error
@@ -25,7 +29,9 @@ type Querier interface {
 	DeletePostFeature(ctx context.Context, postID int64) error
 	DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweetParams) error
 	DeleteRetweet(ctx context.Context, arg DeleteRetweetParams) error
+	GetAccountForUpdate(ctx context.Context, accountsID int64) (Account, error)
 	GetAccounts(ctx context.Context, accountsID int64) (Account, error)
+	GetAccountsFollow(ctx context.Context, arg GetAccountsFollowParams) (bool, error)
 	GetAccountsOwner(ctx context.Context, owner string) (Account, error)
 	GetEntries(ctx context.Context, entriesID int64) (Entry, error)
 	GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error

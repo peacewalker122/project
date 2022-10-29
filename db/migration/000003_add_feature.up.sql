@@ -38,10 +38,20 @@ CREATE TABLE "post_feature" (
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
+CREATE TABLE "entries" (
+  "entries_id" bigserial PRIMARY KEY,
+  "from_account_id" bigint NOT NULL,
+  "to_account_id" bigint NOT NULL,
+  "post_id" bigint NOT NULL,
+  "type_entries" varchar NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT (now())
+);
+
 CREATE INDEX ON like_feature ("created_at" DESC);
 CREATE INDEX ON "comment_feature" ("comment_id");
 CREATE INDEX ON "retweet_feature" ("created_at" DESC);
 CREATE INDEX ON "like_feature" ("created_at" DESC);
+CREATE INDEX ON "entries" ("post_id");
 
 ALTER TABLE "like_feature" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
 
@@ -60,3 +70,7 @@ ALTER TABLE "qoute_retweet_feature" ADD FOREIGN KEY ("from_account_id") REFERENC
 ALTER TABLE "qoute_retweet_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");
 
 ALTER TABLE "post_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");
+
+ALTER TABLE "entries" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
+
+ALTER TABLE "entries" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");

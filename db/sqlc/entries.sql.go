@@ -12,25 +12,33 @@ import (
 const createEntries = `-- name: CreateEntries :one
 INSERT INTO entries (
     from_account_id,
+    to_account_id,
     post_id,
     type_entries
  ) VALUES (
-    $1,$2,$3
-  ) RETURNING entries_id, from_account_id, post_id, type_entries, created_at
+    $1,$2,$3,$4
+  ) RETURNING entries_id, from_account_id, to_account_id, post_id, type_entries, created_at
 `
 
 type CreateEntriesParams struct {
 	FromAccountID int64  `json:"from_account_id"`
+	ToAccountID   int64  `json:"to_account_id"`
 	PostID        int64  `json:"post_id"`
 	TypeEntries   string `json:"type_entries"`
 }
 
 func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error) {
-	row := q.db.QueryRowContext(ctx, createEntries, arg.FromAccountID, arg.PostID, arg.TypeEntries)
+	row := q.db.QueryRowContext(ctx, createEntries,
+		arg.FromAccountID,
+		arg.ToAccountID,
+		arg.PostID,
+		arg.TypeEntries,
+	)
 	var i Entry
 	err := row.Scan(
 		&i.EntriesID,
 		&i.FromAccountID,
+		&i.ToAccountID,
 		&i.PostID,
 		&i.TypeEntries,
 		&i.CreatedAt,
@@ -39,7 +47,7 @@ func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (E
 }
 
 const getEntries = `-- name: GetEntries :one
-SELECT entries_id, from_account_id, post_id, type_entries, created_at FROM entries
+SELECT entries_id, from_account_id, to_account_id, post_id, type_entries, created_at FROM entries
 WHERE entries_id = $1 LIMIT 1
 `
 
@@ -49,6 +57,7 @@ func (q *Queries) GetEntries(ctx context.Context, entriesID int64) (Entry, error
 	err := row.Scan(
 		&i.EntriesID,
 		&i.FromAccountID,
+		&i.ToAccountID,
 		&i.PostID,
 		&i.TypeEntries,
 		&i.CreatedAt,
@@ -57,7 +66,7 @@ func (q *Queries) GetEntries(ctx context.Context, entriesID int64) (Entry, error
 }
 
 const getEntriesFull = `-- name: GetEntriesFull :exec
-SELECT entries_id, from_account_id, post_id, type_entries, created_at FROM entries
+SELECT entries_id, from_account_id, to_account_id, post_id, type_entries, created_at FROM entries
 WHERE post_id = $1 and from_account_id = $2 and type_entries = $3 LIMIT 1
 `
 
@@ -73,7 +82,7 @@ func (q *Queries) GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) 
 }
 
 const listEntries = `-- name: ListEntries :many
-SELECT entries_id, from_account_id, post_id, type_entries, created_at FROM entries
+SELECT entries_id, from_account_id, to_account_id, post_id, type_entries, created_at FROM entries
 WHERE post_id = $1
 ORDER BY entries_id
 LIMIT $2
@@ -98,6 +107,7 @@ func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Ent
 		if err := rows.Scan(
 			&i.EntriesID,
 			&i.FromAccountID,
+			&i.ToAccountID,
 			&i.PostID,
 			&i.TypeEntries,
 			&i.CreatedAt,

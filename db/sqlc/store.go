@@ -1,10 +1,12 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 )
 
 type Store interface {
+	Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error)
 	Querier
 }
 
@@ -20,8 +22,9 @@ func Newstore(db *sql.DB) Store {
 	}
 }
 
+// TO BE IMPLEMENTED IF TX NEEDED
 // func (s *SQLStore) execCtx(ctx context.Context, fn func(q *Queries) error) error {
-// 	tx, err := s.db.Begin()
+// 	tx, err := s.db.BeginTx(ctx, nil)
 // 	if err != nil {
 // 		return err
 // 	}
@@ -35,65 +38,55 @@ func Newstore(db *sql.DB) Store {
 // 	return tx.Commit()
 // }
 
-// const (
-// 	L  = "like"
-// 	R  = "retweet"
-// 	C  = "comment"
-// 	QR = "qoute-retweet"
-// )
+const (
+	L  = "like"
+	R  = "retweet"
+	C  = "comment"
+	QR = "qoute-retweet"
+	F  = "Follow"
+)
 
-// type PostTXParam struct {
-// 	PostID        int64  `json:"post_id"`
-// 	FeatureType   string `json:"feature_type"`
-// }
+type FollowTXParam struct {
+	Fromaccid int64 `json:"from_acc_id"`
+	Toaccid   int64 `json:"to_acc_id"`
+}
 
-// type PostTXResult struct {
-// 	PostFeature   PostFeature `json:"post_feature"`
-// 	PostID        int64       `json:"post_id"`
-// 	FeatureType   string      `json:"feature_type"`
-// 	Entry         Entry       `json:"entry"`
-// }
+type FollowTXResult struct {
+	Follow      AccountsFollow `json:"account_follow"`
+	FeatureType string         `json:"feature_type"`
+	FromAcc     Account        `json:"from_acc"`
+	ToAcc       Account        `json:"to_acc"`
+}
 
-// func (s *SQLStore) PostTX(ctx context.Context, arg PostTXParam) (PostTXResult, error) {
-// 	var result PostTXResult
+func (q *Queries) Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error) {
+	var result FollowTXResult
+	var err error
+	result.FeatureType = F
+	
+	result.Follow, result.ToAcc, result.FromAcc, err = q.AddFollowing(ctx, arg.Fromaccid, arg.Toaccid)
+	if err != nil {
+		return result, err
+	}
 
-// 	err := s.execCtx(ctx, func(q *Queries) error {
-// 		var err error
+	return result, nil
+}
 
-// 		numcomment := 0
-// 		numlike := 0
-// 		numretweet := 0
-// 		numQretweet := 0
-
-// 		switch arg.FeatureType {
-// 		case L:
-// 			numlike++
-// 		case R:
-// 			numretweet++
-// 		case C:
-// 			numcomment++
-// 		case QR:
-// 			numQretweet++
-// 		}
-
-// 		result.PostFeature, err = q.CreatePost_feature(ctx, CreatePost_featureParams{
-// 			PostID:          arg.PostID,
-// 			SumComment:      int64(numcomment),
-// 			SumLike:         int64(numlike),
-// 			SumRetweet:      int64(numretweet),
-// 			SumQouteRetweet: int64(numQretweet),
-// 		})
-// 		if err != nil {
-// 			return err
-// 		}
-// 		result.Entry, err = q.CreateEntries(ctx, CreateEntriesParams{
-// 			PostID:        arg.PostID,
-// 			TypeEntries:   arg.FeatureType,
-// 		})
-// 		if err != nil {
-// 			return err
-// 		}
-// 		return nil
-// 	})
-// 	return result, err
-// }
+func (q *Queries) AddFollowing(ctx context.Context, fromAccount, toAccount int64) (acc AccountsFollow, Toacc, Fromacc Account, err error) {
+	acc, err = q.CreateAccountsFollow(ctx, CreateAccountsFollowParams{
+		FromAccountID: fromAccount,
+		ToAccountID:   toAccount,
+		Follow:        true,
+	})
+	if err != nil {
+		return
+	}
+	Toacc, err = q.AddAccountFollower(ctx, toAccount)
+	if err != nil {
+		return
+	}
+	Fromacc, err = q.AddAccountFollowing(ctx, fromAccount)
+	if err != nil {
+		return
+	}
+	return
+}

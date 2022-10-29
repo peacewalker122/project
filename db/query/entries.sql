@@ -1,10 +1,11 @@
 -- name: CreateEntries :one
 INSERT INTO entries (
     from_account_id,
+    to_account_id,
     post_id,
     type_entries
  ) VALUES (
-    $1,$2,$3
+    $1,$2,$3,$4
   ) RETURNING *;
 
 -- name: GetEntries :one
