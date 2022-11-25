@@ -11,8 +11,6 @@ import (
 )
 
 type Querier interface {
-	AddAccountFollower(ctx context.Context, accountsID int64) (Account, error)
-	AddAccountFollowing(ctx context.Context, accountsID int64) (Account, error)
 	CreateAccountQueue(ctx context.Context, arg CreateAccountQueueParams) (AccountsQueue, error)
 	CreateAccounts(ctx context.Context, arg CreateAccountsParams) (Account, error)
 	CreateAccountsFollow(ctx context.Context, arg CreateAccountsFollowParams) (AccountsFollow, error)
@@ -25,6 +23,7 @@ type Querier interface {
 	CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteAccountsFollow(ctx context.Context, arg DeleteAccountsFollowParams) error
 	DeletePost(ctx context.Context, postID int64) error
 	DeletePostFeature(ctx context.Context, postID int64) error
 	DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweetParams) error
@@ -32,6 +31,7 @@ type Querier interface {
 	GetAccountForUpdate(ctx context.Context, accountsID int64) (Account, error)
 	GetAccounts(ctx context.Context, accountsID int64) (Account, error)
 	GetAccountsFollow(ctx context.Context, arg GetAccountsFollowParams) (bool, error)
+	GetAccountsFollowRows(ctx context.Context, arg GetAccountsFollowRowsParams) (int64, error)
 	GetAccountsOwner(ctx context.Context, owner string) (Account, error)
 	GetEntries(ctx context.Context, entriesID int64) (Entry, error)
 	GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error
@@ -57,6 +57,8 @@ type Querier interface {
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
 	ListPost(ctx context.Context, arg ListPostParams) ([]Post, error)
 	ListUser(ctx context.Context, arg ListUserParams) ([]User, error)
+	UpdateAccountFollower(ctx context.Context, arg UpdateAccountFollowerParams) (Account, error)
+	UpdateAccountFollowing(ctx context.Context, arg UpdateAccountFollowingParams) (Account, error)
 	UpdateLike(ctx context.Context, arg UpdateLikeParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
 	UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error)

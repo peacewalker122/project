@@ -46,16 +46,13 @@ func Randomuint() []uint8 {
 	return []uint8(Randomstring(90))
 }
 
-func InputSqlString(input string, Min int) (sql sql.NullString, err error) {
-	if len(input) < Min {
-		sql.Valid = false
-		err = fmt.Errorf("length of string Must be Greater Than %v", Min)
-		return sql, err
+func InputSqlString(input string) (sql sql.NullString) {
+	if input != "" {
+		sql.Valid = true
+		sql.String = input
+		return sql
 	}
-	sql.Valid = true
-	sql.String = input
-
-	return sql, err
+	return sql
 }
 
 func RandomType() string {

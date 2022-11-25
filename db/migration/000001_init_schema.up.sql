@@ -21,6 +21,7 @@ CREATE TABLE "post" (
   "post_id" bigserial PRIMARY KEY,
   "account_id" bigint NOT NULL,
   "picture_description" varchar NOT NULL,
+  "photo_dir" varchar,
   "is_retweet" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );

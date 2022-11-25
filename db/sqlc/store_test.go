@@ -8,7 +8,7 @@ import (
 )
 
 func TestAddFollow(t *testing.T) {
-	store := Newstore(testDB)
+	store := Newstore(testDB, config.BucketAccount)
 	account1 := CreateRandomAccount(t)
 	account2 := CreateRandomAccount(t)
 
@@ -36,15 +36,29 @@ func TestAddFollow(t *testing.T) {
 	toacc := res.ToAcc
 	require.Equal(t, account1.AccountsID, toacc.AccountsID)
 	require.Equal(t, int64(1), toacc.Follower)
+
+	update, err := store.UnFollowtx(ctx, UnfollowTXParam{
+		Fromaccid: account2.AccountsID,
+		Toaccid:   account1.AccountsID,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, update)
+
+	require.Equal(t, UF, update.FeatureType)
+	require.True(t, update.Status)
+
+	fromacc = update.FromAcc
+	require.Equal(t, account2.AccountsID, fromacc.AccountsID)
+	require.Equal(t, int64(0), fromacc.Following)
+
+	toacc = update.ToAcc
+	require.Equal(t, account1.AccountsID, toacc.AccountsID)
+	require.Equal(t, int64(0), toacc.Follower)
 }
 
-func BenchmarkFollow(b *testing.B) {
-	ctx := context.Background()
-	store := Newstore(testDB)
-	for i := 0; i < 100; i++ {
-		store.Followtx(ctx, FollowTXParam{
-			Fromaccid: int64(2),
-			Toaccid:   int64(1),
-		})
-	}
+func TestOS(t *testing.T) {
+	store := Newstore(testDB, config.BucketAccount)
+	dir, err := store.GetDirectory(".")
+	require.NoError(t, err)
+	require.Equal(t, "", dir)
 }

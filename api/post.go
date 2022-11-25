@@ -3,7 +3,6 @@ package api
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -13,14 +12,19 @@ import (
 
 type (
 	CreatePostParams struct {
-		AccountID          int64  `json:"account_id" validate:"required"`
-		PictureDescription string `json:"picture_description" validate:"required"`
+		AccountID          int64  `json:"account_id" form:"account_id" validate:"required"`
+		PictureDescription string `json:"picture_description" form:"picture_description" validate:"required"`
+	}
+	GetImageParam struct {
+		FromAccountID int64 `json:"from_account_id" form:"account_id" validate:"required"`
+		postID        int64 `uri:"id" validate:"required,min=1"`
 	}
 	GetPostParam struct {
-		ID        int64 `uri:"id" validate:"required,min=1"`
-		Offset    int32 `json:"offset" form:"offset" query:"offset" validate:"required,min=0"`
-		Fromaccid int64 `query:"accid" validate:"required,min=1"`
+		postID        int64 `uri:"id" validate:"required,min=1"`
+		Offset        int32 `json:"offset" form:"offset" query:"offset" validate:"required,min=0"`
+		FromAccountID int64 `json:"from_account_id" query:"accid" validate:"required,min=1"`
 	}
+
 	LikePostRequest struct {
 		FromAccountID int64 `json:"from_account_id" validate:"required"`
 		IsLike        bool  `json:"like"`
@@ -42,10 +46,6 @@ type (
 		Qoute         string `json:"qoute" form:"qoute" validate:"required"`
 		PostID        int64  `json:"post_id" validate:"required"`
 	}
-	FollowAccountRequest struct {
-		FromAccountID int64 `json:"from_account_id" validate:"required"`
-		ToAccountID   int64 `json:"to_account_id" validate:"required"`
-	}
 )
 
 func (s *Server) createPost(c echo.Context) error {
@@ -61,21 +61,7 @@ func (s *Server) createPost(c echo.Context) error {
 		return err
 	}
 
-	arg := db.CreatePostParams{
-		AccountID:          req.AccountID,
-		PictureDescription: req.PictureDescription,
-	}
-
-	post, err := s.store.CreatePost(c.Request().Context(), arg)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	post2, err := s.store.CreatePost_feature(c.Request().Context(), post.PostID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	return c.JSON(http.StatusOK, PostResponse(post, post2))
+	return s.creatingPost(c, req)
 }
 
 func (s *Server) getPost(c echo.Context) error {
@@ -83,35 +69,36 @@ func (s *Server) getPost(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return err
 	}
-	err := ValidateURIPost(req, c, "id")
+	err := req.ValidateURIPost(c, "id")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	if err := c.Validate(req); err != nil {
 		return err
 	}
-	if err := s.AuthAccount(c, req.Fromaccid); err != nil {
+	if err := s.AuthAccount(c, req.FromAccountID); err != nil {
 		return err
 	}
+	return s.GettingPost(c, req)
+}
 
-	post, err := s.store.GetPost(c.Request().Context(), int64(req.ID))
-	if err := GetErrorValidator(c, err, posttag); err != nil {
+func (s *Server) getPostImage(c echo.Context) error {
+	req := new(GetImageParam)
+	if err := c.Bind(req); err != nil {
 		return err
 	}
-	postFeature, err := s.store.GetPost_feature(c.Request().Context(), int64(req.ID))
-	if err := GetErrorValidator(c, err, posttag); err != nil {
-		return err
-	}
-
-	arg := db.ListCommentParams{PostID: int64(req.ID), Limit: int32(10), Offset: (req.Offset - 1) * 10}
-	comment, err := s.store.ListComment(c.Request().Context(), arg)
+	err := req.ValidateURIPost(c, "id")
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusNotFound, err.Error())
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	return c.JSON(http.StatusOK, GetPostResponse(post, postFeature, comment))
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+	if err := s.AuthAccount(c, req.FromAccountID); err != nil {
+		return err
+	}
+
+	return s.gettingImage(c, req.postID)
 }
 
 func (s *Server) likePost(c echo.Context) error {
@@ -282,17 +269,6 @@ func (s *Server) retweetPost(c echo.Context) error {
 			return err
 		}
 		if num == 0 {
-			err = s.store.CreateRetweet_feature(c.Request().Context(), db.CreateRetweet_featureParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-			if err := CreateErrorValidator(c, err); err != nil {
-				return err
-			}
-		}
-		ok, err := s.store.GetPostidretweetJoin(c.Request().Context(), db.GetPostidretweetJoinParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-		if err := GetErrorValidator(c, err, qretweet); err != nil {
-			return err
-		}
-		if !ok.Retweet {
-			// to validate if the Retweet&qoute_retweet is false then execute below.
 			Cpost, Fpost, err = s.createRetweetPost(req, c)
 			if err != nil {
 				return err
@@ -410,8 +386,9 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 		}
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
+
 	ok, err = s.store.GetQouteRetweetJoin(c.Request().Context(), req.PostID)
-	if err := CreateErrorValidator(c, err); err != nil {
+	if err := GetErrorValidator(c, err, qretweet); err != nil {
 		return err
 	}
 	if ok && req.IsRetweet {
@@ -421,7 +398,6 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 	if !ok {
 		if req.IsRetweet {
 			post.SumQouteRetweet++
-			log.Println(post.SumQouteRetweet)
 		}
 	}
 
@@ -457,17 +433,3 @@ func (s *Server) qouteretweetPost(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, qouteretweetResponse(Cpost, Fpost, req.Qoute))
 }
-
-// func (s *Server) followAccount(c echo.Context) error {
-// 	req := new(FollowAccountRequest)
-// 	if err := c.Bind(req); err != nil {
-// 		return err
-// 	}
-// 	if err := c.Validate(req); err != nil {
-// 		return err
-// 	}
-// 	if err := s.AuthAccount(c, req.FromAccountID); err != nil {
-// 		return err
-// 	}
-
-// }

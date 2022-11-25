@@ -2,9 +2,10 @@
 INSERT INTO post(
     account_id,
     is_retweet,
-    picture_description
+    picture_description,
+    photo_dir
 ) VALUES(
-    $1,$2,$3
+    $1,$2,$3,$4
 ) RETURNING *;
 
 -- name: GetPost :one

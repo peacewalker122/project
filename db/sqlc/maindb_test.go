@@ -12,8 +12,13 @@ import (
 
 var testQueries *Queries
 var testDB *sql.DB
+var config util.Config
 
 func TestMain(m *testing.M) {
+
+	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// defer cancel()
+
 	config, err := util.LoadConfig("../..")
 	if err != nil {
 		log.Fatal("can't definef config ", err.Error())
@@ -22,6 +27,10 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Panic("unable to connect into db: ", err)
 	}
+	// storageClient, err = storage.NewClient(ctx, option.WithCredentialsFile(config.ClientOption))
+	// if err != nil {
+	// 	log.Fatalf("Failed to create client: %v", err)
+	// }
 	testQueries = New(testDB)
 
 	os.Exit(m.Run())

@@ -19,6 +19,8 @@ type (
 		ID          int64  `json:"id"`
 		Owner       string `json:"owner"`
 		AccountType bool   `json:"is_private"`
+		Follower    int64  `json:"follower"`
+		Following   int64  `json:"following"`
 		CreatedAt   int64  `json:"created_at"`
 	}
 	CreatePostResponse struct {
@@ -83,7 +85,25 @@ type (
 		PostFeature CreatePostResponse `json:"post_feature"`
 		RetweetAt   int64              `json:"retweet_at"`
 	}
+	accountfollowresp struct {
+		FromAccountID int64 `json:"from_account_id"`
+		ToAccountID   int64 `json:"to_account_id"`
+		FollowAt      int64 `json:"follow_at"`
+	}
+	FollowResponse struct {
+		Follow      accountfollowresp      `json:"follow_info"`
+		FromAccount CreateAccountsResponse `json:"from_account"`
+		ToAccount   CreateAccountsResponse `json:"to_account"`
+	}
 )
+
+func createaccountfollowresp(arg db.AccountsFollow) accountfollowresp {
+	return accountfollowresp{
+		FromAccountID: arg.FromAccountID,
+		ToAccountID:   arg.ToAccountID,
+		FollowAt:      arg.FollowAt.Unix(),
+	}
+}
 
 func CreateUserResponses(input db.User, input2 CreateAccountsResponse) CreateUserResponse {
 	return CreateUserResponse{
@@ -108,6 +128,8 @@ func AccountResponse(input db.Account) CreateAccountsResponse {
 		ID:          input.AccountsID,
 		Owner:       input.Owner,
 		AccountType: input.IsPrivate,
+		Follower:    input.Follower,
+		Following:   input.Following,
 		CreatedAt:   input.CreatedAt.Unix(),
 	}
 }
@@ -154,7 +176,7 @@ func likeResponse(arg db.PostFeature) LikePostResp {
 	return LikePostResp{
 		PostID:  arg.PostID,
 		SumLike: arg.SumLike,
-		LikeAT:  arg.CreatedAt.UTC().Unix(),
+		LikeAT:  arg.CreatedAt.Unix(),
 	}
 }
 
@@ -163,7 +185,7 @@ func commentResponse(comment string, arg db.PostFeature) CommentPostResp {
 		PostID:     arg.PostID,
 		Comment:    comment,
 		SumComment: arg.SumComment,
-		LikeAT:     arg.CreatedAt.UTC().Unix(),
+		LikeAT:     arg.CreatedAt.Unix(),
 	}
 }
 
@@ -180,6 +202,14 @@ func qouteretweetResponse(post db.Post, postFeature db.PostFeature, qoute string
 		Qoute:       qoute,
 		PostFeature: PostResponse(post, postFeature),
 		RetweetAt:   postFeature.CreatedAt.Unix(),
+	}
+}
+
+func followResponse(follow db.FollowTXResult) FollowResponse {
+	return FollowResponse{
+		Follow:      createaccountfollowresp(follow.Follow),
+		FromAccount: AccountResponse(follow.FromAcc),
+		ToAccount:   AccountResponse(follow.ToAcc),
 	}
 }
 

@@ -26,14 +26,14 @@ SELECT * FROM accounts
 WHERE accounts_id = $1 LIMIT 1
 FOR NO KEY UPDATE;
 
--- name: AddAccountFollowing :one
+-- name: UpdateAccountFollowing :one
 UPDATE accounts
-SET following = following + 1
+SET following = following + @num
 WHERE accounts_id = @accounts_id
 RETURNING *;
 
--- name: AddAccountFollower :one
+-- name: UpdateAccountFollower :one
 UPDATE accounts
-SET follower = follower + 1
+SET follower = follower + @num
 WHERE accounts_id = @accounts_id
 RETURNING *;

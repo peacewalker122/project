@@ -15,6 +15,14 @@ INSERT INTO accounts_queue(
     $1,$2
 ) RETURNING *;
 
+-- name: GetAccountsFollowRows :execrows
+SELECT follow FROM accounts_follow
+WHERE from_account_id = @fromID and to_account_id = @toID LIMIT 1;
+
 -- name: GetAccountsFollow :one
 SELECT follow FROM accounts_follow
 WHERE from_account_id = @fromID and to_account_id = @toID LIMIT 1;
+
+-- name: DeleteAccountsFollow :exec
+DElete from accounts_follow
+WHERE from_account_id = @fromID and to_account_id = @toID;

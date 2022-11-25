@@ -5,6 +5,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -59,11 +60,12 @@ type LikeFeature struct {
 }
 
 type Post struct {
-	PostID             int64     `json:"post_id"`
-	AccountID          int64     `json:"account_id"`
-	PictureDescription string    `json:"picture_description"`
-	IsRetweet          bool      `json:"is_retweet"`
-	CreatedAt          time.Time `json:"created_at"`
+	PostID             int64          `json:"post_id"`
+	AccountID          int64          `json:"account_id"`
+	PictureDescription string         `json:"picture_description"`
+	PhotoDir           sql.NullString `json:"photo_dir"`
+	IsRetweet          bool           `json:"is_retweet"`
+	CreatedAt          time.Time      `json:"created_at"`
 }
 
 type PostFeature struct {

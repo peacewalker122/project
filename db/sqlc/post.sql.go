@@ -7,31 +7,40 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createPost = `-- name: CreatePost :one
 INSERT INTO post(
     account_id,
     is_retweet,
-    picture_description
+    picture_description,
+    photo_dir
 ) VALUES(
-    $1,$2,$3
-) RETURNING post_id, account_id, picture_description, is_retweet, created_at
+    $1,$2,$3,$4
+) RETURNING post_id, account_id, picture_description, photo_dir, is_retweet, created_at
 `
 
 type CreatePostParams struct {
-	AccountID          int64  `json:"account_id"`
-	IsRetweet          bool   `json:"is_retweet"`
-	PictureDescription string `json:"picture_description"`
+	AccountID          int64          `json:"account_id"`
+	IsRetweet          bool           `json:"is_retweet"`
+	PictureDescription string         `json:"picture_description"`
+	PhotoDir           sql.NullString `json:"photo_dir"`
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
-	row := q.db.QueryRowContext(ctx, createPost, arg.AccountID, arg.IsRetweet, arg.PictureDescription)
+	row := q.db.QueryRowContext(ctx, createPost,
+		arg.AccountID,
+		arg.IsRetweet,
+		arg.PictureDescription,
+		arg.PhotoDir,
+	)
 	var i Post
 	err := row.Scan(
 		&i.PostID,
 		&i.AccountID,
 		&i.PictureDescription,
+		&i.PhotoDir,
 		&i.IsRetweet,
 		&i.CreatedAt,
 	)
@@ -49,7 +58,7 @@ func (q *Queries) DeletePost(ctx context.Context, postID int64) error {
 }
 
 const getPost = `-- name: GetPost :one
-SELECT post_id, account_id, picture_description, is_retweet, created_at FROM post
+SELECT post_id, account_id, picture_description, photo_dir, is_retweet, created_at FROM post
 WHERE post_id = $1 LIMIT 1
 `
 
@@ -60,6 +69,7 @@ func (q *Queries) GetPost(ctx context.Context, postID int64) (Post, error) {
 		&i.PostID,
 		&i.AccountID,
 		&i.PictureDescription,
+		&i.PhotoDir,
 		&i.IsRetweet,
 		&i.CreatedAt,
 	)
@@ -131,7 +141,7 @@ func (q *Queries) GetRetweetRows(ctx context.Context, arg GetRetweetRowsParams) 
 }
 
 const listPost = `-- name: ListPost :many
-SELECT post_id, account_id, picture_description, is_retweet, created_at FROM post
+SELECT post_id, account_id, picture_description, photo_dir, is_retweet, created_at FROM post
 ORDER BY post_id
 LIMIT $1
 OFFSET $2
@@ -155,6 +165,7 @@ func (q *Queries) ListPost(ctx context.Context, arg ListPostParams) ([]Post, err
 			&i.PostID,
 			&i.AccountID,
 			&i.PictureDescription,
+			&i.PhotoDir,
 			&i.IsRetweet,
 			&i.CreatedAt,
 		); err != nil {
@@ -175,7 +186,7 @@ const updatePost = `-- name: UpdatePost :one
 UPDATE post
 SET picture_description = $2
 WHERE post_id = $1
-RETURNING post_id, account_id, picture_description, is_retweet, created_at
+RETURNING post_id, account_id, picture_description, photo_dir, is_retweet, created_at
 `
 
 type UpdatePostParams struct {
@@ -190,6 +201,7 @@ func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, e
 		&i.PostID,
 		&i.AccountID,
 		&i.PictureDescription,
+		&i.PhotoDir,
 		&i.IsRetweet,
 		&i.CreatedAt,
 	)

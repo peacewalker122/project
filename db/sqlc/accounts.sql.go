@@ -9,48 +9,6 @@ import (
 	"context"
 )
 
-const addAccountFollower = `-- name: AddAccountFollower :one
-UPDATE accounts
-SET follower = follower + 1
-WHERE accounts_id = $1
-RETURNING accounts_id, owner, is_private, created_at, follower, following
-`
-
-func (q *Queries) AddAccountFollower(ctx context.Context, accountsID int64) (Account, error) {
-	row := q.db.QueryRowContext(ctx, addAccountFollower, accountsID)
-	var i Account
-	err := row.Scan(
-		&i.AccountsID,
-		&i.Owner,
-		&i.IsPrivate,
-		&i.CreatedAt,
-		&i.Follower,
-		&i.Following,
-	)
-	return i, err
-}
-
-const addAccountFollowing = `-- name: AddAccountFollowing :one
-UPDATE accounts
-SET following = following + 1
-WHERE accounts_id = $1
-RETURNING accounts_id, owner, is_private, created_at, follower, following
-`
-
-func (q *Queries) AddAccountFollowing(ctx context.Context, accountsID int64) (Account, error) {
-	row := q.db.QueryRowContext(ctx, addAccountFollowing, accountsID)
-	var i Account
-	err := row.Scan(
-		&i.AccountsID,
-		&i.Owner,
-		&i.IsPrivate,
-		&i.CreatedAt,
-		&i.Follower,
-		&i.Following,
-	)
-	return i, err
-}
-
 const createAccounts = `-- name: CreateAccounts :one
 INSERT INTO accounts(
     owner,
@@ -179,4 +137,56 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateAccountFollower = `-- name: UpdateAccountFollower :one
+UPDATE accounts
+SET follower = follower + $1
+WHERE accounts_id = $2
+RETURNING accounts_id, owner, is_private, created_at, follower, following
+`
+
+type UpdateAccountFollowerParams struct {
+	Num        int64 `json:"num"`
+	AccountsID int64 `json:"accounts_id"`
+}
+
+func (q *Queries) UpdateAccountFollower(ctx context.Context, arg UpdateAccountFollowerParams) (Account, error) {
+	row := q.db.QueryRowContext(ctx, updateAccountFollower, arg.Num, arg.AccountsID)
+	var i Account
+	err := row.Scan(
+		&i.AccountsID,
+		&i.Owner,
+		&i.IsPrivate,
+		&i.CreatedAt,
+		&i.Follower,
+		&i.Following,
+	)
+	return i, err
+}
+
+const updateAccountFollowing = `-- name: UpdateAccountFollowing :one
+UPDATE accounts
+SET following = following + $1
+WHERE accounts_id = $2
+RETURNING accounts_id, owner, is_private, created_at, follower, following
+`
+
+type UpdateAccountFollowingParams struct {
+	Num        int64 `json:"num"`
+	AccountsID int64 `json:"accounts_id"`
+}
+
+func (q *Queries) UpdateAccountFollowing(ctx context.Context, arg UpdateAccountFollowingParams) (Account, error) {
+	row := q.db.QueryRowContext(ctx, updateAccountFollowing, arg.Num, arg.AccountsID)
+	var i Account
+	err := row.Scan(
+		&i.AccountsID,
+		&i.Owner,
+		&i.IsPrivate,
+		&i.CreatedAt,
+		&i.Follower,
+		&i.Following,
+	)
+	return i, err
 }

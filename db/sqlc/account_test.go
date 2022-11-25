@@ -81,7 +81,10 @@ func TestListAccount(t *testing.T) {
 func TestAddFollower(t *testing.T) {
 	acc := CreateRandomAccount(t)
 
-	result, err := testQueries.AddAccountFollower(context.Background(), acc.AccountsID)
+	result, err := testQueries.UpdateAccountFollower(context.Background(), UpdateAccountFollowerParams{
+		Num:        1,
+		AccountsID: acc.AccountsID,
+	})
 	require.NoError(t, err)
 	require.NotEmpty(t, result)
 	require.Equal(t, int64(1), result.Follower)

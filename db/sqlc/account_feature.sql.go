@@ -63,6 +63,21 @@ func (q *Queries) CreateAccountsFollow(ctx context.Context, arg CreateAccountsFo
 	return i, err
 }
 
+const deleteAccountsFollow = `-- name: DeleteAccountsFollow :exec
+DElete from accounts_follow
+WHERE from_account_id = $1 and to_account_id = $2
+`
+
+type DeleteAccountsFollowParams struct {
+	Fromid int64 `json:"fromid"`
+	Toid   int64 `json:"toid"`
+}
+
+func (q *Queries) DeleteAccountsFollow(ctx context.Context, arg DeleteAccountsFollowParams) error {
+	_, err := q.db.ExecContext(ctx, deleteAccountsFollow, arg.Fromid, arg.Toid)
+	return err
+}
+
 const getAccountsFollow = `-- name: GetAccountsFollow :one
 SELECT follow FROM accounts_follow
 WHERE from_account_id = $1 and to_account_id = $2 LIMIT 1
@@ -78,4 +93,22 @@ func (q *Queries) GetAccountsFollow(ctx context.Context, arg GetAccountsFollowPa
 	var follow bool
 	err := row.Scan(&follow)
 	return follow, err
+}
+
+const getAccountsFollowRows = `-- name: GetAccountsFollowRows :execrows
+SELECT follow FROM accounts_follow
+WHERE from_account_id = $1 and to_account_id = $2 LIMIT 1
+`
+
+type GetAccountsFollowRowsParams struct {
+	Fromid int64 `json:"fromid"`
+	Toid   int64 `json:"toid"`
+}
+
+func (q *Queries) GetAccountsFollowRows(ctx context.Context, arg GetAccountsFollowRowsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, getAccountsFollowRows, arg.Fromid, arg.Toid)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

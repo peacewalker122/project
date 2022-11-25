@@ -61,6 +61,10 @@ func HTTPErrorHandler(err error, c echo.Context) {
 }
 
 func validateString(target string, minChar, maxChar int) error {
+	if target == "" {
+		return fmt.Errorf("empty! must contain %d-%d character", minChar, maxChar)
+	}
+
 	if len(target) < minChar || len(target) > maxChar {
 		return fmt.Errorf("invalid length of string, must contain %d-%d character", minChar, maxChar)
 	}
@@ -150,12 +154,20 @@ func ValidateURIAccount(param *GetAccountsParams, context echo.Context, URIparam
 	return param, nil
 }
 
-func ValidateURIPost(param *GetPostParam, context echo.Context, URIparam string) error {
+func (s *GetPostParam) ValidateURIPost(context echo.Context, URIparam string) error {
 	n := ConverterParam(context, URIparam)
 	if err := ValidateID(n); err != nil {
 		return err
 	}
-	param.ID = int64(n)
+	s.postID = int64(n)
+	return nil
+}
+func (s *GetImageParam) ValidateURIPost(context echo.Context, URIparam string) error {
+	n := ConverterParam(context, URIparam)
+	if err := ValidateID(n); err != nil {
+		return err
+	}
+	s.postID = int64(n)
 	return nil
 }
 
@@ -186,4 +198,23 @@ func CreateErrorValidator(c echo.Context, err error) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return err
+}
+
+func ValidateCreateListAccount(req *listAccountRequest) (errors []string) {
+	if err := ValidateNum(int(req.PageID)); err != nil {
+		errors = append(errors, ValidateError("page_id", err.Error()))
+	}
+	if err := ValidateNum(int(req.PageSize)); err != nil {
+		errors = append(errors, ValidateError("page_size", err.Error()))
+	}
+	return errors
+}
+
+func ValidationGetUser(input *GetAccountsParams) (errors string, ok bool) {
+	if err := ValidateNum(input.ID); err != nil {
+		ok = false
+		errors = ValidateError("full_name", err.Error())
+	}
+	ok = true
+	return errors, ok
 }

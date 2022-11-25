@@ -49,16 +49,21 @@ func (s *Server) routerhandle() {
 	//authRouter.POST("/account", s.createAccount)
 	authRouter.GET("/account/:id", s.getAccounts)
 	authRouter.GET("/account", s.listAccount)
+	authRouter.POST("/account/follow", s.followAccount)
 	authRouter.POST("/post", s.createPost)
 	authRouter.GET("/post/:id", s.getPost)
 	authRouter.POST("/post/like", s.likePost)
 	authRouter.POST("/post/comment", s.commentPost)
 	authRouter.POST("/post/retweet", s.retweetPost)
+	authRouter.GET("/post/image/:id", s.getPostImage)
 	authRouter.POST("/post/qoute/retweet", s.qouteretweetPost)
 
 	s.router = router
 }
 
-func (s *Server) Start(path string) error {
+func (s *Server) StartHTTPS(path string) error {
+	return s.router.StartAutoTLS(path)
+}
+func (s *Server) StartHTTP(path string) error {
 	return s.router.Start(path)
 }
