@@ -3,13 +3,17 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"os"
+	"strings"
 )
 
 type Store interface {
 	Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error)
 	UnFollowtx(ctx context.Context, arg UnfollowTXParam) (UnFollowTXResult, error)
 	GetDirectory(path string) (string, error)
+	CreateFileIndex(path, filename string) (string, error)
 	Querier
 }
 
@@ -150,4 +154,23 @@ func (q *Queries) DeleteFollowing(
 
 func (q *Queries) GetDirectory(path string) (string, error) {
 	return os.Getwd()
+}
+
+// in linux using pwd command in ur terminal, then paste it to the path parameter.
+func (q *Queries) CreateFileIndex(path, filename string) (string, error) {
+	if path == "" {
+		return "", errors.New("empty string")
+	}
+	var s string
+	if _, err := os.Stat(path + filename); errors.Is(err, os.ErrNotExist) {
+		return "", errors.New("not-found! any file in a that path")
+	}
+	// Before for the strings before the separator strings and vice versa
+	// add before with (n) n start from 1
+	n := 1
+	before, after, _ := strings.Cut(filename, ".")
+	before = before + fmt.Sprintf("(%v)", n)
+
+	s = before + "." + after
+	return s, nil
 }

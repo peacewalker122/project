@@ -181,10 +181,13 @@ func (s *Server) deleteRetweetpost(arg *RetweetPostRequest, c echo.Context, post
 }
 
 func (s *Server) creatingPost(c echo.Context, arg *CreatePostParams) error {
-	filePath, err := s.saveFile(c)
+	filePath, err, isShow := s.saveFile(c, arg)
 	if err != nil {
-		log.Errorf("error in here due: ", err.Error())
-		return err
+		if !isShow {
+			log.Errorf("error in here due: ", err.Error())
+			return err
+		}
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	dbArg := db.CreatePostParams{
@@ -204,33 +207,54 @@ func (s *Server) creatingPost(c echo.Context, arg *CreatePostParams) error {
 	return c.JSON(http.StatusOK, PostResponse(post, post2))
 }
 
-func (s *Server) saveFile(c echo.Context) (string, error) {
+// the bool return to indicate a error that will viewed by the client side.
+// True = client will see and vice versa.
+func (s *Server) saveFile(c echo.Context, arg *CreatePostParams) (string, error, bool) {
+
+	folderPath := fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/", arg.AccountID)
+
 	file, err := c.FormFile("photo")
 	if err != nil {
-		return "", err
+		return "", err, false
 	}
+
+	// Checking in here
+
 	src, err := file.Open()
 	if err != nil {
-		return "", fmt.Errorf("error in open: %v", err.Error())
+		return "", err, false
 	}
 	defer src.Close()
 
-	dst, err := os.Create(filepath.Join("/home/servumtopia/Pictures/Project", filepath.Base(file.Filename)))
+	err = ValidateFileType(src)
 	if err != nil {
-		return "", fmt.Errorf("error in create: %v", err.Error())
+		return "", err, true
+	}
+
+	// creating directory if it's not exist
+	// here we check did the directory of the file has be created or no
+	if _, err = os.Stat(folderPath); errors.Is(err, os.ErrNotExist) {
+		err := os.Mkdir(folderPath, os.ModePerm)
+		if err != nil {
+			return "", err, false
+		}
+	}
+
+	dst, err := os.Create(filepath.Join(folderPath, filepath.Base(file.Filename)))
+	if err != nil {
+		return "", err, false
 	}
 	defer dst.Close()
 
+	filePath := folderPath + file.Filename
+
+	// Here execute if file already exist
+
 	if _, err := io.Copy(dst, src); err != nil {
-		return "", err
+		return "", err, false
 	}
 
-	filePath := fmt.Sprintf("/home/servumtopia/Pictures/Project/%v", file.Filename)
-	if file.Filename == "" {
-		// to ensure consistency of file.
-		filePath = ""
-	}
-	return filePath, nil
+	return filePath, nil, false
 }
 
 func (s *Server) GettingPost(c echo.Context, req *GetPostParam) error {
@@ -261,5 +285,6 @@ func (s *Server) gettingImage(c echo.Context, postID int64) error {
 	if err := GetErrorValidator(c, err, posttag); err != nil {
 		return err
 	}
+
 	return c.File(post.PhotoDir.String)
 }

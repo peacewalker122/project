@@ -35,6 +35,7 @@ func Newserver(c util.Config, store db.Store) (*Server, error) {
 func (s *Server) routerhandle() {
 	router := echo.New()
 	router.Use(middleware.LoggerWithConfig(Logger()))
+	
 	//router.Use(middleware.HTTPSRedirectWithConfig(Redirect()))
 	router.Validator = &customValidator{
 		validate: validator.New(),
@@ -55,7 +56,7 @@ func (s *Server) routerhandle() {
 	authRouter.POST("/post/like", s.likePost)
 	authRouter.POST("/post/comment", s.commentPost)
 	authRouter.POST("/post/retweet", s.retweetPost)
-	authRouter.GET("/post/image/:id", s.getPostImage)
+	authRouter.GET("/post/image/:id", s.getPostImage, middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	authRouter.POST("/post/qoute/retweet", s.qouteretweetPost)
 
 	s.router = router

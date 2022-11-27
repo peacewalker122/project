@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -61,4 +62,24 @@ func TestOS(t *testing.T) {
 	dir, err := store.GetDirectory(".")
 	require.NoError(t, err)
 	require.Equal(t, "", dir)
+}
+
+func TestIndexingFile(t *testing.T) {
+	store := Newstore(testDB, config.BucketAccount)
+	filename, err := store.CreateFileIndex("/home/servumtopia/Pictures/Project/1/", "golang.png")
+	require.NoError(t, err)
+
+	require.Equal(t, "golang(1).png", filename)
+}
+
+func TestMap(t *testing.T) {
+	m := make(map[string][]string)
+	maps := []string{"babi", "pig", "rw"}
+	m["name"] = maps
+
+	log.Print(m["name"][0])
+
+	for _, i := range m["name"] {
+		log.Println(i)
+	}
 }

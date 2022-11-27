@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/mail"
 	"regexp"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type H = map[string]interface{}
@@ -217,4 +220,18 @@ func ValidationGetUser(input *GetAccountsParams) (errors string, ok bool) {
 	}
 	ok = true
 	return errors, ok
+}
+
+func ValidateFileType(input multipart.File) error {
+	byte, err := io.ReadAll(input)
+	if err != nil {
+		return err
+	}
+	file := http.DetectContentType(byte)
+	log.Error(file)
+	//
+	if file == "image/jpg" || file == "image/jpeg" || file == "image/gif" || file == "image/png" || file == "image/webp" {
+		return nil
+	}
+	return errors.New("invalid type! must be jpeg/jpg/gif/png")
 }

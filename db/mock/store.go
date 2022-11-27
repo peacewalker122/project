@@ -111,6 +111,21 @@ func (mr *MockStoreMockRecorder) CreateEntries(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEntries", reflect.TypeOf((*MockStore)(nil).CreateEntries), arg0, arg1)
 }
 
+// CreateFileIndex mocks base method.
+func (m *MockStore) CreateFileIndex(arg0, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateFileIndex", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateFileIndex indicates an expected call of CreateFileIndex.
+func (mr *MockStoreMockRecorder) CreateFileIndex(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFileIndex", reflect.TypeOf((*MockStore)(nil).CreateFileIndex), arg0, arg1)
+}
+
 // CreateLike_feature mocks base method.
 func (m *MockStore) CreateLike_feature(arg0 context.Context, arg1 db.CreateLike_featureParams) error {
 	m.ctrl.T.Helper()
