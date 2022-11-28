@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -153,24 +154,37 @@ func (q *Queries) DeleteFollowing(
 }
 
 func (q *Queries) GetDirectory(path string) (string, error) {
-	return os.Getwd()
+	res, err := exec.Command(path).Output()
+	if err != nil {
+		return err.Error(), err
+	}
+	return string(res), err
 }
 
-// in linux using pwd command in ur terminal, then paste it to the path parameter.
+// creating new file index if its already exist.
+// in linux using pwd command in your terminal, then paste it to the path parameter.
 func (q *Queries) CreateFileIndex(path, filename string) (string, error) {
 	if path == "" {
 		return "", errors.New("empty string")
-	}
-	var s string
-	if _, err := os.Stat(path + filename); errors.Is(err, os.ErrNotExist) {
-		return "", errors.New("not-found! any file in a that path")
 	}
 	// Before for the strings before the separator strings and vice versa
 	// add before with (n) n start from 1
 	n := 1
 	before, after, _ := strings.Cut(filename, ".")
 	before = before + fmt.Sprintf("(%v)", n)
+	result := before + "." + after
+	if _, err := os.Stat(path + result); err == nil {
+		result, _ = validatingfile(result)
+	}
+	return result, nil
+}
 
-	s = before + "." + after
+func validatingfile(filename string) (string, error) {
+	n := 1
+	before, after, _ := strings.Cut(filename, ".")
+	before = before + fmt.Sprintf("(%v)", n)
+
+	s := before + "." + after
+
 	return s, nil
 }

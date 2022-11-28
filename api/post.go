@@ -58,7 +58,7 @@ func (s *Server) createPost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	if err := s.AuthAccount(c, req.AccountID); err != nil {
-		return err
+		return c.JSONPretty(http.StatusUnauthorized, err.Error(), "\t")
 	}
 
 	return s.creatingPost(c, req)

@@ -57,19 +57,12 @@ func TestAddFollow(t *testing.T) {
 	require.Equal(t, int64(0), toacc.Follower)
 }
 
-func TestOS(t *testing.T) {
-	store := Newstore(testDB, config.BucketAccount)
-	dir, err := store.GetDirectory(".")
-	require.NoError(t, err)
-	require.Equal(t, "", dir)
-}
-
 func TestIndexingFile(t *testing.T) {
 	store := Newstore(testDB, config.BucketAccount)
 	filename, err := store.CreateFileIndex("/home/servumtopia/Pictures/Project/1/", "golang.png")
 	require.NoError(t, err)
 
-	require.Equal(t, "golang(1).png", filename)
+	require.Equal(t, "golang(1)(1).png", filename)
 }
 
 func TestMap(t *testing.T) {

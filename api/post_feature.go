@@ -8,12 +8,22 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/util"
+)
+
+var (
+	filePath string
+	err      error
+	isShow   bool
+	//errChan      = make(chan error, 1)
+	//chanIsShow   = make(chan bool, 1)
+	//chanFilePath = make(chan string, 1)
 )
 
 func (s *Server) deleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context, post db.PostFeature) error {
@@ -181,12 +191,26 @@ func (s *Server) deleteRetweetpost(arg *RetweetPostRequest, c echo.Context, post
 }
 
 func (s *Server) creatingPost(c echo.Context, arg *CreatePostParams) error {
-	filePath, err, isShow := s.saveFile(c, arg)
+	// in this block we created a goroutine to minimize the respond time
+	// first we declare our sync using waitgroup
+	var wg sync.WaitGroup
+	var post db.Post
+	var post2 db.PostFeature
+
+	benchTime := time.Now()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		filePath, err, isShow = s.saveFile(c, arg)
+	}()
+	wg.Wait()
 	if err != nil {
 		if !isShow {
 			log.Errorf("error in here due: ", err.Error())
+			log.Print("benchmark-creating-post: ", time.Since(benchTime))
 			return err
 		}
+		log.Print("benchmark-creating-post: ", time.Since(benchTime))
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
@@ -195,44 +219,57 @@ func (s *Server) creatingPost(c echo.Context, arg *CreatePostParams) error {
 		PictureDescription: arg.PictureDescription,
 		PhotoDir:           util.InputSqlString(filePath),
 	}
-
-	post, err := s.store.CreatePost(c.Request().Context(), dbArg)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		post, err = s.store.CreatePost(c.Request().Context(), dbArg)
+	}()
+	wg.Wait()
+	log.Print("out: ", post.PostID)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		log.Print("in: ", post.PostID)
+		post2, err = s.store.CreatePost_feature(c.Request().Context(), post.PostID)
+	}()
+	wg.Wait()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	post2, err := s.store.CreatePost_feature(c.Request().Context(), post.PostID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
+	log.Print("benchmark-creating-post: ", time.Since(benchTime))
 	return c.JSON(http.StatusOK, PostResponse(post, post2))
 }
 
 // the bool return to indicate a error that will viewed by the client side.
 // True = client will see and vice versa.
 func (s *Server) saveFile(c echo.Context, arg *CreatePostParams) (string, error, bool) {
-
+	var wg sync.WaitGroup
+	var fileName string
 	folderPath := fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/", arg.AccountID)
-
+	timeMark := time.Now()
 	file, err := c.FormFile("photo")
 	if err != nil {
+		if err == http.ErrMissingFile {
+			return "", nil, false
+		}
 		return "", err, false
 	}
 
-	// Checking in here
-
-	src, err := file.Open()
-	if err != nil {
-		return "", err, false
-	}
-	defer src.Close()
-
-	err = ValidateFileType(src)
-	if err != nil {
-		return "", err, true
+	// maximum size 100MB
+	if file.Size > 100000000 {
+		log.Print("benchmark: ", time.Since(timeMark))
+		return "", errors.New("maximum size: 100MB"), true
 	}
 
-	// creating directory if it's not exist
-	// here we check did the directory of the file has be created or no
+	// Here we validate the file is it already in our directory or not
+	if _, err = os.Stat(folderPath + file.Filename); err == nil {
+		fileName, err = s.store.CreateFileIndex(folderPath, file.Filename)
+		if err != nil {
+			return "", err, true
+		}
+		file.Filename = fileName
+	}
+
 	if _, err = os.Stat(folderPath); errors.Is(err, os.ErrNotExist) {
 		err := os.Mkdir(folderPath, os.ModePerm)
 		if err != nil {
@@ -240,20 +277,43 @@ func (s *Server) saveFile(c echo.Context, arg *CreatePostParams) (string, error,
 		}
 	}
 
+	src, err := file.Open()
+	if err != nil {
+		return "", err, false
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err = ValidateFileType(src)
+	}()
+	wg.Wait()
+	if err != nil {
+		return "", err, true
+	}
+
+	// here we create another file opener to avoid error in copying file
+	src.Close()
+	src, err = file.Open()
+	if err != nil {
+		return "", err, false
+	}
+	defer src.Close()
+
+	filePath := folderPath + file.Filename
+
+	// Destination
 	dst, err := os.Create(filepath.Join(folderPath, filepath.Base(file.Filename)))
 	if err != nil {
 		return "", err, false
 	}
 	defer dst.Close()
 
-	filePath := folderPath + file.Filename
-
-	// Here execute if file already exist
-
-	if _, err := io.Copy(dst, src); err != nil {
+	// Copy
+	if _, err = io.Copy(dst, src); err != nil {
 		return "", err, false
 	}
-
+	log.Print("benchmark: ", time.Since(timeMark))
 	return filePath, nil, false
 }
 

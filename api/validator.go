@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io"
 	"mime/multipart"
 	"net/http"
 	"net/mail"
@@ -223,15 +222,15 @@ func ValidationGetUser(input *GetAccountsParams) (errors string, ok bool) {
 }
 
 func ValidateFileType(input multipart.File) error {
-	byte, err := io.ReadAll(input)
-	if err != nil {
+	byte := make([]byte, 512)
+	if _, err := input.Read(byte); err != nil {
 		return err
 	}
 	file := http.DetectContentType(byte)
 	log.Error(file)
 	//
-	if file == "image/jpg" || file == "image/jpeg" || file == "image/gif" || file == "image/png" || file == "image/webp" {
+	if file == "image/jpg" || file == "image/jpeg" || file == "image/gif" || file == "image/png" || file == "image/webp" || file == "video/mp4" {
 		return nil
 	}
-	return errors.New("invalid type! must be jpeg/jpg/gif/png")
+	return errors.New("invalid type! must be jpeg/jpg/gif/png/mp4")
 }

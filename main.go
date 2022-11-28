@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"runtime"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -15,6 +16,7 @@ import (
 )
 
 func main() {
+	runtime.GOMAXPROCS(2)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	config, err := util.LoadConfig(".")

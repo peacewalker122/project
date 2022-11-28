@@ -35,7 +35,7 @@ func Newserver(c util.Config, store db.Store) (*Server, error) {
 func (s *Server) routerhandle() {
 	router := echo.New()
 	router.Use(middleware.LoggerWithConfig(Logger()))
-	
+	router.Use(middleware.TimeoutWithConfig(s.Timeout()))
 	//router.Use(middleware.HTTPSRedirectWithConfig(Redirect()))
 	router.Validator = &customValidator{
 		validate: validator.New(),
@@ -67,4 +67,7 @@ func (s *Server) StartHTTPS(path string) error {
 }
 func (s *Server) StartHTTP(path string) error {
 	return s.router.Start(path)
+}
+func (s *Server) timeout(c echo.Context) error {
+	return c.JSON(echo.ErrRequestTimeout.Code, "timeout")
 }
