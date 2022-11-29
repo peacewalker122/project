@@ -12,10 +12,11 @@ import (
 )
 
 type Server struct {
-	config util.Config
-	store  db.Store
-	router *echo.Echo
-	token  token.Maker
+	config     util.Config
+	store      db.Store
+	router     *echo.Echo
+	token      token.Maker
+	fileString string
 }
 
 func Newserver(c util.Config, store db.Store) (*Server, error) {
@@ -35,7 +36,7 @@ func Newserver(c util.Config, store db.Store) (*Server, error) {
 func (s *Server) routerhandle() {
 	router := echo.New()
 	router.Use(middleware.LoggerWithConfig(Logger()))
-	router.Use(middleware.TimeoutWithConfig(s.Timeout()))
+
 	//router.Use(middleware.HTTPSRedirectWithConfig(Redirect()))
 	router.Validator = &customValidator{
 		validate: validator.New(),
@@ -51,7 +52,7 @@ func (s *Server) routerhandle() {
 	authRouter.GET("/account/:id", s.getAccounts)
 	authRouter.GET("/account", s.listAccount)
 	authRouter.POST("/account/follow", s.followAccount)
-	authRouter.POST("/post", s.createPost)
+	authRouter.POST("/post", s.createPost, middleware.TimeoutWithConfig(s.TimeoutPost()))
 	authRouter.GET("/post/:id", s.getPost)
 	authRouter.POST("/post/like", s.likePost)
 	authRouter.POST("/post/comment", s.commentPost)

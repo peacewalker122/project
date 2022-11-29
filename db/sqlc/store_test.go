@@ -3,8 +3,10 @@ package db
 import (
 	"context"
 	"log"
+	"sync"
 	"testing"
 
+	"github.com/peacewalker122/project/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,15 +14,22 @@ func TestAddFollow(t *testing.T) {
 	store := Newstore(testDB, config.BucketAccount)
 	account1 := CreateRandomAccount(t)
 	account2 := CreateRandomAccount(t)
+	var res FollowTXResult
+	var err error
 
 	ctx := context.Background()
-	results, err := store.Followtx(ctx, FollowTXParam{
-		Fromaccid: account2.AccountsID,
-		Toaccid:   account1.AccountsID,
-	})
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		res, err = store.Followtx(ctx, FollowTXParam{
+			Fromaccid: account2.AccountsID,
+			Toaccid:   account1.AccountsID,
+		})
+	}()
+	wg.Wait()
 	require.NoError(t, err)
 
-	res := results
 	require.NotEmpty(t, res)
 
 	require.Equal(t, F, res.FeatureType)
@@ -55,6 +64,31 @@ func TestAddFollow(t *testing.T) {
 	toacc = update.ToAcc
 	require.Equal(t, account1.AccountsID, toacc.AccountsID)
 	require.Equal(t, int64(0), toacc.Follower)
+}
+
+func TestCreatePostTX(t *testing.T) {
+	store := Newstore(testDB, config.BucketAccount)
+	account := CreateRandomAccount(t)
+
+	arg := CreatePostParams{
+		AccountID:          account.AccountsID,
+		IsRetweet:          false,
+		PictureDescription: "memento mori",
+		PhotoDir:           util.InputSqlString(""),
+	}
+
+	Post, err := store.CreatePostTx(context.Background(), arg)
+
+	require.NoError(t, err)
+
+	require.Equal(t, account.AccountsID, Post.Post.AccountID)
+	require.Equal(t, "memento mori", Post.Post.PictureDescription)
+
+	postFeat := Post.PostFeature
+	require.Equal(t, int64(0), postFeat.SumComment)
+	require.Equal(t, int64(0), postFeat.SumLike)
+	require.Equal(t, int64(0), postFeat.SumRetweet)
+	require.Equal(t, int64(0), postFeat.SumQouteRetweet)
 }
 
 func TestIndexingFile(t *testing.T) {

@@ -191,12 +191,11 @@ func (s *Server) deleteRetweetpost(arg *RetweetPostRequest, c echo.Context, post
 }
 
 func (s *Server) creatingPost(c echo.Context, arg *CreatePostParams) error {
-	// in this block we created a goroutine to minimize the respond time
-	// first we declare our sync using waitgroup
 	var wg sync.WaitGroup
-	var post db.Post
-	var post2 db.PostFeature
+	var post db.PostTXResult
 
+	// in this block we created a goroutine to minimize the respond time
+	// first step we need declare our sync using waitgroup
 	benchTime := time.Now()
 	wg.Add(1)
 	go func() {
@@ -219,25 +218,23 @@ func (s *Server) creatingPost(c echo.Context, arg *CreatePostParams) error {
 		PictureDescription: arg.PictureDescription,
 		PhotoDir:           util.InputSqlString(filePath),
 	}
+
+	// goroutine to maximize our code response
+	// here we invoke goroutine to minimize time for writing in the database.
 	wg.Add(1)
 	go func() {
+		ctx := c.Request().Context()
 		defer wg.Done()
-		post, err = s.store.CreatePost(c.Request().Context(), dbArg)
+		post, err = s.store.CreatePostTx(ctx, dbArg)
 	}()
 	wg.Wait()
-	log.Print("out: ", post.PostID)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		log.Print("in: ", post.PostID)
-		post2, err = s.store.CreatePost_feature(c.Request().Context(), post.PostID)
-	}()
-	wg.Wait()
+	// goroutine waiting until creatingpost_feature is done
+
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	log.Print("benchmark-creating-post: ", time.Since(benchTime))
-	return c.JSON(http.StatusOK, PostResponse(post, post2))
+	return c.JSON(http.StatusOK, PostResponse(post.Post, post.PostFeature))
 }
 
 // the bool return to indicate a error that will viewed by the client side.
@@ -253,12 +250,6 @@ func (s *Server) saveFile(c echo.Context, arg *CreatePostParams) (string, error,
 			return "", nil, false
 		}
 		return "", err, false
-	}
-
-	// maximum size 100MB
-	if file.Size > 100000000 {
-		log.Print("benchmark: ", time.Since(timeMark))
-		return "", errors.New("maximum size: 100MB"), true
 	}
 
 	// Here we validate the file is it already in our directory or not
@@ -292,6 +283,11 @@ func (s *Server) saveFile(c echo.Context, arg *CreatePostParams) (string, error,
 		return "", err, true
 	}
 
+	// maximum size 100MB
+	if file.Size > 100000000 {
+		return "", errors.New("maximum size: 100MB"), true
+	}
+
 	// here we create another file opener to avoid error in copying file
 	src.Close()
 	src, err = file.Open()
@@ -310,10 +306,18 @@ func (s *Server) saveFile(c echo.Context, arg *CreatePostParams) (string, error,
 	defer dst.Close()
 
 	// Copy
-	if _, err = io.Copy(dst, src); err != nil {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		_, err = io.Copy(dst, src)
+	}()
+	wg.Wait()
+
+	if err != nil {
 		return "", err, false
 	}
 	log.Print("benchmark: ", time.Since(timeMark))
+	s.fileString = filePath
 	return filePath, nil, false
 }
 

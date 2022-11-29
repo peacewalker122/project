@@ -155,6 +155,21 @@ func (mr *MockStoreMockRecorder) CreatePost(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePost", reflect.TypeOf((*MockStore)(nil).CreatePost), arg0, arg1)
 }
 
+// CreatePostTx mocks base method.
+func (m *MockStore) CreatePostTx(arg0 context.Context, arg1 db.CreatePostParams) (db.PostTXResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePostTx", arg0, arg1)
+	ret0, _ := ret[0].(db.PostTXResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreatePostTx indicates an expected call of CreatePostTx.
+func (mr *MockStoreMockRecorder) CreatePostTx(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePostTx", reflect.TypeOf((*MockStore)(nil).CreatePostTx), arg0, arg1)
+}
+
 // CreatePost_feature mocks base method.
 func (m *MockStore) CreatePost_feature(arg0 context.Context, arg1 int64) (db.PostFeature, error) {
 	m.ctrl.T.Helper()
@@ -168,6 +183,21 @@ func (m *MockStore) CreatePost_feature(arg0 context.Context, arg1 int64) (db.Pos
 func (mr *MockStoreMockRecorder) CreatePost_feature(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePost_feature", reflect.TypeOf((*MockStore)(nil).CreatePost_feature), arg0, arg1)
+}
+
+// CreatePrivateQueue mocks base method.
+func (m *MockStore) CreatePrivateQueue(arg0 context.Context, arg1 db.CreatePrivateQueueParams) (db.AccountsQueue, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePrivateQueue", arg0, arg1)
+	ret0, _ := ret[0].(db.AccountsQueue)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreatePrivateQueue indicates an expected call of CreatePrivateQueue.
+func (mr *MockStoreMockRecorder) CreatePrivateQueue(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePrivateQueue", reflect.TypeOf((*MockStore)(nil).CreatePrivateQueue), arg0, arg1)
 }
 
 // CreateQouteRetweet_feature mocks base method.
@@ -372,6 +402,21 @@ func (m *MockStore) GetAccountsFollowRows(arg0 context.Context, arg1 db.GetAccou
 func (mr *MockStoreMockRecorder) GetAccountsFollowRows(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountsFollowRows", reflect.TypeOf((*MockStore)(nil).GetAccountsFollowRows), arg0, arg1)
+}
+
+// GetAccountsInfo mocks base method.
+func (m *MockStore) GetAccountsInfo(arg0 context.Context, arg1 int64) (db.GetAccountsInfoRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccountsInfo", arg0, arg1)
+	ret0, _ := ret[0].(db.GetAccountsInfoRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccountsInfo indicates an expected call of GetAccountsInfo.
+func (mr *MockStoreMockRecorder) GetAccountsInfo(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountsInfo", reflect.TypeOf((*MockStore)(nil).GetAccountsInfo), arg0, arg1)
 }
 
 // GetAccountsOwner mocks base method.
@@ -806,6 +851,20 @@ func (m *MockStore) UpdateAccountFollowing(arg0 context.Context, arg1 db.UpdateA
 func (mr *MockStoreMockRecorder) UpdateAccountFollowing(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccountFollowing", reflect.TypeOf((*MockStore)(nil).UpdateAccountFollowing), arg0, arg1)
+}
+
+// UpdateAccountQueue mocks base method.
+func (m *MockStore) UpdateAccountQueue(arg0 context.Context, arg1 db.UpdateAccountQueueParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAccountQueue", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAccountQueue indicates an expected call of UpdateAccountQueue.
+func (mr *MockStoreMockRecorder) UpdateAccountQueue(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccountQueue", reflect.TypeOf((*MockStore)(nil).UpdateAccountQueue), arg0, arg1)
 }
 
 // UpdateLike mocks base method.

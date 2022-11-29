@@ -11,11 +11,12 @@ import (
 )
 
 type Store interface {
+	Querier
 	Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error)
 	UnFollowtx(ctx context.Context, arg UnfollowTXParam) (UnFollowTXResult, error)
 	GetDirectory(path string) (string, error)
 	CreateFileIndex(path, filename string) (string, error)
-	Querier
+	CreatePostTx(ctx context.Context, arg CreatePostParams) (PostTXResult, error)
 }
 
 type SQLStore struct {
@@ -30,21 +31,20 @@ func Newstore(db *sql.DB, bucketType string) Store {
 	}
 }
 
-// TO BE IMPLEMENTED IF TX NEEDED
-// func (s *SQLStore) execCtx(ctx context.Context, fn func(q *Queries) error) error {
-// 	tx, err := s.db.BeginTx(ctx, nil)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	q := New(tx)
-// 	err = fn(q)
-// 	if err != nil {
-// 		if rBerr := tx.Rollback(); rBerr != nil {
-// 			return fmt.Errorf("tx error %v, rb error %v", err, rBerr)
-// 		}
-// 	}
-// 	return tx.Commit()
-// }
+func (s *SQLStore) execCtx(ctx context.Context, fn func(q *Queries) error) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	q := New(tx)
+	err = fn(q)
+	if err != nil {
+		if rBerr := tx.Rollback(); rBerr != nil {
+			return fmt.Errorf("tx error %v, rb error %v", err, rBerr)
+		}
+	}
+	return tx.Commit()
+}
 
 const (
 	L  = "like"
@@ -76,34 +76,64 @@ type (
 		FromAcc     Account `json:"from_acc"`
 		ToAcc       Account `json:"to_acc"`
 	}
+	PostTXResult struct {
+		Post        Post        `json:"post"`
+		PostFeature PostFeature `json:"post_feature"`
+	}
 )
 
-func (q *Queries) Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error) {
+func (s *SQLStore) CreatePostTx(ctx context.Context, arg CreatePostParams) (PostTXResult, error) {
+	var result PostTXResult
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+
+		result.Post, err = s.CreatePost(ctx, arg)
+		if err != nil {
+			return err
+		}
+
+		result.PostFeature, err = s.CreatePost_feature(ctx, result.Post.PostID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	return result, err
+}
+
+func (s *SQLStore) Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error) {
 	var result FollowTXResult
-	var err error
-	result.FeatureType = F
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+		result.FeatureType = F
 
-	result.Follow, result.ToAcc, result.FromAcc, err = q.UpdateFollowing(ctx, arg.Fromaccid, arg.Toaccid, int64(1))
-	if err != nil {
-		return result, err
-	}
+		result.Follow, result.ToAcc, result.FromAcc, err = s.UpdateFollowing(ctx, arg.Fromaccid, arg.Toaccid, int64(1))
+		if err != nil {
+			return err
+		}
 
-	return result, nil
+		return nil
+	})
+	return result, err
 }
-func (q *Queries) UnFollowtx(ctx context.Context, arg UnfollowTXParam) (UnFollowTXResult, error) {
+func (s *SQLStore) UnFollowtx(ctx context.Context, arg UnfollowTXParam) (UnFollowTXResult, error) {
 	var result UnFollowTXResult
-	var err error
-	result.FeatureType = UF
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+		result.FeatureType = UF
 
-	result.ToAcc, result.FromAcc, result.Status, err = q.DeleteFollowing(ctx, arg.Fromaccid, arg.Toaccid, -int64(1))
-	if err != nil {
-		return result, err
-	}
+		result.ToAcc, result.FromAcc, result.Status, err = s.DeleteFollowing(ctx, arg.Fromaccid, arg.Toaccid, -int64(1))
+		if err != nil {
+			return err
+		}
 
-	return result, nil
+		return nil
+	})
+	return result, err
 }
 
-func (q *Queries) UpdateFollowing(
+func (q *SQLStore) UpdateFollowing(
 	ctx context.Context, fromAccount, toAccount, num int64,
 ) (
 	acc AccountsFollow, Toacc, Fromacc Account, err error,
@@ -127,7 +157,7 @@ func (q *Queries) UpdateFollowing(
 	return
 }
 
-func (q *Queries) DeleteFollowing(
+func (q *SQLStore) DeleteFollowing(
 	ctx context.Context, fromAccount, toAccount, num int64,
 ) (
 	Toacc, Fromacc Account, status bool, err error,

@@ -37,3 +37,21 @@ UPDATE accounts
 SET follower = follower + @num
 WHERE accounts_id = @accounts_id
 RETURNING *;
+
+-- name: GetAccountsInfo :one
+SELECT is_private,accounts_id FROM accounts
+WHERE accounts_id = @accounts_id LIMIT 1;
+
+-- name: CreatePrivateQueue :one
+INSERT INTO accounts_queue(
+    from_account_id,
+    to_account_id,
+    queue
+) VALUES(
+    @FromAccountID, @ToAccountID, true
+) RETURNING *;
+
+-- name: UpdateAccountQueue :exec
+UPDATE accounts_queue
+set queue = @Queue
+WHERE  from_account_id = @FromAccountID and to_account_id = @ToAccountID;

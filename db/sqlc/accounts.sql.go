@@ -37,6 +37,33 @@ func (q *Queries) CreateAccounts(ctx context.Context, arg CreateAccountsParams) 
 	return i, err
 }
 
+const createPrivateQueue = `-- name: CreatePrivateQueue :one
+INSERT INTO accounts_queue(
+    from_account_id,
+    to_account_id,
+    queue
+) VALUES(
+    $1, $2, true
+) RETURNING from_account_id, queue, to_account_id, queue_at
+`
+
+type CreatePrivateQueueParams struct {
+	Fromaccountid int64 `json:"fromaccountid"`
+	Toaccountid   int64 `json:"toaccountid"`
+}
+
+func (q *Queries) CreatePrivateQueue(ctx context.Context, arg CreatePrivateQueueParams) (AccountsQueue, error) {
+	row := q.db.QueryRowContext(ctx, createPrivateQueue, arg.Fromaccountid, arg.Toaccountid)
+	var i AccountsQueue
+	err := row.Scan(
+		&i.FromAccountID,
+		&i.Queue,
+		&i.ToAccountID,
+		&i.QueueAt,
+	)
+	return i, err
+}
+
 const getAccountForUpdate = `-- name: GetAccountForUpdate :one
 SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
 WHERE accounts_id = $1 LIMIT 1
@@ -73,6 +100,23 @@ func (q *Queries) GetAccounts(ctx context.Context, accountsID int64) (Account, e
 		&i.Follower,
 		&i.Following,
 	)
+	return i, err
+}
+
+const getAccountsInfo = `-- name: GetAccountsInfo :one
+SELECT is_private,accounts_id FROM accounts
+WHERE accounts_id = $1 LIMIT 1
+`
+
+type GetAccountsInfoRow struct {
+	IsPrivate  bool  `json:"is_private"`
+	AccountsID int64 `json:"accounts_id"`
+}
+
+func (q *Queries) GetAccountsInfo(ctx context.Context, accountsID int64) (GetAccountsInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, getAccountsInfo, accountsID)
+	var i GetAccountsInfoRow
+	err := row.Scan(&i.IsPrivate, &i.AccountsID)
 	return i, err
 }
 
@@ -189,4 +233,21 @@ func (q *Queries) UpdateAccountFollowing(ctx context.Context, arg UpdateAccountF
 		&i.Following,
 	)
 	return i, err
+}
+
+const updateAccountQueue = `-- name: UpdateAccountQueue :exec
+UPDATE accounts_queue
+set queue = $1
+WHERE  from_account_id = $2 and to_account_id = $3
+`
+
+type UpdateAccountQueueParams struct {
+	Queue         bool  `json:"queue"`
+	Fromaccountid int64 `json:"fromaccountid"`
+	Toaccountid   int64 `json:"toaccountid"`
+}
+
+func (q *Queries) UpdateAccountQueue(ctx context.Context, arg UpdateAccountQueueParams) error {
+	_, err := q.db.ExecContext(ctx, updateAccountQueue, arg.Queue, arg.Fromaccountid, arg.Toaccountid)
+	return err
 }

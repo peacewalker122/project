@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -22,6 +23,11 @@ type (
 		FromAccountID int64 `json:"from_account_id" query:"from_account_id" validate:"required"`
 		ToAccountID   int64 `json:"to_account_id" query:"to_account_id" validate:"required"`
 		Follow        bool  `json:"follow" query:"follow" `
+	}
+	AcceptAccountRequest struct {
+		FromAccountID int64 `json:"from_account_id" query:"from_account_id" validate:"required"`
+		ToAccountID   int64 `json:"to_account_id" query:"to_account_id" validate:"required"`
+		accept        bool  `json:"accept" query:"accept" `
 	}
 )
 
@@ -133,6 +139,21 @@ func (s *Server) followAccount(c echo.Context) error {
 		return err
 	}
 
+	// here we getting info did account is private or no
+	ok, err := s.store.GetAccountsInfo(c.Request().Context(), req.FromAccountID)
+
+	if ok.IsPrivate {
+		res, err := s.store.CreatePrivateQueue(c.Request().Context(), db.CreatePrivateQueueParams{
+			Fromaccountid: req.FromAccountID,
+			Toaccountid:   req.ToAccountID,
+		})
+		if err = CreateErrorValidator(c, err); err != nil {
+			return err
+		}
+		val := fmt.Sprintf("queue status: %v", res.Queue)
+		return c.JSON(http.StatusOK, val)
+	}
+
 	if num != 0 {
 		return c.JSON(http.StatusBadRequest, "already follow")
 	}
@@ -146,4 +167,16 @@ func (s *Server) followAccount(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, followResponse(result))
+}
+
+func (s *Server) acceptFollower(c echo.Context) error {
+	req := &AcceptAccountRequest{}
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+	if err := s.AuthAccount(c, req.FromAccountID); err != nil {
+		return c.JSONPretty(http.StatusUnauthorized, err.Error(), "\t")
+	}
+
 }

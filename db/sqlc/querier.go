@@ -19,6 +19,7 @@ type Querier interface {
 	CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) error
 	CreatePost(ctx context.Context, arg CreatePostParams) (Post, error)
 	CreatePost_feature(ctx context.Context, postID int64) (PostFeature, error)
+	CreatePrivateQueue(ctx context.Context, arg CreatePrivateQueueParams) (AccountsQueue, error)
 	CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (string, error)
 	CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
@@ -32,6 +33,7 @@ type Querier interface {
 	GetAccounts(ctx context.Context, accountsID int64) (Account, error)
 	GetAccountsFollow(ctx context.Context, arg GetAccountsFollowParams) (bool, error)
 	GetAccountsFollowRows(ctx context.Context, arg GetAccountsFollowRowsParams) (int64, error)
+	GetAccountsInfo(ctx context.Context, accountsID int64) (GetAccountsInfoRow, error)
 	GetAccountsOwner(ctx context.Context, owner string) (Account, error)
 	GetEntries(ctx context.Context, entriesID int64) (Entry, error)
 	GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error
@@ -59,6 +61,7 @@ type Querier interface {
 	ListUser(ctx context.Context, arg ListUserParams) ([]User, error)
 	UpdateAccountFollower(ctx context.Context, arg UpdateAccountFollowerParams) (Account, error)
 	UpdateAccountFollowing(ctx context.Context, arg UpdateAccountFollowingParams) (Account, error)
+	UpdateAccountQueue(ctx context.Context, arg UpdateAccountQueueParams) error
 	UpdateLike(ctx context.Context, arg UpdateLikeParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
 	UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error)

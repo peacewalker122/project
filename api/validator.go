@@ -51,6 +51,7 @@ func HTTPErrorHandler(err error, c echo.Context) {
 	if !ok {
 		report = echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+
 	errmsg := []string{}
 	if castedObject, ok := err.(validator.ValidationErrors); ok {
 		for _, e := range castedObject {
@@ -197,6 +198,7 @@ func GetErrorValidator(c echo.Context, err error, tag string) error {
 
 func CreateErrorValidator(c echo.Context, err error) error {
 	if err != nil {
+		c.Error(err)
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return err

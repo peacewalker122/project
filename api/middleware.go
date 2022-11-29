@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -21,13 +22,17 @@ func Redirect() middleware.RedirectConfig {
 	}
 }
 
-func (s *Server) Timeout() middleware.TimeoutConfig {
+func (s *Server) TimeoutPost() middleware.TimeoutConfig {
 	return middleware.TimeoutConfig{
-		//ErrorMessage: "timeout",
+		ErrorMessage: "timeout",
 		OnTimeoutRouteErrorHandler: func(err error, c echo.Context) {
+			// we delete the file if its already timeout
+			if _, err := os.Stat(s.fileString); err == nil {
+				os.Remove(s.fileString)
+			}
 			c.Error(err)
 			c.SetHandler(s.timeout)
 		},
-		Timeout: 10 * time.Second,
+		Timeout: 8 * time.Second,
 	}
 }
