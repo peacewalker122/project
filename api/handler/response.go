@@ -1,13 +1,86 @@
 package api
 
 import (
+	"encoding/json"
+	"errors"
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+	auth "github.com/peacewalker122/project/api/auth"
+	"github.com/peacewalker122/project/db/redis"
 	db "github.com/peacewalker122/project/db/sqlc"
+	"github.com/peacewalker122/project/token"
+	"github.com/peacewalker122/project/util"
 )
 
+func NewHandler(store db.Store, redis redis.Store, util util.Config, token token.Maker) *Handler {
+	return &Handler{
+		store: store,
+		redis: redis,
+		util:  util,
+		token: token,
+	}
+}
+
+func (s *Handler) AuthAccount(c echo.Context, accountID int64) (int, error) {
+	var acc db.Account
+
+	authParam, ok := c.Get(auth.AuthPayload).(*token.Payload)
+	if !ok {
+		err := errors.New("failed conversion")
+		return http.StatusInternalServerError, err
+	}
+
+	key := "session:AccountsID:" + strconv.Itoa(int(accountID))
+
+	// Here we get from our redis cache value
+	session, err := s.redis.Get(c.Request().Context(), key)
+	if err != nil {
+		// if it doesn't exist then query it from thes postgres
+		acc, err = s.store.GetAccounts(c.Request().Context(), accountID)
+		if num, err := GetErrorValidator(c, err, accountag); err != nil {
+			return num, err
+		}
+
+		// set into redis cache
+		err = s.redis.Set(c.Request().Context(), key, acc)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		// checking
+		if acc.Owner != authParam.Username {
+			err := errors.New("unauthorized Username for this account")
+			return http.StatusUnauthorized, err
+		}
+
+		return 0, nil
+	}
+	// unmarshaling because we marshal into json for any value into set.
+	err = json.Unmarshal([]byte(session), &acc)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// checking
+	if acc.Owner != authParam.Username {
+		err := errors.New("unauthorized Username for this account")
+		return http.StatusUnauthorized, err
+	}
+	return 0, nil
+}
+
 type (
+	Handler struct {
+		store db.Store
+		redis redis.Store
+		util  util.Config
+		token token.Maker
+	}
+
 	CreateUserResponse struct {
 		Username  string                 `json:"username"`
 		FullName  string                 `json:"full_name"`

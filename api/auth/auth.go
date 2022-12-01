@@ -1,26 +1,29 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/token"
 )
 
 const (
-	authRefresh    = "RefreshToken"
-	authHeaderkey  = "authorization"
-	authTypeBearer = "bearer"
-	authPayload    = "authorization_payload"
+	AuthRefresh    = "RefreshToken"
+	AuthHeaderkey  = "authorization"
+	AuthTypeBearer = "bearer"
+	AuthPayload    = "authorization_payload"
 )
 
 func authMiddleware(token token.Maker) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			authHeader := c.Request().Header.Get(authHeaderkey)
+			authHeader := c.Request().Header.Get(AuthHeaderkey)
 			if len(authHeader) == 0 {
 				err := errors.New("authorization header is empty")
 				return c.JSON(http.StatusUnauthorized, err.Error())
@@ -33,7 +36,7 @@ func authMiddleware(token token.Maker) echo.MiddlewareFunc {
 			}
 
 			authType := strings.ToLower(authString[0])
-			if authType != authTypeBearer {
+			if authType != AuthTypeBearer {
 				err := fmt.Errorf("invalid authorization %v type", authType)
 				return c.JSON(http.StatusUnauthorized, err.Error())
 			}
@@ -45,26 +48,8 @@ func authMiddleware(token token.Maker) echo.MiddlewareFunc {
 				return c.JSON(http.StatusUnauthorized, err.Error())
 			}
 
-			c.Set(authPayload, payload)
+			c.Set(AuthPayload, payload)
 			return next(c)
 		}
 	}
-}
-
-func (s *Server) AuthAccount(c echo.Context, accountID int64) error {
-	authParam, ok := c.Get(authPayload).(*token.Payload)
-	if !ok {
-		err := errors.New("failed conversion")
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	acc, err := s.store.GetAccounts(c.Request().Context(), accountID)
-	if err := GetErrorValidator(c, err, accountag); err != nil {
-		return err
-	}
-	if acc.Owner != authParam.Username {
-		err := errors.New("unauthorized Username for this account")
-		c.JSON(http.StatusUnauthorized, err.Error())
-		return c.Redirect(http.StatusPermanentRedirect, s.config.AuthErrorAddres)
-	}
-	return nil
 }

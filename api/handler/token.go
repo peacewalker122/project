@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	auth "github.com/peacewalker122/project/api/auth"
 )
 
-func (s *Server) renewToken(c echo.Context) error {
-	token := c.Request().Header.Get(authRefresh)
+func (s *Handler) renewToken(c echo.Context) error {
+	token := c.Request().Header.Get(auth.AuthRefresh)
 	if token == "" {
 		err := errors.New("invalid, no token")
 		return c.JSON(http.StatusBadRequest, err.Error())

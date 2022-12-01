@@ -27,19 +27,25 @@ var (
 )
 
 const (
-	like       = "like"
-	unlike     = "unlike"
-	retweet    = "retweet"
-	unretweet  = "unretweet"
-	comment    = "comment"
-	qretweet   = "qoute-retweet"
-	unqretweet = "unqoute-retweet(Delete)"
-	posttag    = "post"
-	accountag  = "account"
+	Like       = "like"
+	Unlike     = "unlike"
+	Retweet    = "retweet"
+	Unretweet  = "unretweet"
+	Comment    = "comment"
+	Qretweet   = "qoute-retweet"
+	Unqretweet = "unqoute-retweet(Delete)"
+	Posttag    = "post"
+	Accountag  = "account"
 )
 
 type customValidator struct {
 	validate *validator.Validate
+}
+
+func NewValidator(arg *validator.Validate) *customValidator {
+	return &customValidator{
+		validate: arg,
+	}
 }
 
 func (v *customValidator) Validate(i interface{}) error {
@@ -185,15 +191,16 @@ func ValidateNum(num int) error {
 	return nil
 }
 
-func GetErrorValidator(c echo.Context, err error, tag string) error {
+func GetErrorValidator(c echo.Context, err error, tag string) (int, error) {
 	if err != nil {
+		c.Error(err)
 		if err == sql.ErrNoRows {
 			err := fmt.Errorf("%v not found", tag)
-			return c.JSON(http.StatusNotFound, err.Error())
+			return http.StatusNotFound, err
 		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return http.StatusInternalServerError, err
 	}
-	return err
+	return 0, err
 }
 
 func CreateErrorValidator(c echo.Context, err error) error {
