@@ -10,6 +10,11 @@ import (
 	"github.com/peacewalker122/project/util"
 )
 
+type userService interface {
+	CreateUser(c echo.Context) error
+	Login(c echo.Context) error
+}
+
 type CreateUserParam struct {
 	Username       string `json:"username" validate:"required,min=4,max=100"`
 	HashedPassword string `json:"password" validate:"required,min=6,max=100"`
@@ -17,7 +22,7 @@ type CreateUserParam struct {
 	Email          string `json:"email" validate:"required,email"`
 }
 
-func (s *Server) createUser(c echo.Context) error {
+func (s *Handler) CreateUser(c echo.Context) error {
 	req := new(CreateUserParam)
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
@@ -71,7 +76,7 @@ type LoginParams struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func (s *Server) login(c echo.Context) error {
+func (s *Handler) Login(c echo.Context) error {
 	req := new(LoginParams)
 
 	if err := c.Bind(req); err != nil {

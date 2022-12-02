@@ -20,6 +20,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type H map[string]interface{}
+
 type EqMatcherPass struct {
 	user db.CreateUserParams
 	pass string
@@ -156,7 +158,7 @@ func TestCreateUser(t *testing.T) {
 			request.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			//without this code above, your testing won't work.
 
-			server.router.ServeHTTP(recorder, request)
+			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(recorder)
 		})
 	}

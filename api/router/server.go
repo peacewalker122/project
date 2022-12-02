@@ -8,6 +8,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	auth "github.com/peacewalker122/project/api/auth"
 	handler "github.com/peacewalker122/project/api/handler"
 	apiUtil "github.com/peacewalker122/project/api/util"
 	"github.com/peacewalker122/project/db/redis"
@@ -17,10 +18,14 @@ import (
 )
 
 type Server struct {
-	handler    *handler.Handler
-	router     *echo.Echo
-	token      token.Maker
-	fileString string
+	Store      db.Store
+	Redis      redis.Store
+	Config     util.Config
+	handler    handler.HandlerService
+	Auth       *apiUtil.Util
+	Router     *echo.Echo
+	Token      token.Maker
+	FileString string
 }
 
 func Newserver(c util.Config, store db.Store, redisStore redis.Store) (*Server, error) {
@@ -28,11 +33,14 @@ func Newserver(c util.Config, store db.Store, redisStore redis.Store) (*Server, 
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token %v", err.Error())
 	}
-	newHandler := handler.NewHandler(store, redisStore, c, newtoken)
 	server := &Server{
-		handler: newHandler,
-		token:   newtoken,
+		Store:  store,
+		Redis:  redisStore,
+		Config: c,
+		Auth:   apiUtil.NewUtil(validator.New()),
+		Token:  newtoken,
 	}
+	server.handler, server.FileString = handler.NewHandler(store, redisStore, c, newtoken)
 	server.routerhandle()
 	return server, nil
 }
@@ -42,35 +50,35 @@ func (s *Server) routerhandle() {
 	router.Use(middleware.LoggerWithConfig(apiUtil.Logger()))
 
 	//router.Use(middleware.HTTPSRedirectWithConfig(Redirect()))
-	router.Validator = apiUtil.NewValidator(validator.New())
-	router.HTTPErrorHandler = apiUtil.HTTPErrorHandler
+	router.Validator = s.Auth
+	router.HTTPErrorHandler = s.Auth.HTTPErrorHandler
 
-	router.POST("/user", s.createUser)
-	router.POST("/token/renew", s.renewToken)
-	router.POST("/user/login", s.login)
+	router.POST("/user", s.handler.CreateUser)
+	router.POST("/token/renew", s.handler.RenewToken)
+	router.POST("/user/login", s.handler.Login)
 
-	authRouter := router.Group("", authMiddleware(s.token))
-	//authRouter.POST("/account", s.createAccount)
-	authRouter.GET("/account/:id", s.getAccounts)
-	authRouter.GET("/account", s.listAccount)
-	authRouter.POST("/account/follow", s.followAccount)
-	authRouter.PUT("/account/follow", s.acceptFollower)
-	authRouter.POST("/post", s.createPost, middleware.TimeoutWithConfig(s.TimeoutPost()))
-	authRouter.GET("/post/:id", s.getPost)
-	authRouter.POST("/post/like", s.likePost)
-	authRouter.POST("/post/comment", s.commentPost)
-	authRouter.POST("/post/retweet", s.retweetPost)
-	authRouter.GET("/post/image/:id", s.getPostImage, middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
-	authRouter.POST("/post/qoute/retweet", s.qouteretweetPost)
+	authRouter := router.Group("", auth.AuthMiddleware(s.Token))
+	//authRouter.POST("/account", s.handler.createAccount)
+	authRouter.GET("/account/:id", s.handler.GetAccounts)
+	authRouter.GET("/account", s.handler.ListAccount)
+	authRouter.POST("/account/follow", s.handler.FollowAccount)
+	authRouter.PUT("/account/follow", s.handler.AcceptFollower)
+	authRouter.POST("/post", s.handler.CreatePost, middleware.TimeoutWithConfig(s.TimeoutPost()))
+	authRouter.GET("/post/:id", s.handler.GetPost)
+	authRouter.POST("/post/like", s.handler.LikePost)
+	authRouter.POST("/post/comment", s.handler.CommentPost)
+	authRouter.POST("/post/retweet", s.handler.RetweetPost)
+	authRouter.GET("/post/image/:id", s.handler.GetPostImage, middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+	authRouter.POST("/post/qoute/retweet", s.handler.QouteretweetPost)
 
-	s.router = router
+	s.Router = router
 }
 
 func (s *Server) StartHTTPS(path string) error {
-	return s.router.StartAutoTLS(path)
+	return s.Router.StartAutoTLS(path)
 }
 func (s *Server) StartHTTP(path string) error {
-	return s.router.Start(path)
+	return s.Router.Start(path)
 }
 func (s *Server) timeout(c echo.Context) error {
 	return c.JSON(echo.ErrRequestTimeout.Code, "timeout")
@@ -80,12 +88,31 @@ func (s *Server) TimeoutPost() middleware.TimeoutConfig {
 		ErrorMessage: "timeout",
 		OnTimeoutRouteErrorHandler: func(err error, c echo.Context) {
 			// we delete the file if its already timeout
-			if _, err := os.Stat(s.fileString); err == nil {
-				os.Remove(s.fileString)
+			if _, err := os.Stat(s.FileString); err == nil {
+				os.Remove(s.FileString)
 			}
 			c.Error(err)
 			c.SetHandler(s.timeout)
 		},
 		Timeout: 8 * time.Second,
 	}
+}
+
+func (s *Server) Testrouterhandle() {
+	router := echo.New()
+	router.Validator = s.Auth
+	// router.HTTPErrorHandler = HTTPErrorHandler
+	// router.Use(middleware.LoggerWithConfig(Logger()))
+	// router.Binder = new(CustomBinder)
+	router.POST("/user", s.handler.CreateUser)
+
+	AuthMethod := router.Group("", auth.AuthMiddleware(s.Token))
+
+	//AuthMethod.POST("/account", s.createAccount)
+	AuthMethod.GET("/account/:id", s.handler.GetAccounts)
+	AuthMethod.GET("/account", s.handler.ListAccount)
+	AuthMethod.POST("/post", s.handler.CreatePost)
+	AuthMethod.GET("/post/:id", s.handler.GetPost)
+
+	s.Router = router
 }

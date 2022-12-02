@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"mime/multipart"
@@ -10,9 +11,10 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	db "github.com/peacewalker122/project/db/sqlc"
+	"github.com/peacewalker122/project/token"
 )
 
 type H = map[string]interface{}
@@ -38,35 +40,52 @@ const (
 	Accountag  = "account"
 )
 
-type customValidator struct {
-	validate *validator.Validate
-}
+func (s *Handler) AuthAccount(c echo.Context, accountID int64) (int, error) {
+	var acc db.Account
 
-func NewValidator(arg *validator.Validate) *customValidator {
-	return &customValidator{
-		validate: arg,
-	}
-}
-
-func (v *customValidator) Validate(i interface{}) error {
-	return v.validate.Struct(i)
-}
-
-func HTTPErrorHandler(err error, c echo.Context) {
-	report, ok := err.(*echo.HTTPError)
+	authParam, ok := c.Get(AuthPayload).(*token.Payload)
 	if !ok {
-		report = echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		err := errors.New("failed conversion")
+		return http.StatusInternalServerError, err
 	}
 
-	errmsg := []string{}
-	if castedObject, ok := err.(validator.ValidationErrors); ok {
-		for _, e := range castedObject {
-			errmsg = append(errmsg, fmt.Sprintf("error happen in %s, due %s", e.Field(), e.ActualTag()))
+	key := "session:AccountsID:" + strconv.Itoa(int(accountID))
+
+	// Here we get from our redis cache value
+	session, err := s.redis.Get(c.Request().Context(), key)
+	if err != nil {
+		// if it doesn't exist then query it from thes postgres
+		acc, err = s.store.GetAccounts(c.Request().Context(), accountID)
+		if num, err := GetErrorValidator(c, err, Accountag); err != nil {
+			return num, err
 		}
+
+		// set into redis cache
+		err = s.redis.Set(c.Request().Context(), key, acc)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		// checking
+		if acc.Owner != authParam.Username {
+			err := errors.New("unauthorized Username for this account")
+			return http.StatusUnauthorized, err
+		}
+
+		return 0, nil
+	}
+	// unmarshaling because we marshal into json for any value into set.
+	err = json.Unmarshal([]byte(session), &acc)
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
 
-	c.Logger().Error(report)
-	c.JSON(report.Code, errmsg)
+	// checking
+	if acc.Owner != authParam.Username {
+		err := errors.New("unauthorized Username for this account")
+		return http.StatusUnauthorized, err
+	}
+	return 0, nil
 }
 
 func validateString(target string, minChar, maxChar int) error {
@@ -159,16 +178,24 @@ func ValidateURIAccount(param *GetAccountsParams, context echo.Context, URIparam
 	if err := ValidateID(n); err != nil {
 		return nil, err
 	}
-	param.ID = n
+	param.ToAccountID = n
 	return param, nil
 }
 
+//	func ValidateURIPost(context echo.Context, URIparam string) error {
+//		n := ConverterParam(context, URIparam)
+//		if err := ValidateID(n); err != nil {
+//			return err
+//		}
+//		PostID := int64(n)
+//		return nil
+//	}
 func (s *GetPostParam) ValidateURIPost(context echo.Context, URIparam string) error {
 	n := ConverterParam(context, URIparam)
 	if err := ValidateID(n); err != nil {
 		return err
 	}
-	s.postID = int64(n)
+	s.PostID = int64(n)
 	return nil
 }
 func (s *GetImageParam) ValidateURIPost(context echo.Context, URIparam string) error {
@@ -176,7 +203,7 @@ func (s *GetImageParam) ValidateURIPost(context echo.Context, URIparam string) e
 	if err := ValidateID(n); err != nil {
 		return err
 	}
-	s.postID = int64(n)
+	s.PostID = int64(n)
 	return nil
 }
 
@@ -222,7 +249,7 @@ func ValidateCreateListAccount(req *listAccountRequest) (errors []string) {
 }
 
 func ValidationGetUser(input *GetAccountsParams) (errors string, ok bool) {
-	if err := ValidateNum(input.ID); err != nil {
+	if err := ValidateNum(input.ToAccountID); err != nil {
 		ok = false
 		errors = ValidateError("full_name", err.Error())
 	}

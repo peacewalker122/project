@@ -41,7 +41,7 @@ func TestCreatePost(t *testing.T) {
 				"picture_description": post.PictureDescription,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			BuildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
@@ -64,7 +64,7 @@ func TestCreatePost(t *testing.T) {
 				"picture_description": post.PictureDescription,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			BuildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
@@ -83,7 +83,7 @@ func TestCreatePost(t *testing.T) {
 				"picture_description": post.PictureDescription,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			BuildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
@@ -102,7 +102,7 @@ func TestCreatePost(t *testing.T) {
 				"picture_description": post.PictureDescription,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			BuildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).Times(0)
@@ -131,10 +131,10 @@ func TestCreatePost(t *testing.T) {
 
 			url := "/post"
 			req := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(data))
-			tc.setupAuth(t, req, server.token)
+			tc.setupAuth(t, req, server.Token)
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-			server.router.ServeHTTP(recorder, req)
+			server.Router.ServeHTTP(recorder, req)
 			tc.CodeRecord(recorder)
 		})
 	}
@@ -158,7 +158,7 @@ func TestGetPost(t *testing.T) {
 			name: "Ok",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
@@ -174,7 +174,7 @@ func TestGetPost(t *testing.T) {
 			name: "Unauthorized-Username",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user2.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user2.Username, AuthTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user2.Username)).Times(1).Return(acc2, nil)
@@ -189,7 +189,7 @@ func TestGetPost(t *testing.T) {
 			name: "Nonexist-Username",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Any()).Times(1).Return(db.Account{}, sql.ErrNoRows)
@@ -204,7 +204,7 @@ func TestGetPost(t *testing.T) {
 			name: "Internal-Error(Get-Post)",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
@@ -219,7 +219,7 @@ func TestGetPost(t *testing.T) {
 			name: "Internal-Error(Get-Post_feature)",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
@@ -234,7 +234,7 @@ func TestGetPost(t *testing.T) {
 			name: "Internal-Error(GetOwner)",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(db.Account{}, sql.ErrNoRows)
@@ -247,7 +247,7 @@ func TestGetPost(t *testing.T) {
 			name: "No-Post(Post)",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
@@ -262,7 +262,7 @@ func TestGetPost(t *testing.T) {
 			name: "No-Post(Post-feature)",
 			id:   post.PostID,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
@@ -277,7 +277,7 @@ func TestGetPost(t *testing.T) {
 			name: "Wrong-Request",
 			id:   0,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, user.Username, authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			buildStubs: func(mock *mockdb.MockStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(0)
@@ -304,10 +304,10 @@ func TestGetPost(t *testing.T) {
 
 			url := fmt.Sprintf("/post/%v", tc.id)
 			req := httptest.NewRequest(http.MethodGet, url, nil)
-			tc.setupAuth(t, req, server.token)
+			tc.setupAuth(t, req, server.Token)
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-			server.router.ServeHTTP(recorder, req)
+			server.Router.ServeHTTP(recorder, req)
 			tc.CodeRecord(recorder)
 		})
 	}

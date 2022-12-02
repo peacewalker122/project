@@ -13,6 +13,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/util"
 )
@@ -27,16 +28,17 @@ type (
 
 var (
 	filePath string
-	err      error
 	isShow   bool
+	FileName string
 	//errChan      = make(chan error, 1)
 	//chanIsShow   = make(chan bool, 1)
 	//chanFilePath = make(chan string, 1)
 )
 
-func (s *Server) deleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context, post db.PostFeature) error {
+func (s *Handler) DeleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context, post db.PostFeature) error {
+
 	num, err := s.store.GetPostQRetweetJoin(c.Request().Context(), db.GetPostQRetweetJoinParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
-	if errNum, err = GetErrorValidator(c, err, qretweet); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
 		return err
 	}
 
@@ -51,7 +53,7 @@ func (s *Server) deleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context
 	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
 		FromAccountID: arg.FromAccountID,
 		PostID:        arg.PostID,
-		TypeEntries:   unqretweet,
+		TypeEntries:   Unqretweet,
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -90,7 +92,7 @@ func (s *Server) deleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context
 	})
 }
 
-func (s *Server) createQouteRetweetPost(param *QouteRetweetPostRequest, c echo.Context) (db.Post, db.PostFeature, error) {
+func (s *Handler) CreateQouteRetweetPost(param *QouteRetweetPostRequest, c echo.Context) (db.Post, db.PostFeature, error) {
 	arg := db.CreatePostParams{
 		AccountID:          param.FromAccountID,
 		PictureDescription: param.Qoute,
@@ -110,7 +112,7 @@ func (s *Server) createQouteRetweetPost(param *QouteRetweetPostRequest, c echo.C
 	return post, postfeat, nil
 }
 
-func (s *Server) createRetweetPost(param *RetweetPostRequest, c echo.Context) (db.Post, db.PostFeature, int, error) {
+func (s *Handler) CreateRetweetPost(param *RetweetPostRequest, c echo.Context) (db.Post, db.PostFeature, int, error) {
 	internalError := http.StatusInternalServerError
 	arg := db.CreatePostParams{
 		AccountID: param.FromAccountID,
@@ -123,7 +125,7 @@ func (s *Server) createRetweetPost(param *RetweetPostRequest, c echo.Context) (d
 	}
 
 	ok, err := s.store.GetPostidretweetJoin(c.Request().Context(), db.GetPostidretweetJoinParams{FromAccountID: param.FromAccountID, PostID: param.PostID})
-	if errNum, err = GetErrorValidator(c, err, qretweet); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
 		return db.Post{}, db.PostFeature{}, internalError, err
 	}
 	if !ok.Retweet {
@@ -143,9 +145,9 @@ func (s *Server) createRetweetPost(param *RetweetPostRequest, c echo.Context) (d
 
 }
 
-func (s *Server) deleteRetweetpost(arg *RetweetPostRequest, c echo.Context, post db.PostFeature) error {
+func (s *Handler) DeleteRetweetpost(arg *RetweetPostRequest, c echo.Context, post db.PostFeature) error {
 	res, err := s.store.GetPostidretweetJoin(c.Request().Context(), db.GetPostidretweetJoinParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
-	if errNum, err = GetErrorValidator(c, err, retweet); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Retweet); err != nil {
 		return err
 	}
 	_, err = s.store.GetRetweet(c.Request().Context(), db.GetRetweetParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID})
@@ -159,7 +161,7 @@ func (s *Server) deleteRetweetpost(arg *RetweetPostRequest, c echo.Context, post
 	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
 		FromAccountID: arg.FromAccountID,
 		PostID:        arg.PostID,
-		TypeEntries:   unretweet,
+		TypeEntries:   Unretweet,
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -198,7 +200,7 @@ func (s *Server) deleteRetweetpost(arg *RetweetPostRequest, c echo.Context, post
 	})
 }
 
-func (s *Server) creatingPost(c echo.Context, arg *CreatePostParams) error {
+func (s *Handler) CreatingPost(c echo.Context, arg *CreatePostParams) error {
 	var wg sync.WaitGroup
 	var post db.PostTXResult
 
@@ -208,7 +210,7 @@ func (s *Server) creatingPost(c echo.Context, arg *CreatePostParams) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		filePath, err, isShow = s.saveFile(c, arg)
+		filePath, err, isShow = s.SaveFile(c, arg)
 	}()
 	wg.Wait()
 	if err != nil {
@@ -247,7 +249,7 @@ func (s *Server) creatingPost(c echo.Context, arg *CreatePostParams) error {
 
 // the bool return to indicate a error that will viewed by the client side.
 // True = client will see and vice versa.
-func (s *Server) saveFile(c echo.Context, arg *CreatePostParams) (string, error, bool) {
+func (s *Handler) SaveFile(c echo.Context, arg *CreatePostParams) (string, error, bool) {
 	var wg sync.WaitGroup
 	var fileName string
 	folderPath := fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/", arg.AccountID)
@@ -325,38 +327,38 @@ func (s *Server) saveFile(c echo.Context, arg *CreatePostParams) (string, error,
 		return "", err, false
 	}
 	log.Print("benchmark: ", time.Since(timeMark))
-	s.fileString = filePath
+	FileName = filePath
 	return filePath, nil, false
 }
 
-func (s *Server) GettingPost(c echo.Context, req *GetPostParam) error {
+func (s *Handler) GettingPost(c echo.Context, req *GetPostParam) error {
 	result := &PostResponses{}
 
-		result.Post, err = s.store.GetPost(c.Request().Context(), int64(req.postID))
-		if errNum, err = GetErrorValidator(c, err, posttag); err != nil {
-			return c.JSON(errNum, err.Error())
-		}
+	result.Post, err = s.store.GetPost(c.Request().Context(), int64(req.PostID))
+	if errNum, err = GetErrorValidator(c, err, Posttag); err != nil {
+		return c.JSON(errNum, err.Error())
+	}
 
-		result.PostFeature, err = s.store.GetPost_feature(c.Request().Context(), int64(req.postID))
-		if errNum, err = GetErrorValidator(c, err, posttag); err != nil {
-			return c.JSON(errNum, err.Error())
-		}
+	result.PostFeature, err = s.store.GetPost_feature(c.Request().Context(), int64(req.PostID))
+	if errNum, err = GetErrorValidator(c, err, Posttag); err != nil {
+		return c.JSON(errNum, err.Error())
+	}
 
-		arg := db.ListCommentParams{PostID: int64(req.postID), Limit: int32(10), Offset: (req.Offset - 1) * 10}
-		result.CommentList, err = s.store.ListComment(c.Request().Context(), arg)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return c.JSON(http.StatusNotFound, err.Error())
-			}
-			return c.JSON(http.StatusInternalServerError, err.Error())
+	arg := db.ListCommentParams{PostID: int64(req.PostID), Limit: int32(10), Offset: (req.Offset - 1) * 10}
+	result.CommentList, err = s.store.ListComment(c.Request().Context(), arg)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, err.Error())
 		}
-		
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
 	return c.JSONPretty(http.StatusOK, GetPostResponse(result.Post, result.PostFeature, result.CommentList), "\t")
 }
 
-func (s *Server) gettingImage(c echo.Context, postID int64) error {
+func (s *Handler) GettingImage(c echo.Context, postID int64) error {
 	post, err := s.store.GetPost(c.Request().Context(), int64(postID))
-	if errNum, err = GetErrorValidator(c, err, posttag); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Posttag); err != nil {
 		return err
 	}
 

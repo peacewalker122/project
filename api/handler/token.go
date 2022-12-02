@@ -11,7 +11,11 @@ import (
 	auth "github.com/peacewalker122/project/api/auth"
 )
 
-func (s *Handler) renewToken(c echo.Context) error {
+type tokenService interface{
+	RenewToken(c echo.Context) error
+}
+
+func (s *Handler) RenewToken(c echo.Context) error {
 	token := c.Request().Header.Get(auth.AuthRefresh)
 	if token == "" {
 		err := errors.New("invalid, no token")

@@ -1,15 +1,12 @@
 package api
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/token"
 )
 
@@ -20,7 +17,7 @@ const (
 	AuthPayload    = "authorization_payload"
 )
 
-func authMiddleware(token token.Maker) echo.MiddlewareFunc {
+func AuthMiddleware(token token.Maker) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get(AuthHeaderkey)

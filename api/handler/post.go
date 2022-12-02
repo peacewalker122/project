@@ -2,13 +2,21 @@ package api
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	db "github.com/peacewalker122/project/db/sqlc"
-	"github.com/peacewalker122/project/token"
 )
+
+type postService interface {
+	CreatePost(c echo.Context) error
+	GetPost(c echo.Context) error
+	GetPostImage(c echo.Context) error
+	LikePost(c echo.Context) error
+	CommentPost(c echo.Context) error
+	RetweetPost(c echo.Context) error
+	QouteretweetPost(c echo.Context) error
+}
 
 type (
 	CreatePostParams struct {
@@ -17,10 +25,10 @@ type (
 	}
 	GetImageParam struct {
 		FromAccountID int64 `json:"from_account_id" form:"account_id" validate:"required"`
-		postID        int64 `uri:"id" validate:"required,min=1"`
+		PostID        int64 `uri:"id" validate:"required,min=1"`
 	}
 	GetPostParam struct {
-		postID        int64 `uri:"id" validate:"required,min=1"`
+		PostID        int64 `uri:"id" validate:"required,min=1"`
 		Offset        int32 `json:"offset" form:"offset" query:"offset" validate:"required,min=0"`
 		FromAccountID int64 `json:"from_account_id" query:"accid" validate:"required,min=1"`
 	}
@@ -48,7 +56,7 @@ type (
 	}
 )
 
-func (s *Handler) createPost(c echo.Context) error {
+func (s *Handler) CreatePost(c echo.Context) error {
 	req := new(CreatePostParams)
 
 	if err = c.Bind(req); err != nil {
@@ -61,10 +69,10 @@ func (s *Handler) createPost(c echo.Context) error {
 		return c.JSON(errNum, err)
 	}
 
-	return s.creatingPost(c, req)
+	return s.CreatingPost(c, req)
 }
 
-func (s *Handler) getPost(c echo.Context) error {
+func (s *Handler) GetPost(c echo.Context) error {
 	req := new(GetPostParam)
 	if err = c.Bind(req); err != nil {
 		return err
@@ -82,7 +90,7 @@ func (s *Handler) getPost(c echo.Context) error {
 	return s.GettingPost(c, req)
 }
 
-func (s *Handler) getPostImage(c echo.Context) error {
+func (s *Handler) GetPostImage(c echo.Context) error {
 	req := new(GetImageParam)
 	if err = c.Bind(req); err != nil {
 		return err
@@ -98,10 +106,10 @@ func (s *Handler) getPostImage(c echo.Context) error {
 		return c.JSON(errNum, err)
 	}
 
-	return s.gettingImage(c, req.postID)
+	return s.GettingImage(c, req.PostID)
 }
 
-func (s *Handler) likePost(c echo.Context) error {
+func (s *Handler) LikePost(c echo.Context) error {
 	req := new(LikePostRequest)
 	if err = c.Bind(req); err != nil {
 		return err
@@ -114,7 +122,7 @@ func (s *Handler) likePost(c echo.Context) error {
 	}
 
 	ok, err := s.store.GetLikejoin(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, like); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Like); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
 
@@ -137,7 +145,7 @@ func (s *Handler) likePost(c echo.Context) error {
 	}
 
 	post, err := s.store.GetPost_feature_Update(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, posttag); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Posttag); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
 
@@ -157,9 +165,9 @@ func (s *Handler) likePost(c echo.Context) error {
 		return err
 	}
 
-	entries := like
+	entries := Like
 	if !req.IsLike {
-		entries = unlike
+		entries = Unlike
 	}
 	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
 		FromAccountID: req.FromAccountID,
@@ -184,7 +192,7 @@ func (s *Handler) likePost(c echo.Context) error {
 	return c.JSON(http.StatusOK, likeResponse(result))
 }
 
-func (s *Handler) commentPost(c echo.Context) error {
+func (s *Handler) CommentPost(c echo.Context) error {
 	req := new(CommentPostRequest)
 
 	if err = c.Bind(req); err != nil {
@@ -198,18 +206,8 @@ func (s *Handler) commentPost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ValidateError("comment", err.Error()))
 	}
 
-	acc, err := s.store.GetAccounts(c.Request().Context(), req.FromAccountID)
-	if errNum, err = GetErrorValidator(c, err, accountag); err != nil {
-		return c.JSON(errNum, err.Error())
-	}
-	authParam, ok := c.Get(authPayload).(*token.Payload)
-	if !ok {
-		err := errors.New("failed conversion")
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	if acc.Owner != authParam.Username {
-		err := errors.New("unauthorized username")
-		return c.JSON(http.StatusUnauthorized, err.Error())
+	if errNum, err = s.AuthAccount(c, req.FromAccountID); err != nil {
+		return c.JSON(errNum, err)
 	}
 
 	commentResult, err := s.store.CreateComment_feature(c.Request().Context(), db.CreateComment_featureParams{FromAccountID: req.FromAccountID, Comment: req.Comment, PostID: req.PostID})
@@ -218,13 +216,13 @@ func (s *Handler) commentPost(c echo.Context) error {
 	}
 
 	post, err := s.store.GetPost_feature_Update(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, posttag); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Posttag); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
 
 	post.SumComment++
 
-	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{FromAccountID: req.FromAccountID, PostID: req.PostID, TypeEntries: comment})
+	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{FromAccountID: req.FromAccountID, PostID: req.PostID, TypeEntries: Comment})
 	if err = CreateErrorValidator(c, err); err != nil {
 		return err
 	}
@@ -243,7 +241,7 @@ func (s *Handler) commentPost(c echo.Context) error {
 	return c.JSON(http.StatusOK, commentResponse(commentResult, result))
 }
 
-func (s *Handler) retweetPost(c echo.Context) error {
+func (s *Handler) RetweetPost(c echo.Context) error {
 	var (
 		err   error
 		num   int64
@@ -265,11 +263,11 @@ func (s *Handler) retweetPost(c echo.Context) error {
 
 	if req.IsRetweet {
 		num, err = s.store.GetRetweetRows(c.Request().Context(), db.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-		if errNum, err = GetErrorValidator(c, err, retweet); err != nil {
+		if errNum, err = GetErrorValidator(c, err, Retweet); err != nil {
 			return c.JSON(errNum, err.Error())
 		}
 		if num == 0 {
-			Cpost, Fpost, errNum, err = s.createRetweetPost(req, c)
+			Cpost, Fpost, errNum, err = s.CreateRetweetPost(req, c)
 			if err != nil {
 				return c.JSON(errNum, err.Error())
 			}
@@ -277,11 +275,11 @@ func (s *Handler) retweetPost(c echo.Context) error {
 	}
 
 	post, err := s.store.GetPost_feature_Update(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, posttag); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Posttag); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
 	ok, err = s.store.GetRetweetJoin(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, retweet); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Retweet); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
 
@@ -296,7 +294,7 @@ func (s *Handler) retweetPost(c echo.Context) error {
 	}
 
 	if !req.IsRetweet {
-		return s.deleteRetweetpost(req, c, post)
+		return s.DeleteRetweetpost(req, c, post)
 	}
 
 	err = s.store.UpdateRetweet(c.Request().Context(), db.UpdateRetweetParams{Retweet: req.IsRetweet, PostID: req.PostID, FromAccountID: req.FromAccountID})
@@ -307,10 +305,10 @@ func (s *Handler) retweetPost(c echo.Context) error {
 	args := db.CreateEntriesParams{
 		FromAccountID: req.FromAccountID,
 		PostID:        post.PostID,
-		TypeEntries:   retweet,
+		TypeEntries:   Retweet,
 	}
 	if !req.IsRetweet {
-		args.TypeEntries = unretweet
+		args.TypeEntries = Unretweet
 	}
 	_, err = s.store.CreateEntries(c.Request().Context(), args)
 	if err != nil {
@@ -332,7 +330,7 @@ func (s *Handler) retweetPost(c echo.Context) error {
 	return c.JSON(http.StatusOK, retweetResponse(Fpost, Cpost))
 }
 
-func (s *Handler) qouteretweetPost(c echo.Context) error {
+func (s *Handler) QouteretweetPost(c echo.Context) error {
 	var (
 		err   error
 		ok    bool
@@ -357,7 +355,7 @@ func (s *Handler) qouteretweetPost(c echo.Context) error {
 
 	if req.IsRetweet {
 		num, err = s.store.GetQouteRetweetRows(c.Request().Context(), db.GetQouteRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-		if errNum, err = GetErrorValidator(c, err, qretweet); err != nil {
+		if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
 			return c.JSON(errNum, err.Error())
 		}
 		if num == 0 {
@@ -367,12 +365,12 @@ func (s *Handler) qouteretweetPost(c echo.Context) error {
 			}
 		}
 		res, err := s.store.GetPostQRetweetJoin(c.Request().Context(), db.GetPostQRetweetJoinParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-		if errNum, err = GetErrorValidator(c, err, qretweet); err != nil {
+		if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
 			return c.JSON(errNum, err.Error())
 		}
 		if !res.QouteRetweet {
 			// to validate if the Retweet&qoute_retweet is false then execute below.
-			Cpost, Fpost, err = s.createQouteRetweetPost(req, c)
+			Cpost, Fpost, err = s.CreateQouteRetweetPost(req, c)
 			if err != nil {
 				return err
 			}
@@ -388,7 +386,7 @@ func (s *Handler) qouteretweetPost(c echo.Context) error {
 	}
 
 	ok, err = s.store.GetQouteRetweetJoin(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, qretweet); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
 	if ok && req.IsRetweet {
@@ -402,7 +400,7 @@ func (s *Handler) qouteretweetPost(c echo.Context) error {
 	}
 
 	if !req.IsRetweet {
-		err = s.deleteQouteRetweet(req, c, post)
+		err = s.DeleteQouteRetweet(req, c, post)
 		return err
 	}
 
@@ -414,7 +412,7 @@ func (s *Handler) qouteretweetPost(c echo.Context) error {
 	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
 		FromAccountID: req.FromAccountID,
 		PostID:        post.PostID,
-		TypeEntries:   qretweet,
+		TypeEntries:   Qretweet,
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())

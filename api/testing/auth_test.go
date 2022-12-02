@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	auth "github.com/peacewalker122/project/api/auth"
 	"github.com/peacewalker122/project/token"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,7 +28,7 @@ func AddAuthorization(
 
 	AuthHeader := fmt.Sprintf("%s %s", AuthType, token)
 	assert.NoError(t, err)
-	req.Header.Set(authHeaderkey, AuthHeader)
+	req.Header.Set(AuthHeaderkey, AuthHeader)
 }
 func TestAuth(t *testing.T) {
 
@@ -39,7 +40,7 @@ func TestAuth(t *testing.T) {
 		{
 			name: "Ok",
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, "test", authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, "test", AuthTypeBearer, time.Minute)
 			},
 			recorder: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, rec.Code)
@@ -48,7 +49,7 @@ func TestAuth(t *testing.T) {
 		{
 			name: "UnsupportedAuth",
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, "test", "authTypeBearer", time.Minute)
+				AddAuthorization(t, request, token, "test", "AuthTypeBearer", time.Minute)
 			},
 			recorder: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, rec.Code)
@@ -57,7 +58,7 @@ func TestAuth(t *testing.T) {
 		{
 			name: "Invalid-Auth",
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, "", authTypeBearer, time.Minute)
+				AddAuthorization(t, request, token, "", AuthTypeBearer, time.Minute)
 			},
 			recorder: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, rec.Code)
@@ -66,7 +67,7 @@ func TestAuth(t *testing.T) {
 		{
 			name: "Expired-Token",
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
-				AddAuthorization(t, request, token, "test", authTypeBearer, -time.Minute)
+				AddAuthorization(t, request, token, "test", AuthTypeBearer, -time.Minute)
 			},
 			recorder: func(t *testing.T, rec *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, rec.Code)
@@ -80,14 +81,14 @@ func TestAuth(t *testing.T) {
 			server := NewTestServer(t, nil)
 			url := "/auth"
 
-			server.router.GET(url, func(c echo.Context) error {
+			server.Router.GET(url, func(c echo.Context) error {
 				return c.JSON(http.StatusOK, echo.Map{})
-			}, authMiddleware(server.token))
+			}, auth.AuthMiddleware(server.Token))
 
 			recorder := httptest.NewRecorder()
 			req := httptest.NewRequest(http.MethodGet, url, nil)
-			tc.setupAuth(t, req, server.token)
-			server.router.ServeHTTP(recorder, req)
+			tc.setupAuth(t, req, server.Token)
+			server.Router.ServeHTTP(recorder, req)
 			tc.recorder(t, recorder)
 
 		})

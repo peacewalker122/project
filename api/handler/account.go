@@ -11,6 +11,13 @@ import (
 	"github.com/peacewalker122/project/token"
 )
 
+type accountService interface {
+	GetAccounts(c echo.Context) error
+	ListAccount(c echo.Context) error
+	FollowAccount(c echo.Context) error
+	AcceptFollower(c echo.Context) error
+}
+
 var (
 	errNum int
 	err    error
@@ -18,11 +25,13 @@ var (
 
 type (
 	GetAccountsParams struct {
-		ID int `uri:"id" validate:"required,min=1"`
+		FromAccountID int `uri:"from_account_id" query:"from_account_id" validate:"required,min=1"`
+		ToAccountID   int `uri:"to_account_id" query:"to_account_id" validate:"required,min=1"`
 	}
 	listAccountRequest struct {
-		PageID   int32 `form:"page_id" query:"page_id" validate:"required,min=1"`
-		PageSize int32 `form:"page_size" query:"page_size" validate:"required,min=5,max=50"`
+		FromAccountID int   `uri:"from_account_id" query:"from_account_id" validate:"required,min=1"`
+		PageID        int32 `form:"page_id" query:"page_id" validate:"required,min=1"`
+		PageSize      int32 `form:"page_size" query:"page_size" validate:"required,min=5,max=50"`
 	}
 	FollowAccountRequest struct {
 		FromAccountID int64 `json:"from_account_id" query:"from_account_id" validate:"required"`
@@ -35,12 +44,12 @@ type (
 	}
 )
 
-func (s *Handler) getAccounts(c echo.Context) error {
+func (s *Handler) GetAccounts(c echo.Context) error {
 	req := new(GetAccountsParams)
 	if err = c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	num, err := ValidateURIAccount(req, c, "id")
+	num, err := ValidateURIAccount(req, c, "to_account_id")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -48,27 +57,21 @@ func (s *Handler) getAccounts(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	account, err := s.store.GetAccounts(c.Request().Context(), int64(num.ID))
+	account, err := s.store.GetAccounts(c.Request().Context(), int64(num.ToAccountID))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusNotFound, "no such account")
 		}
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	authParam, ok := c.Get(authPayload).(*token.Payload)
-	if !ok {
-		err := errors.New("failed conversion")
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	if account.Owner != authParam.Username {
-		err := errors.New("unauthorized Username for this account")
-		return c.JSON(http.StatusUnauthorized, err.Error())
+	if errNum, err = s.AuthAccount(c, int64(req.FromAccountID)); err != nil {
+		return c.JSON(errNum, err)
 	}
 
 	return c.JSON(http.StatusOK, AccountResponse(account))
 }
 
-func (server *Handler) listAccount(c echo.Context) error {
+func (s *Handler) ListAccount(c echo.Context) error {
 	req := new(listAccountRequest)
 
 	if err = c.Bind(req); err != nil {
@@ -80,10 +83,13 @@ func (server *Handler) listAccount(c echo.Context) error {
 	if err = c.Validate(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	authParam, ok := c.Get(authPayload).(*token.Payload)
+	authParam, ok := c.Get(AuthPayload).(*token.Payload)
 	if !ok {
 		err := errors.New("failed conversion")
 		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	if errNum, err = s.AuthAccount(c, int64(req.FromAccountID)); err != nil {
+		return c.JSON(errNum, err)
 	}
 	arg := db.ListAccountsParams{
 		Owner:  authParam.Username,
@@ -91,7 +97,7 @@ func (server *Handler) listAccount(c echo.Context) error {
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	accounts, err := server.store.ListAccounts(c.Request().Context(), arg)
+	accounts, err := s.store.ListAccounts(c.Request().Context(), arg)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -99,7 +105,7 @@ func (server *Handler) listAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, accounts)
 }
 
-func (s *Handler) followAccount(c echo.Context) error {
+func (s *Handler) FollowAccount(c echo.Context) error {
 	var (
 		result db.FollowTXResult
 		delete db.UnFollowTXResult
@@ -120,7 +126,7 @@ func (s *Handler) followAccount(c echo.Context) error {
 
 	if !req.Follow {
 		num, err = s.store.GetAccountsFollowRows(c.Request().Context(), db.GetAccountsFollowRowsParams{Fromid: req.FromAccountID, Toid: req.ToAccountID})
-		if errNum, err = GetErrorValidator(c, err, accountag); err != nil {
+		if errNum, err = GetErrorValidator(c, err, Accountag); err != nil {
 			return c.JSON(errNum, err)
 		}
 		if num != 1 {
@@ -130,7 +136,7 @@ func (s *Handler) followAccount(c echo.Context) error {
 			Fromaccid: req.FromAccountID,
 			Toaccid:   req.ToAccountID,
 		})
-		if errNum, err = GetErrorValidator(c, err, accountag); err != nil {
+		if errNum, err = GetErrorValidator(c, err, Accountag); err != nil {
 			return c.JSON(errNum, err)
 		}
 		return c.JSON(http.StatusOK, echo.Map{
@@ -140,7 +146,7 @@ func (s *Handler) followAccount(c echo.Context) error {
 	}
 
 	num, err = s.store.GetAccountsFollowRows(c.Request().Context(), db.GetAccountsFollowRowsParams{Fromid: req.FromAccountID, Toid: req.ToAccountID})
-	if errNum, err = GetErrorValidator(c, err, accountag); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Accountag); err != nil {
 		return c.JSON(errNum, err)
 	}
 
@@ -171,14 +177,14 @@ func (s *Handler) followAccount(c echo.Context) error {
 		Toaccid:   req.ToAccountID,
 		IsQueue:   false,
 	})
-	if errNum, err = GetErrorValidator(c, err, accountag); err != nil {
+	if errNum, err = GetErrorValidator(c, err, Accountag); err != nil {
 		return c.JSON(errNum, err)
 	}
 
 	return c.JSON(http.StatusOK, followResponse(result))
 }
 
-func (s *Handler) acceptFollower(c echo.Context) error {
+func (s *Handler) AcceptFollower(c echo.Context) error {
 	req := &AcceptAccountRequest{}
 
 	if err = c.Bind(req); err != nil {
