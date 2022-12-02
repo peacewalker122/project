@@ -29,7 +29,7 @@ migratedown4:
 sqlc:
 	sqlc generate
 startdb:
-	docker container start postgres12
+	docker container start postgres12 && docker container start redisContainer
 server:
 	go run main.go
 mock:

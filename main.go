@@ -9,7 +9,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	_ "github.com/golang/mock/mockgen/model"
-	"github.com/peacewalker122/project/api"
+	"github.com/peacewalker122/project/api/router"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/util"
 	"google.golang.org/api/option"
@@ -36,8 +36,8 @@ func main() {
 	defer client.Close()
 
 	log.Println("initialize store")
-	store := db.Newstore(conn, config.BucketAccount)
-	server, err := api.Newserver(config, store)
+	store, redis := db.Newstore(conn, config.RedisSource)
+	server, err := api.Newserver(config, store, redis)
 	if err != nil {
 		log.Fatal("can't establish the connection")
 	}

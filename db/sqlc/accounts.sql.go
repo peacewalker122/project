@@ -64,6 +64,21 @@ func (q *Queries) CreatePrivateQueue(ctx context.Context, arg CreatePrivateQueue
 	return i, err
 }
 
+const deleteAccountQueue = `-- name: DeleteAccountQueue :exec
+Delete from accounts_queue
+WHERE from_account_id = $1 and to_account_id = $2
+`
+
+type DeleteAccountQueueParams struct {
+	Fromaccountid int64 `json:"fromaccountid"`
+	Toaccountid   int64 `json:"toaccountid"`
+}
+
+func (q *Queries) DeleteAccountQueue(ctx context.Context, arg DeleteAccountQueueParams) error {
+	_, err := q.db.ExecContext(ctx, deleteAccountQueue, arg.Fromaccountid, arg.Toaccountid)
+	return err
+}
+
 const getAccountForUpdate = `-- name: GetAccountForUpdate :one
 SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
 WHERE accounts_id = $1 LIMIT 1
@@ -233,21 +248,4 @@ func (q *Queries) UpdateAccountFollowing(ctx context.Context, arg UpdateAccountF
 		&i.Following,
 	)
 	return i, err
-}
-
-const updateAccountQueue = `-- name: UpdateAccountQueue :exec
-UPDATE accounts_queue
-set queue = $1
-WHERE  from_account_id = $2 and to_account_id = $3
-`
-
-type UpdateAccountQueueParams struct {
-	Queue         bool  `json:"queue"`
-	Fromaccountid int64 `json:"fromaccountid"`
-	Toaccountid   int64 `json:"toaccountid"`
-}
-
-func (q *Queries) UpdateAccountQueue(ctx context.Context, arg UpdateAccountQueueParams) error {
-	_, err := q.db.ExecContext(ctx, updateAccountQueue, arg.Queue, arg.Fromaccountid, arg.Toaccountid)
-	return err
 }

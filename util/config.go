@@ -9,6 +9,7 @@ import (
 type Config struct {
 	DBDriver          string        `mapstructure:"DB_DRIVER"`
 	DBSource          string        `mapstructure:"DB_SOURCE"`
+	RedisSource       string        `mapstructure:"REDIS_ADDR"`
 	HTTPServerAddress string        `mapstructure:"HTTP_SERVER_ADDRESS"`
 	TokenKey          string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	AuthErrorAddres   string        `mapstructure:"REDIRECT_AUTH_TOKEN"`

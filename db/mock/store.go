@@ -259,6 +259,20 @@ func (mr *MockStoreMockRecorder) CreateUser(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockStore)(nil).CreateUser), arg0, arg1)
 }
 
+// DeleteAccountQueue mocks base method.
+func (m *MockStore) DeleteAccountQueue(arg0 context.Context, arg1 db.DeleteAccountQueueParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAccountQueue", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAccountQueue indicates an expected call of DeleteAccountQueue.
+func (mr *MockStoreMockRecorder) DeleteAccountQueue(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAccountQueue", reflect.TypeOf((*MockStore)(nil).DeleteAccountQueue), arg0, arg1)
+}
+
 // DeleteAccountsFollow mocks base method.
 func (m *MockStore) DeleteAccountsFollow(arg0 context.Context, arg1 db.DeleteAccountsFollowParams) error {
 	m.ctrl.T.Helper()
@@ -851,20 +865,6 @@ func (m *MockStore) UpdateAccountFollowing(arg0 context.Context, arg1 db.UpdateA
 func (mr *MockStoreMockRecorder) UpdateAccountFollowing(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccountFollowing", reflect.TypeOf((*MockStore)(nil).UpdateAccountFollowing), arg0, arg1)
-}
-
-// UpdateAccountQueue mocks base method.
-func (m *MockStore) UpdateAccountQueue(arg0 context.Context, arg1 db.UpdateAccountQueueParams) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAccountQueue", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateAccountQueue indicates an expected call of UpdateAccountQueue.
-func (mr *MockStoreMockRecorder) UpdateAccountQueue(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccountQueue", reflect.TypeOf((*MockStore)(nil).UpdateAccountQueue), arg0, arg1)
 }
 
 // UpdateLike mocks base method.

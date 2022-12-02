@@ -51,7 +51,6 @@ INSERT INTO accounts_queue(
     @FromAccountID, @ToAccountID, true
 ) RETURNING *;
 
--- name: UpdateAccountQueue :exec
-UPDATE accounts_queue
-set queue = @Queue
-WHERE  from_account_id = @FromAccountID and to_account_id = @ToAccountID;
+-- name: DeleteAccountQueue :exec
+Delete from accounts_queue
+WHERE from_account_id = @FromAccountID and to_account_id = @ToAccountID;

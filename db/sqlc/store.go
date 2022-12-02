@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/peacewalker122/project/db/redis"
 )
 
 type Store interface {
@@ -24,11 +26,15 @@ type SQLStore struct {
 	db *sql.DB
 }
 
-func Newstore(db *sql.DB, bucketType string) Store {
+type NoSQLStore struct {
+	redis.Store
+}
+
+func Newstore(db *sql.DB, RedisURL string) (Store, redis.Store) {
 	return &SQLStore{
 		Queries: New(db),
 		db:      db,
-	}
+	}, &NoSQLStore{Store: redis.NewRedis(RedisURL)}
 }
 
 func (s *SQLStore) execCtx(ctx context.Context, fn func(q *Queries) error) error {
@@ -59,6 +65,7 @@ type (
 	FollowTXParam struct {
 		Fromaccid int64 `json:"from_acc_id"`
 		Toaccid   int64 `json:"to_acc_id"`
+		IsQueue   bool  `json:"is_queue"`
 	}
 	FollowTXResult struct {
 		Follow      AccountsFollow `json:"account_follow"`
@@ -111,6 +118,16 @@ func (s *SQLStore) Followtx(ctx context.Context, arg FollowTXParam) (FollowTXRes
 		result.Follow, result.ToAcc, result.FromAcc, err = s.UpdateFollowing(ctx, arg.Fromaccid, arg.Toaccid, int64(1))
 		if err != nil {
 			return err
+		}
+
+		if arg.IsQueue {
+			err = s.DeleteAccountsFollow(ctx, DeleteAccountsFollowParams{
+				Fromid: arg.Fromaccid,
+				Toid:   arg.Toaccid,
+			})
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

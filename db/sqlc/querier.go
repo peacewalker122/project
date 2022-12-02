@@ -24,6 +24,7 @@ type Querier interface {
 	CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteAccountQueue(ctx context.Context, arg DeleteAccountQueueParams) error
 	DeleteAccountsFollow(ctx context.Context, arg DeleteAccountsFollowParams) error
 	DeletePost(ctx context.Context, postID int64) error
 	DeletePostFeature(ctx context.Context, postID int64) error
@@ -61,7 +62,6 @@ type Querier interface {
 	ListUser(ctx context.Context, arg ListUserParams) ([]User, error)
 	UpdateAccountFollower(ctx context.Context, arg UpdateAccountFollowerParams) (Account, error)
 	UpdateAccountFollowing(ctx context.Context, arg UpdateAccountFollowingParams) (Account, error)
-	UpdateAccountQueue(ctx context.Context, arg UpdateAccountQueueParams) error
 	UpdateLike(ctx context.Context, arg UpdateLikeParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
 	UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error)

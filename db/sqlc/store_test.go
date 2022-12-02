@@ -11,7 +11,7 @@ import (
 )
 
 func TestAddFollow(t *testing.T) {
-	store := Newstore(testDB, config.BucketAccount)
+	store,_ := Newstore(testDB, config.BucketAccount)
 	account1 := CreateRandomAccount(t)
 	account2 := CreateRandomAccount(t)
 	var res FollowTXResult
@@ -67,7 +67,7 @@ func TestAddFollow(t *testing.T) {
 }
 
 func TestCreatePostTX(t *testing.T) {
-	store := Newstore(testDB, config.BucketAccount)
+	store,_ := Newstore(testDB, config.BucketAccount)
 	account := CreateRandomAccount(t)
 
 	arg := CreatePostParams{
@@ -92,7 +92,7 @@ func TestCreatePostTX(t *testing.T) {
 }
 
 func TestIndexingFile(t *testing.T) {
-	store := Newstore(testDB, config.BucketAccount)
+	store,_ := Newstore(testDB, config.BucketAccount)
 	filename, err := store.CreateFileIndex("/home/servumtopia/Pictures/Project/1/", "golang.png")
 	require.NoError(t, err)
 
