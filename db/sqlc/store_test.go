@@ -11,7 +11,7 @@ import (
 )
 
 func TestAddFollow(t *testing.T) {
-	store,_ := Newstore(testDB, config.BucketAccount)
+	store, _ := Newstore(testDB, config.RedisSource)
 	account1 := CreateRandomAccount(t)
 	account2 := CreateRandomAccount(t)
 	var res FollowTXResult
@@ -67,7 +67,7 @@ func TestAddFollow(t *testing.T) {
 }
 
 func TestCreatePostTX(t *testing.T) {
-	store,_ := Newstore(testDB, config.BucketAccount)
+	store, _ := Newstore(testDB, config.BucketAccount)
 	account := CreateRandomAccount(t)
 
 	arg := CreatePostParams{
@@ -92,7 +92,7 @@ func TestCreatePostTX(t *testing.T) {
 }
 
 func TestIndexingFile(t *testing.T) {
-	store,_ := Newstore(testDB, config.BucketAccount)
+	store, _ := Newstore(testDB, config.BucketAccount)
 	filename, err := store.CreateFileIndex("/home/servumtopia/Pictures/Project/1/", "golang.png")
 	require.NoError(t, err)
 
@@ -109,4 +109,15 @@ func TestMap(t *testing.T) {
 	for _, i := range m["name"] {
 		log.Println(i)
 	}
+}
+
+func TestCreateRetweet(t *testing.T) {
+	s := newTeststore(testDB)
+	res, err := s.CreateRetweetTX(context.Background(), CreateRetweetParams{
+		FromAccountID: 1,
+		PostID:        2,
+		IsRetweet:     true,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
 }

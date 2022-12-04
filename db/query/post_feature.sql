@@ -47,7 +47,7 @@ SELECT * FROM post_feature
 WHERE post_id = $1 LIMIT 1;
 
 -- name: GetPost_feature_Update :one
-SELECT * FROM post_feature
+SELECT sum_comment,sum_like,sum_retweet,sum_qoute_retweet FROM post_feature as pf
 WHERE post_id = $1 LIMIT 1
 FOR NO KEY UPDATE;
 
@@ -95,9 +95,9 @@ WHERE post_id = $2 and from_account_id = $3
 RETURNING retweet;
 
 -- name: GetRetweetJoin :one
-SELECT retweet_feature.retweet from retweet_feature
-INNER JOIN post ON post.post_id = retweet_feature.post_id
-WHERE post.post_id = $1;
+SELECT rf.retweet from retweet_feature rf
+INNER JOIN post ON post.post_id = rf.post_id
+WHERE post.post_id = @PostID and rf.from_account_id  = @FromAccountID;
 
 -- name: GetQouteRetweet :one
 SELECT * from qoute_retweet_feature

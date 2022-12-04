@@ -25,7 +25,7 @@ type customValidator struct {
 	validate *validator.Validate
 }
 
-func newValidator(arg *validator.Validate) *customValidator {
+func NewValidator(arg *validator.Validate) *customValidator {
 	return &customValidator{
 		validate: arg,
 	}
@@ -48,6 +48,6 @@ func (u *Util) HTTPErrorHandler(err error, c echo.Context) {
 		}
 	}
 
-	c.Logger().Error(report)
 	c.JSON(report.Code, errmsg)
+	c.Logger().Error(report)
 }

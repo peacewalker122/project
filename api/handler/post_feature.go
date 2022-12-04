@@ -35,7 +35,7 @@ var (
 	//chanFilePath = make(chan string, 1)
 )
 
-func (s *Handler) DeleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context, post db.PostFeature) error {
+func (s *Handler) DeleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context, post db.GetPost_feature_UpdateRow) error {
 
 	num, err := s.store.GetPostQRetweetJoin(c.Request().Context(), db.GetPostQRetweetJoinParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
 	if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
@@ -67,7 +67,7 @@ func (s *Handler) DeleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Contex
 	// Delete first then decrement
 	post.SumQouteRetweet--
 	_, err = s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
-		PostID:          post.PostID,
+		PostID:          arg.PostID,
 		SumComment:      post.SumComment,
 		SumLike:         post.SumLike,
 		SumRetweet:      post.SumRetweet,
@@ -112,86 +112,32 @@ func (s *Handler) CreateQouteRetweetPost(param *QouteRetweetPostRequest, c echo.
 	return post, postfeat, nil
 }
 
-func (s *Handler) CreateRetweetPost(param *RetweetPostRequest, c echo.Context) (db.Post, db.PostFeature, int, error) {
-	internalError := http.StatusInternalServerError
-	arg := db.CreatePostParams{
-		AccountID: param.FromAccountID,
-		IsRetweet: true,
+func (s *Handler) CreateRetweetPost(c echo.Context, param *RetweetPostRequest) (RetweetResponse, int, error) {
+	arg := db.CreateRetweetParams{
+		FromAccountID: param.FromAccountID,
+		PostID:        param.PostID,
+		IsRetweet:     true}
+
+	result, err := s.store.CreateRetweetPost(c.Request().Context(), arg)
+	if err != nil {
+		return RetweetResponse{}, result.ErrCode, err
+	}
+	res, err := s.store.CreateRetweetTX(c.Request().Context(), arg)
+	if err != nil {
+		return RetweetResponse{}, res.ErrCode, err
 	}
 
-	err := s.store.CreateRetweet_feature(c.Request().Context(), db.CreateRetweet_featureParams{FromAccountID: param.FromAccountID, PostID: param.PostID})
-	if err := CreateErrorValidator(c, err); err != nil {
-		return db.Post{}, db.PostFeature{}, internalError, err
-	}
-
-	ok, err := s.store.GetPostidretweetJoin(c.Request().Context(), db.GetPostidretweetJoinParams{FromAccountID: param.FromAccountID, PostID: param.PostID})
-	if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
-		return db.Post{}, db.PostFeature{}, internalError, err
-	}
-	if !ok.Retweet {
-		post, err := s.store.CreatePost(c.Request().Context(), arg)
-		if err != nil {
-			return db.Post{}, db.PostFeature{}, internalError, err
-		}
-
-		postfeat, err := s.store.CreatePost_feature(c.Request().Context(), post.PostID)
-		if err != nil {
-			return db.Post{}, db.PostFeature{}, internalError, err
-		}
-
-		return post, postfeat, 0, nil
-	}
-	return db.Post{}, db.PostFeature{}, http.StatusBadRequest, errors.New("already existing retweet")
+	return RetweetResponse{Post: result.Post.Post, Feature: result.Post.PostFeature}, 0, err
 
 }
 
-func (s *Handler) DeleteRetweetpost(arg *RetweetPostRequest, c echo.Context, post db.PostFeature) error {
-	res, err := s.store.GetPostidretweetJoin(c.Request().Context(), db.GetPostidretweetJoinParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
-	if errNum, err = GetErrorValidator(c, err, Retweet); err != nil {
-		return err
-	}
-	_, err = s.store.GetRetweet(c.Request().Context(), db.GetRetweetParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusNotFound, "no specify qoute-retweet in database")
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
-		FromAccountID: arg.FromAccountID,
+func (s *Handler) DeleteRetweetpost(arg *RetweetPostRequest, c echo.Context) error {
+	err := s.store.DeleteRetweetTX(c.Request().Context(), db.DeleteRetweetParams{
 		PostID:        arg.PostID,
-		TypeEntries:   Unretweet,
+		FromAccountID: arg.FromAccountID,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	err = s.store.DeleteRetweet(c.Request().Context(), db.DeleteRetweetParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	// Delete first then decrement
-	post.SumQouteRetweet--
-	_, err = s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
-		PostID:          post.PostID,
-		SumComment:      post.SumComment,
-		SumLike:         post.SumLike,
-		SumRetweet:      post.SumRetweet,
-		SumQouteRetweet: post.SumQouteRetweet,
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	err = s.store.DeletePostFeature(c.Request().Context(), res.PostID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	err = s.store.DeletePost(c.Request().Context(), res.PostID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return c.JSON(http.StatusCreated, echo.Map{
@@ -247,12 +193,13 @@ func (s *Handler) CreatingPost(c echo.Context, arg *CreatePostParams) error {
 	return c.JSON(http.StatusOK, PostResponse(post.Post, post.PostFeature))
 }
 
-// the bool return to indicate a error that will viewed by the client side.
-// True = client will see and vice versa.
 func (s *Handler) SaveFile(c echo.Context, arg *CreatePostParams) (string, error, bool) {
+	// the bool return to indicate a error that will viewed by the client side.
+	// True = client will see and vice versa.
 	var wg sync.WaitGroup
 	var fileName string
 	folderPath := fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/", arg.AccountID)
+
 	timeMark := time.Now()
 	file, err := c.FormFile("photo")
 	if err != nil {

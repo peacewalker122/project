@@ -7,13 +7,13 @@ import (
 type (
 	Util struct {
 		Middleware *CustomBinder
-		*customValidator
+		Validator *customValidator
 	}
 )
 
 func NewUtil(val *validator.Validate) *Util {
 	return &Util{
 		Middleware:      &CustomBinder{},
-		customValidator: newValidator(val),
+		Validator: NewValidator(val),
 	}
 }

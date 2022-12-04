@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -171,7 +172,7 @@ func (s *Handler) LikePost(c echo.Context) error {
 	}
 	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
 		FromAccountID: req.FromAccountID,
-		PostID:        post.PostID,
+		PostID:        req.PostID,
 		TypeEntries:   entries,
 	})
 	if err != nil {
@@ -179,7 +180,7 @@ func (s *Handler) LikePost(c echo.Context) error {
 	}
 
 	result, err := s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
-		PostID:          post.PostID,
+		PostID:          req.PostID,
 		SumComment:      post.SumComment,
 		SumLike:         post.SumLike,
 		SumRetweet:      post.SumRetweet,
@@ -242,12 +243,12 @@ func (s *Handler) CommentPost(c echo.Context) error {
 }
 
 func (s *Handler) RetweetPost(c echo.Context) error {
+	ctx := c.Request().Context()
 	var (
-		err   error
-		num   int64
-		ok    bool
-		Cpost db.Post
-		Fpost db.PostFeature
+		errNum int
+		err    error
+		num    int64
+		Result RetweetResponse
 	)
 
 	req := new(RetweetPostRequest)
@@ -262,72 +263,41 @@ func (s *Handler) RetweetPost(c echo.Context) error {
 	}
 
 	if req.IsRetweet {
-		num, err = s.store.GetRetweetRows(c.Request().Context(), db.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-		if errNum, err = GetErrorValidator(c, err, Retweet); err != nil {
+		num, err = s.store.GetRetweetRows(ctx, db.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
+		if err != nil {
+			if err == sql.ErrNoRows {
+				errNum = http.StatusNotFound
+			}
 			return c.JSON(errNum, err.Error())
 		}
 		if num == 0 {
-			Cpost, Fpost, errNum, err = s.CreateRetweetPost(req, c)
+			Result, errNum, err = s.CreateRetweetPost(c, req)
 			if err != nil {
 				return c.JSON(errNum, err.Error())
 			}
+			return c.JSON(http.StatusOK, retweetResponse(Result.Feature, Result.Post))
 		}
+		return c.JSON(http.StatusBadRequest, errors.New("already exist").Error())
 	}
 
-	post, err := s.store.GetPost_feature_Update(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, Posttag); err != nil {
-		return c.JSON(errNum, err.Error())
-	}
-	ok, err = s.store.GetRetweetJoin(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, Retweet); err != nil {
-		return c.JSON(errNum, err.Error())
-	}
-
-	if ok && req.IsRetweet {
-		return c.JSON(http.StatusBadRequest, "already retweet")
-	}
-
-	if !ok {
-		if req.IsRetweet {
-			post.SumRetweet++
-		}
-	}
-
-	if !req.IsRetweet {
-		return s.DeleteRetweetpost(req, c, post)
-	}
-
-	err = s.store.UpdateRetweet(c.Request().Context(), db.UpdateRetweetParams{Retweet: req.IsRetweet, PostID: req.PostID, FromAccountID: req.FromAccountID})
-	if err = CreateErrorValidator(c, err); err != nil {
-		return err
-	}
-
-	args := db.CreateEntriesParams{
-		FromAccountID: req.FromAccountID,
-		PostID:        post.PostID,
-		TypeEntries:   Retweet,
-	}
-	if !req.IsRetweet {
-		args.TypeEntries = Unretweet
-	}
-	_, err = s.store.CreateEntries(c.Request().Context(), args)
+	num, err = s.store.GetRetweetRows(ctx, db.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		if err == sql.ErrNoRows {
+			errNum = http.StatusNotFound
+			return c.JSON(http.StatusNotFound, "not found")
+		}
+		return c.JSON(errNum, err.Error())
+	}
+	if !req.IsRetweet {
+		if num == 0 {
+			return c.JSON(http.StatusNotFound, "not found")
+		}
+		return s.DeleteRetweetpost(req, c)
+
 	}
 
-	arg := db.UpdatePost_featureParams{
-		PostID:          req.PostID,
-		SumComment:      post.SumComment,
-		SumLike:         post.SumLike,
-		SumRetweet:      post.SumRetweet,
-		SumQouteRetweet: post.SumQouteRetweet,
-	}
-	_, err = s.store.UpdatePost_feature(c.Request().Context(), arg)
-	if err = CreateErrorValidator(c, err); err != nil {
-		return err
-	}
+	return c.JSON(http.StatusOK, retweetResponse(Result.Feature, Result.Post))
 
-	return c.JSON(http.StatusOK, retweetResponse(Fpost, Cpost))
 }
 
 func (s *Handler) QouteretweetPost(c echo.Context) error {
@@ -411,7 +381,7 @@ func (s *Handler) QouteretweetPost(c echo.Context) error {
 
 	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
 		FromAccountID: req.FromAccountID,
-		PostID:        post.PostID,
+		PostID:        req.PostID,
 		TypeEntries:   Qretweet,
 	})
 	if err != nil {
@@ -419,7 +389,7 @@ func (s *Handler) QouteretweetPost(c echo.Context) error {
 	}
 
 	_, err = s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
-		PostID:          post.PostID,
+		PostID:          req.PostID,
 		SumComment:      post.SumComment,
 		SumLike:         post.SumLike,
 		SumRetweet:      post.SumRetweet,

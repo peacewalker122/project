@@ -21,7 +21,6 @@ type Handler struct {
 	redis    redis.Store
 	config   util.Config
 	token    token.Maker
-	Filename string
 }
 
 type HandlerService interface {

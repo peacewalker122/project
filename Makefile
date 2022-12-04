@@ -34,5 +34,7 @@ server:
 	go run main.go
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/peacewalker122/project/db/sqlc Store
+postgrescli:
+	docker exec -it postgres12 psql -U root project
 
 .PHONY: migrateup2 migratedown2 migratedown1 migrateup1 server startcontainer sqlc postgres migrate dropdb migrateup migratedown createdb 

@@ -240,21 +240,26 @@ func (q *Queries) GetPost_feature(ctx context.Context, postID int64) (PostFeatur
 }
 
 const getPost_feature_Update = `-- name: GetPost_feature_Update :one
-SELECT post_id, sum_comment, sum_like, sum_retweet, sum_qoute_retweet, created_at FROM post_feature
+SELECT sum_comment,sum_like,sum_retweet,sum_qoute_retweet FROM post_feature as pf
 WHERE post_id = $1 LIMIT 1
 FOR NO KEY UPDATE
 `
 
-func (q *Queries) GetPost_feature_Update(ctx context.Context, postID int64) (PostFeature, error) {
+type GetPost_feature_UpdateRow struct {
+	SumComment      int64 `json:"sum_comment"`
+	SumLike         int64 `json:"sum_like"`
+	SumRetweet      int64 `json:"sum_retweet"`
+	SumQouteRetweet int64 `json:"sum_qoute_retweet"`
+}
+
+func (q *Queries) GetPost_feature_Update(ctx context.Context, postID int64) (GetPost_feature_UpdateRow, error) {
 	row := q.db.QueryRowContext(ctx, getPost_feature_Update, postID)
-	var i PostFeature
+	var i GetPost_feature_UpdateRow
 	err := row.Scan(
-		&i.PostID,
 		&i.SumComment,
 		&i.SumLike,
 		&i.SumRetweet,
 		&i.SumQouteRetweet,
-		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -336,13 +341,18 @@ func (q *Queries) GetRetweet(ctx context.Context, arg GetRetweetParams) (Retweet
 }
 
 const getRetweetJoin = `-- name: GetRetweetJoin :one
-SELECT retweet_feature.retweet from retweet_feature
-INNER JOIN post ON post.post_id = retweet_feature.post_id
-WHERE post.post_id = $1
+SELECT rf.retweet from retweet_feature rf
+INNER JOIN post ON post.post_id = rf.post_id
+WHERE post.post_id = $1 and rf.from_account_id  = $2
 `
 
-func (q *Queries) GetRetweetJoin(ctx context.Context, postID int64) (bool, error) {
-	row := q.db.QueryRowContext(ctx, getRetweetJoin, postID)
+type GetRetweetJoinParams struct {
+	Postid        int64 `json:"postid"`
+	Fromaccountid int64 `json:"fromaccountid"`
+}
+
+func (q *Queries) GetRetweetJoin(ctx context.Context, arg GetRetweetJoinParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, getRetweetJoin, arg.Postid, arg.Fromaccountid)
 	var retweet bool
 	err := row.Scan(&retweet)
 	return retweet, err

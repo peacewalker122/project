@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -14,6 +15,9 @@ import (
 
 type Store interface {
 	Querier
+	DeleteRetweetTX(ctx context.Context, arg DeleteRetweetParams) error
+	CreateRetweetPost(ctx context.Context, arg CreateRetweetParams) (CreateRetweetResult, error)
+	CreateRetweetTX(ctx context.Context, arg CreateRetweetParams) (CreateRetweetTXResult, error)
 	Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error)
 	UnFollowtx(ctx context.Context, arg UnfollowTXParam) (UnFollowTXResult, error)
 	GetDirectory(path string) (string, error)
@@ -28,6 +32,13 @@ type SQLStore struct {
 
 type NoSQLStore struct {
 	redis.Store
+}
+
+func newTeststore(db *sql.DB) Store {
+	return &SQLStore{
+		Queries: New(db),
+		db:      db,
+	}
 }
 
 func Newstore(db *sql.DB, RedisURL string) (Store, redis.Store) {
@@ -59,9 +70,25 @@ const (
 	QR = "qoute-retweet"
 	F  = "follow"
 	UF = "unfollow"
+	UR = "unretweet"
 )
 
 type (
+	CreateRetweetParams struct {
+		FromAccountID int64 `json:"from_acc_id"`
+		PostID        int64 `json:"post_id"`
+		IsRetweet     bool  `json:"is_retweet"`
+	}
+	CreateRetweetResult struct {
+		ErrCode int          `json:"err_code"`
+		Post    PostTXResult `json:"post"`
+	}
+	CreateRetweetTXResult struct {
+		ok      bool
+		Err     error
+		ErrCode int                 `json:"err_code"`
+		Retweet CreateRetweetResult `json:"retweet_result"`
+	}
 	FollowTXParam struct {
 		Fromaccid int64 `json:"from_acc_id"`
 		Toaccid   int64 `json:"to_acc_id"`
@@ -88,6 +115,176 @@ type (
 		PostFeature PostFeature `json:"post_feature"`
 	}
 )
+
+func (s *SQLStore) CreateRetweetTX(ctx context.Context, arg CreateRetweetParams) (CreateRetweetTXResult, error) {
+	var result CreateRetweetTXResult
+	result.ErrCode = http.StatusInternalServerError
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+
+		result.ok, err = s.GetRetweetJoin(ctx, GetRetweetJoinParams{Postid: arg.PostID, Fromaccountid: arg.FromAccountID})
+		if err != nil {
+			if err == sql.ErrNoRows {
+				result.ErrCode = http.StatusNotFound
+			}
+			return err
+		}
+
+		if result.ok && arg.IsRetweet {
+			result.ErrCode = http.StatusNotFound
+			result.Err = errors.New("already retweet")
+			return result.Err
+		}
+
+		post, err := s.GetPost_feature_Update(ctx, arg.PostID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				result.ErrCode = http.StatusNotFound
+			}
+			result.ErrCode = 500
+			return err
+		}
+		post.SumRetweet++
+
+		err = s.UpdateRetweet(ctx, UpdateRetweetParams{Retweet: true, PostID: arg.PostID, FromAccountID: arg.FromAccountID})
+		if err != nil {
+			result.ErrCode = 500
+			return err
+		}
+
+		args := CreateEntriesParams{
+			FromAccountID: arg.FromAccountID,
+			PostID:        arg.PostID,
+			TypeEntries:   R,
+		}
+
+		_, err = s.CreateEntries(ctx, args)
+		if err != nil {
+			result.ErrCode = 500
+			return err
+		}
+
+		arg := UpdatePost_featureParams{
+			PostID:          arg.PostID,
+			SumComment:      post.SumComment,
+			SumLike:         post.SumLike,
+			SumRetweet:      post.SumRetweet,
+			SumQouteRetweet: post.SumQouteRetweet,
+		}
+		
+		_, err = s.UpdatePost_feature(ctx, arg)
+		if err != nil {
+			result.ErrCode = 500
+			return err
+		}
+		return err
+	})
+	// if result.Err != nil {
+	// 	err = result.Err
+	// }
+	return result, err
+}
+
+func (s *SQLStore) DeleteRetweetTX(ctx context.Context, arg DeleteRetweetParams) error {
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+
+		res, err := s.GetPostidretweetJoin(ctx, GetPostidretweetJoinParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
+		if err != nil {
+			return err
+		}
+		post, err := s.GetPost_feature_Update(ctx, arg.PostID)
+		if err != nil {
+			return err
+		}
+		_, err = s.GetRetweet(ctx, GetRetweetParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID})
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return errors.New("no specify qoute-retweet in database")
+			}
+			return err
+		}
+
+		_, err = s.CreateEntries(ctx, CreateEntriesParams{
+			FromAccountID: arg.FromAccountID,
+			PostID:        arg.PostID,
+			TypeEntries:   UR,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = s.DeleteRetweet(ctx, DeleteRetweetParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
+		if err != nil {
+			return err
+		}
+
+		// Delete first then decrement
+		post.SumRetweet--
+		_, err = s.UpdatePost_feature(ctx, UpdatePost_featureParams{
+			PostID:          arg.PostID,
+			SumComment:      post.SumComment,
+			SumLike:         post.SumLike,
+			SumRetweet:      post.SumRetweet,
+			SumQouteRetweet: post.SumQouteRetweet,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = s.DeletePostFeature(ctx, res.PostID)
+		if err != nil {
+			return err
+		}
+		err = s.DeletePost(ctx, res.PostID)
+		if err != nil {
+			return err
+		}
+		return err
+	})
+	return err
+}
+
+func (s *SQLStore) CreateRetweetPost(ctx context.Context, arg CreateRetweetParams) (CreateRetweetResult, error) {
+	var result CreateRetweetResult
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+		result.ErrCode = http.StatusInternalServerError
+
+		err = s.CreateRetweet_feature(ctx, CreateRetweet_featureParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID})
+		if err != nil {
+			return err
+		}
+
+		ok, err := s.GetPostidretweetJoin(ctx, GetPostidretweetJoinParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID})
+		if err != nil {
+			if err == sql.ErrNoRows {
+				result.ErrCode = http.StatusNotFound
+			}
+			return err
+		}
+
+		if !ok.Retweet {
+			arg := CreatePostParams{
+				AccountID: arg.FromAccountID,
+				IsRetweet: true,
+			}
+			result.Post.Post, err = s.CreatePost(ctx, arg)
+			if err != nil {
+				return err
+			}
+
+			result.Post.PostFeature, err = s.CreatePost_feature(ctx, result.Post.Post.PostID)
+			if err != nil {
+				return err
+			}
+
+		}
+		return err
+	})
+
+	return result, err
+}
 
 func (s *SQLStore) CreatePostTx(ctx context.Context, arg CreatePostParams) (PostTXResult, error) {
 	var result PostTXResult

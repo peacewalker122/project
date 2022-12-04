@@ -97,6 +97,14 @@ func (s *Handler) Login(c echo.Context) error {
 		c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
+	account, err := s.store.GetAccountsOwner(c.Request().Context(), req.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, err.Error())
+		}
+		c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
 	err = util.CheckPassword(req.Password, username.HashedPassword)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, ValidateError("password", err.Error()))
@@ -121,6 +129,7 @@ func (s *Handler) Login(c echo.Context) error {
 		IsBlocked:    false,
 		ExpiresAt:    refreshPayload.ExpiredAt,
 	}
+	
 	session, err := s.store.CreateSession(c.Request().Context(), arg)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -129,7 +138,7 @@ func (s *Handler) Login(c echo.Context) error {
 		SessionID:             session.ID,
 		RefreshToken:          refreshToken,
 		RefreshTokenExpiresAt: refreshPayload.ExpiredAt.UTC().Local(),
-		User:                  UserResponse(username),
+		User:                  UserResponse(username, account),
 		AccesToken:            token,
 		AccesTokenExpiresAt:   Accespayload.ExpiredAt.UTC().Local(),
 	}

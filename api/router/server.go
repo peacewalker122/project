@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	auth "github.com/peacewalker122/project/api/auth"
 	handler "github.com/peacewalker122/project/api/handler"
-	apiUtil "github.com/peacewalker122/project/api/util"
 	"github.com/peacewalker122/project/db/redis"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/token"
@@ -22,7 +21,7 @@ type Server struct {
 	Redis      redis.Store
 	Config     util.Config
 	handler    handler.HandlerService
-	Auth       *apiUtil.Util
+	Auth       *Util
 	Router     *echo.Echo
 	Token      token.Maker
 	FileString string
@@ -37,7 +36,7 @@ func Newserver(c util.Config, store db.Store, redisStore redis.Store) (*Server, 
 		Store:  store,
 		Redis:  redisStore,
 		Config: c,
-		Auth:   apiUtil.NewUtil(validator.New()),
+		Auth:   NewUtil(validator.New()),
 		Token:  newtoken,
 	}
 	server.handler, server.FileString = handler.NewHandler(store, redisStore, c, newtoken)
@@ -47,10 +46,9 @@ func Newserver(c util.Config, store db.Store, redisStore redis.Store) (*Server, 
 
 func (s *Server) routerhandle() {
 	router := echo.New()
-	router.Use(middleware.LoggerWithConfig(apiUtil.Logger()))
-
+	router.Use(middleware.LoggerWithConfig(Logger()))
 	//router.Use(middleware.HTTPSRedirectWithConfig(Redirect()))
-	router.Validator = s.Auth
+	router.Validator = s.Auth.Validator
 	router.HTTPErrorHandler = s.Auth.HTTPErrorHandler
 
 	router.POST("/user", s.handler.CreateUser)
@@ -100,7 +98,7 @@ func (s *Server) TimeoutPost() middleware.TimeoutConfig {
 
 func (s *Server) Testrouterhandle() {
 	router := echo.New()
-	router.Validator = s.Auth
+	router.Validator = NewValidator(validator.New())
 	// router.HTTPErrorHandler = HTTPErrorHandler
 	// router.Use(middleware.LoggerWithConfig(Logger()))
 	// router.Binder = new(CustomBinder)

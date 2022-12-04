@@ -95,6 +95,10 @@ type (
 		FromAccount CreateAccountsResponse `json:"from_account"`
 		ToAccount   CreateAccountsResponse `json:"to_account"`
 	}
+	RetweetResponse struct {
+		Post    db.Post
+		Feature db.PostFeature
+	}
 )
 
 func createaccountfollowresp(arg db.AccountsFollow) accountfollowresp {
@@ -114,11 +118,12 @@ func CreateUserResponses(input db.User, input2 CreateAccountsResponse) CreateUse
 		CreatedAt: input.CreatedAt.Unix(),
 	}
 }
-func UserResponse(input db.User) CreateUserResponse {
+func UserResponse(input db.User, account db.Account) CreateUserResponse {
 	return CreateUserResponse{
 		Username:  input.Username,
 		FullName:  input.FullName,
 		Email:     input.Email,
+		Account:   AccountResponse(account),
 		CreatedAt: input.CreatedAt.Unix(),
 	}
 }

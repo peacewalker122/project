@@ -215,6 +215,36 @@ func (mr *MockStoreMockRecorder) CreateQouteRetweet_feature(arg0, arg1 interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateQouteRetweet_feature", reflect.TypeOf((*MockStore)(nil).CreateQouteRetweet_feature), arg0, arg1)
 }
 
+// CreateRetweetPost mocks base method.
+func (m *MockStore) CreateRetweetPost(arg0 context.Context, arg1 db.CreateRetweetParams) (db.CreateRetweetResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRetweetPost", arg0, arg1)
+	ret0, _ := ret[0].(db.CreateRetweetResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRetweetPost indicates an expected call of CreateRetweetPost.
+func (mr *MockStoreMockRecorder) CreateRetweetPost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRetweetPost", reflect.TypeOf((*MockStore)(nil).CreateRetweetPost), arg0, arg1)
+}
+
+// CreateRetweetTX mocks base method.
+func (m *MockStore) CreateRetweetTX(arg0 context.Context, arg1 db.CreateRetweetParams) (db.CreateRetweetTXResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRetweetTX", arg0, arg1)
+	ret0, _ := ret[0].(db.CreateRetweetTXResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRetweetTX indicates an expected call of CreateRetweetTX.
+func (mr *MockStoreMockRecorder) CreateRetweetTX(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRetweetTX", reflect.TypeOf((*MockStore)(nil).CreateRetweetTX), arg0, arg1)
+}
+
 // CreateRetweet_feature mocks base method.
 func (m *MockStore) CreateRetweet_feature(arg0 context.Context, arg1 db.CreateRetweet_featureParams) error {
 	m.ctrl.T.Helper()
@@ -341,6 +371,20 @@ func (m *MockStore) DeleteRetweet(arg0 context.Context, arg1 db.DeleteRetweetPar
 func (mr *MockStoreMockRecorder) DeleteRetweet(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRetweet", reflect.TypeOf((*MockStore)(nil).DeleteRetweet), arg0, arg1)
+}
+
+// DeleteRetweetTX mocks base method.
+func (m *MockStore) DeleteRetweetTX(arg0 context.Context, arg1 db.DeleteRetweetParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRetweetTX", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRetweetTX indicates an expected call of DeleteRetweetTX.
+func (mr *MockStoreMockRecorder) DeleteRetweetTX(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRetweetTX", reflect.TypeOf((*MockStore)(nil).DeleteRetweetTX), arg0, arg1)
 }
 
 // Followtx mocks base method.
@@ -583,10 +627,10 @@ func (mr *MockStoreMockRecorder) GetPost_feature(arg0, arg1 interface{}) *gomock
 }
 
 // GetPost_feature_Update mocks base method.
-func (m *MockStore) GetPost_feature_Update(arg0 context.Context, arg1 int64) (db.PostFeature, error) {
+func (m *MockStore) GetPost_feature_Update(arg0 context.Context, arg1 int64) (db.GetPost_feature_UpdateRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPost_feature_Update", arg0, arg1)
-	ret0, _ := ret[0].(db.PostFeature)
+	ret0, _ := ret[0].(db.GetPost_feature_UpdateRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -673,7 +717,7 @@ func (mr *MockStoreMockRecorder) GetRetweet(arg0, arg1 interface{}) *gomock.Call
 }
 
 // GetRetweetJoin mocks base method.
-func (m *MockStore) GetRetweetJoin(arg0 context.Context, arg1 int64) (bool, error) {
+func (m *MockStore) GetRetweetJoin(arg0 context.Context, arg1 db.GetRetweetJoinParams) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRetweetJoin", arg0, arg1)
 	ret0, _ := ret[0].(bool)
