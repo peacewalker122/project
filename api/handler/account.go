@@ -199,6 +199,7 @@ func (s *Handler) AcceptFollower(c echo.Context) error {
 		Toaccid:   req.ToAccountID,
 		IsQueue:   true,
 	})
+	
 	if err != nil {
 		return CreateErrorValidator(c, err)
 	}

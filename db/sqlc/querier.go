@@ -39,6 +39,7 @@ type Querier interface {
 	GetEntries(ctx context.Context, entriesID int64) (Entry, error)
 	GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error
 	GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeFeature, error)
+	GetLikeRows(ctx context.Context, arg GetLikeRowsParams) (int64, error)
 	GetLikejoin(ctx context.Context, postID int64) (bool, error)
 	GetPost(ctx context.Context, postID int64) (Post, error)
 	GetPostJoin(ctx context.Context, postID int64) (GetPostJoinRow, error)

@@ -189,6 +189,23 @@ func (q *Queries) GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeF
 	return i, err
 }
 
+const getLikeRows = `-- name: GetLikeRows :one
+select Count(is_like) from like_feature lf 
+where from_account_id = $1 and post_id = $2 limit 1
+`
+
+type GetLikeRowsParams struct {
+	Fromaccountid int64 `json:"fromaccountid"`
+	Postid        int64 `json:"postid"`
+}
+
+func (q *Queries) GetLikeRows(ctx context.Context, arg GetLikeRowsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getLikeRows, arg.Fromaccountid, arg.Postid)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getLikejoin = `-- name: GetLikejoin :one
 SELECT like_feature.is_like from like_feature
 INNER JOIN post ON post.post_id = like_feature.post_id
@@ -300,9 +317,9 @@ func (q *Queries) GetQouteRetweetJoin(ctx context.Context, postID int64) (bool, 
 	return qoute_retweet, err
 }
 
-const getQouteRetweetRows = `-- name: GetQouteRetweetRows :execrows
-SELECT from_account_id, qoute_retweet, qoute, post_id, created_at from qoute_retweet_feature
-WHERE from_account_id=$1 and post_id = $2 LIMIT 1
+const getQouteRetweetRows = `-- name: GetQouteRetweetRows :one
+SELECT count(*)  from qoute_retweet_feature
+WHERE from_account_id=$1 and post_id = $2
 `
 
 type GetQouteRetweetRowsParams struct {
@@ -311,11 +328,10 @@ type GetQouteRetweetRowsParams struct {
 }
 
 func (q *Queries) GetQouteRetweetRows(ctx context.Context, arg GetQouteRetweetRowsParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, getQouteRetweetRows, arg.FromAccountID, arg.PostID)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
+	row := q.db.QueryRowContext(ctx, getQouteRetweetRows, arg.FromAccountID, arg.PostID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const getRetweet = `-- name: GetRetweet :one

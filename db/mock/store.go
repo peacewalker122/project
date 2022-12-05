@@ -81,6 +81,21 @@ func (mr *MockStoreMockRecorder) CreateAccountsFollow(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccountsFollow", reflect.TypeOf((*MockStore)(nil).CreateAccountsFollow), arg0, arg1)
 }
 
+// CreateCommentTX mocks base method.
+func (m *MockStore) CreateCommentTX(arg0 context.Context, arg1 db.CreateCommentParams) (db.CreateCommentTXResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCommentTX", arg0, arg1)
+	ret0, _ := ret[0].(db.CreateCommentTXResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateCommentTX indicates an expected call of CreateCommentTX.
+func (mr *MockStoreMockRecorder) CreateCommentTX(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCommentTX", reflect.TypeOf((*MockStore)(nil).CreateCommentTX), arg0, arg1)
+}
+
 // CreateComment_feature mocks base method.
 func (m *MockStore) CreateComment_feature(arg0 context.Context, arg1 db.CreateComment_featureParams) (string, error) {
 	m.ctrl.T.Helper()
@@ -124,6 +139,21 @@ func (m *MockStore) CreateFileIndex(arg0, arg1 string) (string, error) {
 func (mr *MockStoreMockRecorder) CreateFileIndex(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFileIndex", reflect.TypeOf((*MockStore)(nil).CreateFileIndex), arg0, arg1)
+}
+
+// CreateLikeTX mocks base method.
+func (m *MockStore) CreateLikeTX(arg0 context.Context, arg1 db.CreateLikeParams) (db.CreateLikeTXResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateLikeTX", arg0, arg1)
+	ret0, _ := ret[0].(db.CreateLikeTXResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateLikeTX indicates an expected call of CreateLikeTX.
+func (mr *MockStoreMockRecorder) CreateLikeTX(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLikeTX", reflect.TypeOf((*MockStore)(nil).CreateLikeTX), arg0, arg1)
 }
 
 // CreateLike_feature mocks base method.
@@ -198,6 +228,36 @@ func (m *MockStore) CreatePrivateQueue(arg0 context.Context, arg1 db.CreatePriva
 func (mr *MockStoreMockRecorder) CreatePrivateQueue(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePrivateQueue", reflect.TypeOf((*MockStore)(nil).CreatePrivateQueue), arg0, arg1)
+}
+
+// CreateQouteRetweet mocks base method.
+func (m *MockStore) CreateQouteRetweet(arg0 context.Context, arg1 db.CreateQRetweetParams) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateQouteRetweet", arg0, arg1)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateQouteRetweet indicates an expected call of CreateQouteRetweet.
+func (mr *MockStoreMockRecorder) CreateQouteRetweet(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateQouteRetweet", reflect.TypeOf((*MockStore)(nil).CreateQouteRetweet), arg0, arg1)
+}
+
+// CreateQouteRetweetPostTX mocks base method.
+func (m *MockStore) CreateQouteRetweetPostTX(arg0 context.Context, arg1 db.CreateQRetweetParams) (db.CreateQRetweetResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateQouteRetweetPostTX", arg0, arg1)
+	ret0, _ := ret[0].(db.CreateQRetweetResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateQouteRetweetPostTX indicates an expected call of CreateQouteRetweetPostTX.
+func (mr *MockStoreMockRecorder) CreateQouteRetweetPostTX(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateQouteRetweetPostTX", reflect.TypeOf((*MockStore)(nil).CreateQouteRetweetPostTX), arg0, arg1)
 }
 
 // CreateQouteRetweet_feature mocks base method.
@@ -357,6 +417,21 @@ func (m *MockStore) DeleteQouteRetweet(arg0 context.Context, arg1 db.DeleteQoute
 func (mr *MockStoreMockRecorder) DeleteQouteRetweet(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteQouteRetweet", reflect.TypeOf((*MockStore)(nil).DeleteQouteRetweet), arg0, arg1)
+}
+
+// DeleteQouteRetweetTX mocks base method.
+func (m *MockStore) DeleteQouteRetweetTX(arg0 context.Context, arg1 db.UnRetweetTXParam) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteQouteRetweetTX", arg0, arg1)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteQouteRetweetTX indicates an expected call of DeleteQouteRetweetTX.
+func (mr *MockStoreMockRecorder) DeleteQouteRetweetTX(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteQouteRetweetTX", reflect.TypeOf((*MockStore)(nil).DeleteQouteRetweetTX), arg0, arg1)
 }
 
 // DeleteRetweet mocks base method.
@@ -549,6 +624,21 @@ func (m *MockStore) GetLikeInfo(arg0 context.Context, arg1 db.GetLikeInfoParams)
 func (mr *MockStoreMockRecorder) GetLikeInfo(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLikeInfo", reflect.TypeOf((*MockStore)(nil).GetLikeInfo), arg0, arg1)
+}
+
+// GetLikeRows mocks base method.
+func (m *MockStore) GetLikeRows(arg0 context.Context, arg1 db.GetLikeRowsParams) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLikeRows", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLikeRows indicates an expected call of GetLikeRows.
+func (mr *MockStoreMockRecorder) GetLikeRows(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLikeRows", reflect.TypeOf((*MockStore)(nil).GetLikeRows), arg0, arg1)
 }
 
 // GetLikejoin mocks base method.
@@ -879,6 +969,21 @@ func (m *MockStore) UnFollowtx(arg0 context.Context, arg1 db.UnfollowTXParam) (d
 func (mr *MockStoreMockRecorder) UnFollowtx(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnFollowtx", reflect.TypeOf((*MockStore)(nil).UnFollowtx), arg0, arg1)
+}
+
+// UnlikeTX mocks base method.
+func (m *MockStore) UnlikeTX(arg0 context.Context, arg1 db.CreateLikeParams) (db.CreateLikeTXResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnlikeTX", arg0, arg1)
+	ret0, _ := ret[0].(db.CreateLikeTXResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UnlikeTX indicates an expected call of UnlikeTX.
+func (mr *MockStoreMockRecorder) UnlikeTX(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlikeTX", reflect.TypeOf((*MockStore)(nil).UnlikeTX), arg0, arg1)
 }
 
 // UpdateAccountFollower mocks base method.

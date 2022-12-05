@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	db "github.com/peacewalker122/project/db/sqlc"
@@ -111,6 +112,7 @@ func (s *Handler) GetPostImage(c echo.Context) error {
 }
 
 func (s *Handler) LikePost(c echo.Context) error {
+	var result db.CreateLikeTXResult
 	req := new(LikePostRequest)
 	if err = c.Bind(req); err != nil {
 		return err
@@ -121,76 +123,56 @@ func (s *Handler) LikePost(c echo.Context) error {
 	if errNum, err = s.AuthAccount(c, req.FromAccountID); err != nil {
 		return c.JSON(errNum, err)
 	}
+	num, err := s.store.GetLikeRows(c.Request().Context(), db.GetLikeRowsParams{
+		Fromaccountid: req.FromAccountID,
+		Postid:        req.PostID,
+	})
+	if errNum, err = GetErrorValidator(c, err, Like); err != nil {
+		return c.JSON(errNum, err.Error())
+	}
+
+	if num == 0 {
+		errNum, err = s.CreateLike(c.Request().Context(), req)
+		if err != nil {
+			return c.JSON(errNum, err.Error())
+		}
+	}
 
 	ok, err := s.store.GetLikejoin(c.Request().Context(), req.PostID)
 	if errNum, err = GetErrorValidator(c, err, Like); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
 
-	if ok && req.IsLike {
-		return c.JSON(http.StatusBadRequest, "already like")
-	}
-
-	_, err = s.store.GetLikeInfo(c.Request().Context(), db.GetLikeInfoParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			err = s.store.CreateLike_feature(c.Request().Context(), db.CreateLike_featureParams{
-				FromAccountID: req.FromAccountID,
-				PostID:        req.PostID,
-			})
-			if err = CreateErrorValidator(c, err); err != nil {
-				return err
-			}
+	if req.IsLike {
+		if ok {
+			return c.JSON(http.StatusBadRequest, "already like")
 		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	post, err := s.store.GetPost_feature_Update(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, Posttag); err != nil {
-		return c.JSON(errNum, err.Error())
-	}
-
-	if !ok {
-		if req.IsLike {
-			post.SumLike++
+		result, err = s.store.CreateLikeTX(c.Request().Context(), db.CreateLikeParams{
+			FromAccountID: req.FromAccountID,
+			PostID:        req.PostID,
+		})
+		if err != nil {
+			return c.JSON(result.ErrCode, err.Error())
 		}
 	}
-	if ok {
-		if !req.IsLike {
-			post.SumLike--
-		}
-	}
-
-	err = s.store.UpdateLike(c.Request().Context(), db.UpdateLikeParams{IsLike: req.IsLike, PostID: req.PostID, FromAccountID: req.FromAccountID})
-	if err = CreateErrorValidator(c, err); err != nil {
-		return err
-	}
-
-	entries := Like
 	if !req.IsLike {
-		entries = Unlike
-	}
-	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
-		FromAccountID: req.FromAccountID,
-		PostID:        req.PostID,
-		TypeEntries:   entries,
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	result, err := s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
-		PostID:          req.PostID,
-		SumComment:      post.SumComment,
-		SumLike:         post.SumLike,
-		SumRetweet:      post.SumRetweet,
-		SumQouteRetweet: post.SumQouteRetweet,
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		if !ok {
+			return c.JSON(http.StatusBadRequest, "never like")
+		}
+		result, err = s.store.UnlikeTX(c.Request().Context(), db.CreateLikeParams{
+			FromAccountID: req.FromAccountID,
+			PostID:        req.PostID,
+		})
+		if err != nil {
+			return c.JSON(result.ErrCode, err.Error())
+		}
+		return c.JSON(http.StatusOK, echo.Map{
+			"Status":    "Deleted",
+			"DeletedAt": time.Now().Unix(),
+		})
 	}
 
-	return c.JSON(http.StatusOK, likeResponse(result))
+	return c.JSON(http.StatusOK, likeResponse(result.PostFeature))
 }
 
 func (s *Handler) CommentPost(c echo.Context) error {
@@ -211,35 +193,16 @@ func (s *Handler) CommentPost(c echo.Context) error {
 		return c.JSON(errNum, err)
 	}
 
-	commentResult, err := s.store.CreateComment_feature(c.Request().Context(), db.CreateComment_featureParams{FromAccountID: req.FromAccountID, Comment: req.Comment, PostID: req.PostID})
-	if err = CreateErrorValidator(c, err); err != nil {
-		return err
-	}
-
-	post, err := s.store.GetPost_feature_Update(c.Request().Context(), req.PostID)
-	if errNum, err = GetErrorValidator(c, err, Posttag); err != nil {
-		return c.JSON(errNum, err.Error())
-	}
-
-	post.SumComment++
-
-	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{FromAccountID: req.FromAccountID, PostID: req.PostID, TypeEntries: Comment})
-	if err = CreateErrorValidator(c, err); err != nil {
-		return err
-	}
-
-	result, err := s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
-		PostID:          req.PostID,
-		SumComment:      post.SumComment,
-		SumLike:         post.SumLike,
-		SumRetweet:      post.SumRetweet,
-		SumQouteRetweet: post.SumQouteRetweet,
+	result, err := s.store.CreateCommentTX(c.Request().Context(), db.CreateCommentParams{
+		FromAccountID: req.FromAccountID,
+		PostID:        req.PostID,
+		Comment:       req.Comment,
 	})
-	if err = CreateErrorValidator(c, err); err != nil {
-		return err
+	if err != nil {
+		return c.JSON(result.ErrCode, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, commentResponse(commentResult, result))
+	return c.JSON(http.StatusOK, commentResponse(result.Comment, result.PostFeature))
 }
 
 func (s *Handler) RetweetPost(c echo.Context) error {
@@ -262,14 +225,15 @@ func (s *Handler) RetweetPost(c echo.Context) error {
 		return c.JSON(errNum, err)
 	}
 
-	if req.IsRetweet {
-		num, err = s.store.GetRetweetRows(ctx, db.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-		if err != nil {
-			if err == sql.ErrNoRows {
-				errNum = http.StatusNotFound
-			}
-			return c.JSON(errNum, err.Error())
+	num, err = s.store.GetRetweetRows(ctx, db.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			errNum = http.StatusNotFound
 		}
+		return c.JSON(errNum, err.Error())
+	}
+
+	if req.IsRetweet {
 		if num == 0 {
 			Result, errNum, err = s.CreateRetweetPost(c, req)
 			if err != nil {
@@ -280,14 +244,6 @@ func (s *Handler) RetweetPost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, errors.New("already exist").Error())
 	}
 
-	num, err = s.store.GetRetweetRows(ctx, db.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			errNum = http.StatusNotFound
-			return c.JSON(http.StatusNotFound, "not found")
-		}
-		return c.JSON(errNum, err.Error())
-	}
 	if !req.IsRetweet {
 		if num == 0 {
 			return c.JSON(http.StatusNotFound, "not found")
@@ -297,16 +253,12 @@ func (s *Handler) RetweetPost(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, retweetResponse(Result.Feature, Result.Post))
-
 }
-
 func (s *Handler) QouteretweetPost(c echo.Context) error {
 	var (
-		err   error
-		ok    bool
-		num   int64
-		Cpost db.Post
-		Fpost db.PostFeature
+		err    error
+		num    int64
+		Result QouteRetweetResponse
 	)
 
 	req := new(QouteRetweetPostRequest)
@@ -323,81 +275,39 @@ func (s *Handler) QouteretweetPost(c echo.Context) error {
 		return c.JSON(errNum, err)
 	}
 
-	if req.IsRetweet {
-		num, err = s.store.GetQouteRetweetRows(c.Request().Context(), db.GetQouteRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-		if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
-			return c.JSON(errNum, err.Error())
-		}
-		if num == 0 {
-			_, err = s.store.CreateQouteRetweet_feature(c.Request().Context(), db.CreateQouteRetweet_featureParams{FromAccountID: req.FromAccountID, PostID: req.PostID, Qoute: req.Qoute})
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, err.Error())
-			}
-		}
-		res, err := s.store.GetPostQRetweetJoin(c.Request().Context(), db.GetPostQRetweetJoinParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
-		if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
-			return c.JSON(errNum, err.Error())
-		}
-		if !res.QouteRetweet {
-			// to validate if the Retweet&qoute_retweet is false then execute below.
-			Cpost, Fpost, err = s.CreateQouteRetweetPost(req, c)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	post, err := s.store.GetPost_feature_Update(c.Request().Context(), req.PostID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusNotFound, err.Error())
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	ok, err = s.store.GetQouteRetweetJoin(c.Request().Context(), req.PostID)
+	num, err = s.store.GetQouteRetweetRows(c.Request().Context(), db.GetQouteRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
 	if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
-	if ok && req.IsRetweet {
-		return c.JSON(http.StatusBadRequest, "already created")
-	}
 
-	if !ok {
-		if req.IsRetweet {
-			post.SumQouteRetweet++
+	if req.IsRetweet {
+		if num != 0 {
+			return c.JSON(http.StatusBadRequest, "already create")
 		}
+
+		Result, err = s.CreateQouteRetweetPost(c.Request().Context(), req)
+		if err != nil {
+			return c.JSON(Result.ErrNum, err.Error())
+		}
+		return c.JSON(http.StatusOK, qouteretweetResponse(Result.Post, Result.PostFeature, req.Qoute))
 	}
 
 	if !req.IsRetweet {
-		err = s.DeleteQouteRetweet(req, c, post)
-		return err
+		if num == 0 {
+			return c.JSON(http.StatusBadRequest, "no retweet")
+		}
+		errNum, err = s.store.DeleteQouteRetweetTX(c.Request().Context(), db.UnRetweetTXParam{
+			FromAccountID: req.FromAccountID,
+			PostID:        req.PostID,
+		})
+		if err != nil {
+			return c.JSON(errNum, err.Error())
+		}
+		return c.JSON(http.StatusCreated, echo.Map{
+			"Delete":    true,
+			"DeletedAt": time.Now().Unix(),
+		})
 	}
 
-	err = s.store.UpdateQouteRetweet(c.Request().Context(), db.UpdateQouteRetweetParams{FromAccountID: req.FromAccountID, PostID: req.PostID, QouteRetweet: req.IsRetweet})
-	if err = CreateErrorValidator(c, err); err != nil {
-		return err
-	}
-
-	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
-		FromAccountID: req.FromAccountID,
-		PostID:        req.PostID,
-		TypeEntries:   Qretweet,
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	_, err = s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
-		PostID:          req.PostID,
-		SumComment:      post.SumComment,
-		SumLike:         post.SumLike,
-		SumRetweet:      post.SumRetweet,
-		SumQouteRetweet: post.SumQouteRetweet,
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(http.StatusOK, qouteretweetResponse(Cpost, Fpost, req.Qoute))
+	return err
 }

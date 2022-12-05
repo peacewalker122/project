@@ -15,6 +15,12 @@ import (
 
 type Store interface {
 	Querier
+	DeleteQouteRetweetTX(ctx context.Context, arg UnRetweetTXParam) (int, error)
+	CreateQouteRetweet(ctx context.Context, arg CreateQRetweetParams) (int, error)
+	CreateQouteRetweetPostTX(ctx context.Context, arg CreateQRetweetParams) (CreateQRetweetResult, error)
+	CreateCommentTX(ctx context.Context, arg CreateCommentParams) (CreateCommentTXResult, error)
+	UnlikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
+	CreateLikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
 	DeleteRetweetTX(ctx context.Context, arg DeleteRetweetParams) error
 	CreateRetweetPost(ctx context.Context, arg CreateRetweetParams) (CreateRetweetResult, error)
 	CreateRetweetTX(ctx context.Context, arg CreateRetweetParams) (CreateRetweetTXResult, error)
@@ -64,16 +70,31 @@ func (s *SQLStore) execCtx(ctx context.Context, fn func(q *Queries) error) error
 }
 
 const (
-	L  = "like"
-	R  = "retweet"
-	C  = "comment"
-	QR = "qoute-retweet"
-	F  = "follow"
-	UF = "unfollow"
-	UR = "unretweet"
+	L   = "like"
+	R   = "retweet"
+	C   = "comment"
+	QR  = "qoute-retweet"
+	F   = "follow"
+	UF  = "unfollow"
+	UR  = "unretweet"
+	UQR = "unqoute-retweet"
 )
 
 type (
+	CreateQRetweetParams struct {
+		FromAccountID int64  `json:"from_acc_id"`
+		PostID        int64  `json:"post_id"`
+		Qoute         string `json:"qoute"`
+	}
+	CreateCommentParams struct {
+		FromAccountID int64  `json:"from_acc_id"`
+		PostID        int64  `json:"post_id"`
+		Comment       string `json:"comment"`
+	}
+	CreateLikeParams struct {
+		FromAccountID int64 `json:"from_acc_id"`
+		PostID        int64 `json:"post_id"`
+	}
 	CreateRetweetParams struct {
 		FromAccountID int64 `json:"from_acc_id"`
 		PostID        int64 `json:"post_id"`
@@ -104,6 +125,10 @@ type (
 		Fromaccid int64 `json:"from_acc_id"`
 		Toaccid   int64 `json:"to_acc_id"`
 	}
+	UnRetweetTXParam struct {
+		FromAccountID int64 `json:"from_acc_id"`
+		PostID        int64 `json:"post_id"`
+	}
 	UnFollowTXResult struct {
 		Status      bool    `json:"status"`
 		FeatureType string  `json:"feature_type"`
@@ -114,7 +139,240 @@ type (
 		Post        Post        `json:"post"`
 		PostFeature PostFeature `json:"post_feature"`
 	}
+	CreateLikeTXResult struct {
+		PostFeature PostFeature `json:"post_feature"`
+		ErrCode     int         `json:"err_code"`
+	}
+	CreateCommentTXResult struct {
+		Comment     string      `json:"Comment"`
+		PostFeature PostFeature `json:"post_feature"`
+		ErrCode     int         `json:"err_code"`
+	}
+	CreateQRetweetResult struct {
+		Qoute       string      `json:"qoute"`
+		Post        Post        `json:"post"`
+		PostFeature PostFeature `json:"post_feature"`
+		ErrCode     int         `json:"err_code"`
+	}
 )
+
+func (s *SQLStore) DeleteQouteRetweetTX(ctx context.Context, arg UnRetweetTXParam) (int, error) {
+	var ErrCode int
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+
+		num, err := s.GetPostQRetweetJoin(ctx, GetPostQRetweetJoinParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
+		if err != nil {
+			if err == sql.ErrNoRows {
+				ErrCode = http.StatusNotFound
+			}
+			ErrCode = 500
+			return err
+		}
+
+		_, err = s.GetQouteRetweet(ctx, GetQouteRetweetParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID})
+		if err != nil {
+			if err == sql.ErrNoRows {
+				ErrCode = http.StatusNotFound
+			}
+			ErrCode = 500
+			return err
+		}
+
+		_, err = s.CreateEntries(ctx, CreateEntriesParams{
+			FromAccountID: arg.FromAccountID,
+			PostID:        arg.PostID,
+			TypeEntries:   UQR,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = s.DeleteQouteRetweet(ctx, DeleteQouteRetweetParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
+		if err != nil {
+			return err
+		}
+
+		post, err := s.GetPost_feature_Update(ctx, arg.PostID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				ErrCode = http.StatusNotFound
+			}
+			ErrCode = 500
+			return err
+		}
+
+		// Delete first then decrement
+		post.SumQouteRetweet--
+		_, err = s.UpdatePost_feature(ctx, UpdatePost_featureParams{
+			PostID:          arg.PostID,
+			SumComment:      post.SumComment,
+			SumLike:         post.SumLike,
+			SumRetweet:      post.SumRetweet,
+			SumQouteRetweet: post.SumQouteRetweet,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = s.DeletePostFeature(ctx, num.PostID)
+		if err != nil {
+			return err
+		}
+		err = s.DeletePost(ctx, num.PostID)
+		if err != nil {
+			return err
+		}
+
+		return err
+	})
+	return ErrCode, err
+}
+
+func (s *SQLStore) CreateCommentTX(ctx context.Context, arg CreateCommentParams) (CreateCommentTXResult, error) {
+	var result CreateCommentTXResult
+
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+
+		result.Comment, err = s.CreateComment_feature(ctx, CreateComment_featureParams{FromAccountID: arg.FromAccountID, Comment: arg.Comment, PostID: arg.PostID})
+		if err != nil {
+			result.ErrCode = 500
+			return err
+		}
+
+		post, err := s.GetPost_feature_Update(ctx, arg.PostID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				result.ErrCode = http.StatusNotFound
+			}
+			return err
+		}
+		post.SumComment++
+
+		result.ErrCode = 500
+		_, err = s.CreateEntries(ctx, CreateEntriesParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID, TypeEntries: arg.Comment})
+		if err != nil {
+			return err
+		}
+
+		result.PostFeature, err = s.UpdatePost_feature(ctx, UpdatePost_featureParams{
+			PostID:          arg.PostID,
+			SumComment:      post.SumComment,
+			SumLike:         post.SumLike,
+			SumRetweet:      post.SumRetweet,
+			SumQouteRetweet: post.SumQouteRetweet,
+		})
+		if err != nil {
+			return err
+		}
+
+		return err
+	})
+	return result, err
+}
+
+func (s *SQLStore) CreateQouteRetweet(ctx context.Context, arg CreateQRetweetParams) (int, error) {
+	var ErrCode int
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+
+		post, err := s.GetPost_feature_Update(ctx, arg.PostID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				ErrCode = http.StatusNotFound
+			}
+			ErrCode = 500
+			return err
+		}
+		post.SumQouteRetweet++
+
+		err = s.UpdateQouteRetweet(ctx, UpdateQouteRetweetParams{
+			QouteRetweet:  true,
+			PostID:        arg.PostID,
+			FromAccountID: arg.FromAccountID,
+		})
+		if err != nil {
+			return err
+		}
+
+		args := CreateEntriesParams{
+			FromAccountID: arg.FromAccountID,
+			PostID:        arg.PostID,
+			TypeEntries:   UR,
+		}
+
+		_, err = s.CreateEntries(ctx, args)
+		if err != nil {
+			ErrCode = 500
+			return err
+		}
+
+		arg := UpdatePost_featureParams{
+			PostID:          arg.PostID,
+			SumComment:      post.SumComment,
+			SumLike:         post.SumLike,
+			SumRetweet:      post.SumRetweet,
+			SumQouteRetweet: post.SumQouteRetweet,
+		}
+
+		_, err = s.UpdatePost_feature(ctx, arg)
+		if err != nil {
+			ErrCode = 500
+			return err
+		}
+
+		return err
+	})
+	return ErrCode, err
+}
+
+func (s *SQLStore) CreateQouteRetweetPostTX(ctx context.Context, arg CreateQRetweetParams) (CreateQRetweetResult, error) {
+	var result CreateQRetweetResult
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+		result.ErrCode = http.StatusInternalServerError
+
+		result.Qoute, err = s.CreateQouteRetweet_feature(ctx, CreateQouteRetweet_featureParams{
+			FromAccountID: arg.FromAccountID,
+			PostID:        arg.PostID,
+			Qoute:         arg.Qoute,
+		})
+		if err != nil {
+			return err
+		}
+
+		ok, err := s.GetPostQRetweetJoin(ctx, GetPostQRetweetJoinParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID})
+		if err != nil {
+			if err == sql.ErrNoRows {
+				result.ErrCode = http.StatusNotFound
+			}
+			return err
+		}
+
+		if ok.QouteRetweet {
+			return errors.New("already created")
+		}
+
+		arg := CreatePostParams{
+			AccountID: arg.FromAccountID,
+			IsRetweet: true,
+		}
+		result.Post, err = s.CreatePost(ctx, arg)
+		if err != nil {
+			return err
+		}
+
+		result.PostFeature, err = s.CreatePost_feature(ctx, result.Post.PostID)
+		if err != nil {
+			return err
+		}
+
+		return err
+	})
+
+	return result, err
+}
 
 func (s *SQLStore) CreateRetweetTX(ctx context.Context, arg CreateRetweetParams) (CreateRetweetTXResult, error) {
 	var result CreateRetweetTXResult
@@ -171,7 +429,7 @@ func (s *SQLStore) CreateRetweetTX(ctx context.Context, arg CreateRetweetParams)
 			SumRetweet:      post.SumRetweet,
 			SumQouteRetweet: post.SumQouteRetweet,
 		}
-		
+
 		_, err = s.UpdatePost_feature(ctx, arg)
 		if err != nil {
 			result.ErrCode = 500
@@ -185,11 +443,112 @@ func (s *SQLStore) CreateRetweetTX(ctx context.Context, arg CreateRetweetParams)
 	return result, err
 }
 
+func (s *SQLStore) UnlikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error) {
+	var res CreateLikeTXResult
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+
+		post, err := s.GetPost_feature_Update(ctx, arg.PostID)
+		if err != nil {
+			if err != sql.ErrNoRows {
+				res.ErrCode = http.StatusNotFound
+			}
+			return err
+		}
+		post.SumLike--
+
+		err = s.UpdateLike(ctx, UpdateLikeParams{
+			IsLike:        false,
+			PostID:        arg.PostID,
+			FromAccountID: arg.FromAccountID,
+		})
+		if err != nil {
+			res.ErrCode = 500
+			return err
+		}
+
+		_, err = s.CreateEntries(ctx, CreateEntriesParams{
+			FromAccountID: arg.FromAccountID,
+			PostID:        arg.PostID,
+			TypeEntries:   L,
+		})
+		if err != nil {
+			return err
+		}
+
+		res.PostFeature, err = s.UpdatePost_feature(ctx, UpdatePost_featureParams{
+			PostID:          arg.PostID,
+			SumComment:      post.SumComment,
+			SumLike:         post.SumLike,
+			SumRetweet:      post.SumRetweet,
+			SumQouteRetweet: post.SumQouteRetweet,
+		})
+		if err != nil {
+			return err
+		}
+
+		return err
+
+	})
+	return res, err
+}
+
+func (s *SQLStore) CreateLikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error) {
+	var res CreateLikeTXResult
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+
+		post, err := s.GetPost_feature_Update(ctx, arg.PostID)
+		if err != nil {
+			if err != sql.ErrNoRows {
+				res.ErrCode = http.StatusNotFound
+			}
+			return err
+		}
+		post.SumLike++
+
+		err = s.UpdateLike(ctx, UpdateLikeParams{
+			IsLike:        true,
+			PostID:        arg.PostID,
+			FromAccountID: arg.FromAccountID,
+		})
+		if err != nil {
+			res.ErrCode = 500
+			return err
+		}
+
+		_, err = s.CreateEntries(ctx, CreateEntriesParams{
+			FromAccountID: arg.FromAccountID,
+			PostID:        arg.PostID,
+			TypeEntries:   L,
+		})
+		if err != nil {
+			return err
+		}
+
+		res.PostFeature, err = s.UpdatePost_feature(ctx, UpdatePost_featureParams{
+			PostID:          arg.PostID,
+			SumComment:      post.SumComment,
+			SumLike:         post.SumLike,
+			SumRetweet:      post.SumRetweet,
+			SumQouteRetweet: post.SumQouteRetweet,
+		})
+		if err != nil {
+			return err
+		}
+
+		return err
+	})
+	return res, err
+}
+
 func (s *SQLStore) DeleteRetweetTX(ctx context.Context, arg DeleteRetweetParams) error {
 	err := s.execCtx(ctx, func(q *Queries) error {
 		var err error
 
-		res, err := s.GetPostidretweetJoin(ctx, GetPostidretweetJoinParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
+		res, err := s.GetPostidretweetJoin(ctx, GetPostidretweetJoinParams{
+			PostID: arg.PostID, FromAccountID: arg.FromAccountID,
+		})
 		if err != nil {
 			return err
 		}
@@ -312,6 +671,8 @@ func (s *SQLStore) Followtx(ctx context.Context, arg FollowTXParam) (FollowTXRes
 		var err error
 		result.FeatureType = F
 
+		
+
 		result.Follow, result.ToAcc, result.FromAcc, err = s.UpdateFollowing(ctx, arg.Fromaccid, arg.Toaccid, int64(1))
 		if err != nil {
 			return err
@@ -360,6 +721,7 @@ func (q *SQLStore) UpdateFollowing(
 	if err != nil {
 		return
 	}
+
 	Toacc, err = q.UpdateAccountFollower(ctx, UpdateAccountFollowerParams{Num: num, AccountsID: toAccount})
 	if err != nil {
 		return

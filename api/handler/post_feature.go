@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -24,6 +25,11 @@ type (
 		PostFeature db.PostFeature
 		CommentList []db.ListCommentRow
 	}
+	QouteRetweetResponse struct {
+		Post        db.Post
+		PostFeature db.PostFeature
+		ErrNum      int
+	}
 )
 
 var (
@@ -35,81 +41,40 @@ var (
 	//chanFilePath = make(chan string, 1)
 )
 
-func (s *Handler) DeleteQouteRetweet(arg *QouteRetweetPostRequest, c echo.Context, post db.GetPost_feature_UpdateRow) error {
-
-	num, err := s.store.GetPostQRetweetJoin(c.Request().Context(), db.GetPostQRetweetJoinParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
-	if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
-		return err
-	}
-
-	_, err = s.store.GetQouteRetweet(c.Request().Context(), db.GetQouteRetweetParams{FromAccountID: arg.FromAccountID, PostID: arg.PostID})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusNotFound, "no specify qoute-retweet in database")
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	_, err = s.store.CreateEntries(c.Request().Context(), db.CreateEntriesParams{
+func (s *Handler) CreateLike(ctx context.Context, arg *LikePostRequest) (int, error) {
+	err = s.store.CreateLike_feature(ctx, db.CreateLike_featureParams{
 		FromAccountID: arg.FromAccountID,
+		IsLike:        false,
 		PostID:        arg.PostID,
-		TypeEntries:   Unqretweet,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return 500, err
 	}
-
-	err = s.store.DeleteQouteRetweet(c.Request().Context(), db.DeleteQouteRetweetParams{PostID: arg.PostID, FromAccountID: arg.FromAccountID})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	// Delete first then decrement
-	post.SumQouteRetweet--
-	_, err = s.store.UpdatePost_feature(c.Request().Context(), db.UpdatePost_featureParams{
-		PostID:          arg.PostID,
-		SumComment:      post.SumComment,
-		SumLike:         post.SumLike,
-		SumRetweet:      post.SumRetweet,
-		SumQouteRetweet: post.SumQouteRetweet,
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	err = s.store.DeletePostFeature(c.Request().Context(), num.PostID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	err = s.store.DeletePost(c.Request().Context(), num.PostID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	return c.JSON(http.StatusCreated, echo.Map{
-		"Delete":    true,
-		"DeletedAt": time.Now().Unix(),
-	})
+	return 0, nil
 }
 
-func (s *Handler) CreateQouteRetweetPost(param *QouteRetweetPostRequest, c echo.Context) (db.Post, db.PostFeature, error) {
-	arg := db.CreatePostParams{
-		AccountID:          param.FromAccountID,
-		PictureDescription: param.Qoute,
-		IsRetweet:          true,
-	}
-
-	post, err := s.store.CreatePost(c.Request().Context(), arg)
+func (s *Handler) CreateQouteRetweetPost(c context.Context, param *QouteRetweetPostRequest) (QouteRetweetResponse, error) {
+	var result QouteRetweetResponse
+	res, err := s.store.CreateQouteRetweetPostTX(c, db.CreateQRetweetParams{
+		FromAccountID: param.FromAccountID,
+		PostID:        param.PostID,
+		Qoute:         param.Qoute,
+	})
 	if err != nil {
-		return db.Post{}, db.PostFeature{}, c.JSON(http.StatusInternalServerError, err.Error())
+		result.ErrNum = res.ErrCode
+		return result, err
 	}
 
-	postfeat, err := s.store.CreatePost_feature(c.Request().Context(), post.PostID)
+	errNum, err = s.store.CreateQouteRetweet(c, db.CreateQRetweetParams{
+		FromAccountID: param.FromAccountID,
+		PostID:        param.PostID,
+	})
 	if err != nil {
-		return db.Post{}, db.PostFeature{}, c.JSON(http.StatusInternalServerError, err.Error())
+		result.ErrNum = errNum
+		return result, err
 	}
 
-	return post, postfeat, nil
+	return QouteRetweetResponse{Post: res.Post, PostFeature: res.PostFeature}, nil
 }
 
 func (s *Handler) CreateRetweetPost(c echo.Context, param *RetweetPostRequest) (RetweetResponse, int, error) {
@@ -128,7 +93,6 @@ func (s *Handler) CreateRetweetPost(c echo.Context, param *RetweetPostRequest) (
 	}
 
 	return RetweetResponse{Post: result.Post.Post, Feature: result.Post.PostFeature}, 0, err
-
 }
 
 func (s *Handler) DeleteRetweetpost(arg *RetweetPostRequest, c echo.Context) error {

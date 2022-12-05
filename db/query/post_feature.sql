@@ -103,9 +103,9 @@ WHERE post.post_id = @PostID and rf.from_account_id  = @FromAccountID;
 SELECT * from qoute_retweet_feature
 WHERE from_account_id=$1 and post_id = $2 LIMIT 1;
 
--- name: GetQouteRetweetRows :execrows
-SELECT * from qoute_retweet_feature
-WHERE from_account_id=$1 and post_id = $2 LIMIT 1;
+-- name: GetQouteRetweetRows :one
+SELECT count(*)  from qoute_retweet_feature
+WHERE from_account_id=$1 and post_id = $2;
 
 -- name: GetQouteRetweetJoin :one
 SELECT qoute_retweet_feature.qoute_retweet from qoute_retweet_feature
@@ -128,3 +128,7 @@ WHERE p.post_id = $1;
 -- name: DeleteRetweet :exec
 delete from retweet_feature
 WHERE post_id=$1 and from_account_id=$2;
+
+-- name: GetLikeRows :one
+select Count(is_like) from like_feature lf 
+where from_account_id = @FromAccountID and post_id = @PostID limit 1;
