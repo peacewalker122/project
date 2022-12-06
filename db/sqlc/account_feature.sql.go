@@ -78,6 +78,21 @@ func (q *Queries) DeleteAccountsFollow(ctx context.Context, arg DeleteAccountsFo
 	return err
 }
 
+const deleteAcoountsQueue = `-- name: DeleteAcoountsQueue :exec
+DElete from accounts_queue
+WHERE from_account_id = $1 and to_account_id = $2
+`
+
+type DeleteAcoountsQueueParams struct {
+	Fromid int64 `json:"fromid"`
+	Toid   int64 `json:"toid"`
+}
+
+func (q *Queries) DeleteAcoountsQueue(ctx context.Context, arg DeleteAcoountsQueueParams) error {
+	_, err := q.db.ExecContext(ctx, deleteAcoountsQueue, arg.Fromid, arg.Toid)
+	return err
+}
+
 const getAccountsFollow = `-- name: GetAccountsFollow :one
 SELECT follow FROM accounts_follow
 WHERE from_account_id = $1 and to_account_id = $2 LIMIT 1
@@ -111,4 +126,21 @@ func (q *Queries) GetAccountsFollowRows(ctx context.Context, arg GetAccountsFoll
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const getAccountsQueue = `-- name: GetAccountsQueue :one
+SELECT queue FROM accounts_queue
+WHERE from_account_id = $1 and to_account_id = $2 LIMIT 1
+`
+
+type GetAccountsQueueParams struct {
+	Fromid int64 `json:"fromid"`
+	Toid   int64 `json:"toid"`
+}
+
+func (q *Queries) GetAccountsQueue(ctx context.Context, arg GetAccountsQueueParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, getAccountsQueue, arg.Fromid, arg.Toid)
+	var queue bool
+	err := row.Scan(&queue)
+	return queue, err
 }

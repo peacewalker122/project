@@ -8,6 +8,14 @@ import (
 )
 
 type (
+	QueueResponse struct {
+		Owner     string `json:"owner"`
+		AccountID int64  `json:"accountid"`
+	}
+	OwnerGetAccountResponse struct {
+		Account      db.Account      `json:"account"`
+		QueueAccount []QueueResponse `json:"queue"`
+	}
 	CreateUserResponse struct {
 		Username  string                 `json:"username"`
 		FullName  string                 `json:"full_name"`
@@ -128,6 +136,13 @@ func UserResponse(input db.User, account db.Account) CreateUserResponse {
 	}
 }
 
+func OwnerAccountResponse(Account db.Account, Queue ...db.ListQueueRow) OwnerGetAccountResponse {
+	return OwnerGetAccountResponse{
+		Account:      Account,
+		QueueAccount: queueconverter(Queue),
+	}
+}
+
 func AccountResponse(input db.Account) CreateAccountsResponse {
 	return CreateAccountsResponse{
 		ID:          input.AccountsID,
@@ -226,6 +241,16 @@ func followResponse(follow db.FollowTXResult) FollowResponse {
 // func FeatureResponse[v anyFeature](arg v) v {
 // 	return v[string]
 // }
+
+func queueconverter(arg []db.ListQueueRow) []QueueResponse {
+	result := make([]QueueResponse, len(arg))
+
+	for i := range arg {
+		result[i].Owner = arg[i].Owner
+		result[i].AccountID = arg[i].FromAccountID.Int64
+	}
+	return result
+}
 
 func commentconverter(arg []db.ListCommentRow) []commentresp {
 	result := make([]commentresp, len(arg))

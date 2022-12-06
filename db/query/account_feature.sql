@@ -26,3 +26,11 @@ WHERE from_account_id = @fromID and to_account_id = @toID LIMIT 1;
 -- name: DeleteAccountsFollow :exec
 DElete from accounts_follow
 WHERE from_account_id = @fromID and to_account_id = @toID;
+
+-- name: GetAccountsQueue :one
+SELECT queue FROM accounts_queue
+WHERE from_account_id = @fromID and to_account_id = @toID LIMIT 1;
+
+-- name: DeleteAcoountsQueue :exec
+DElete from accounts_queue
+WHERE from_account_id = @fromID and to_account_id = @toID;

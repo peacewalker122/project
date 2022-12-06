@@ -7,7 +7,7 @@ CREATE TABLE "accounts_follow" (
 
 CREATE TABLE "accounts_queue" (
   "from_account_id" bigint NOT NULL,
-  "queue" boolean not NULL DEFAULT false,
+  "queue" boolean not NULL DEFAULT true,
   "to_account_id" bigint NOT NULL,
   "queue_at" timestamptz NOT NULL DEFAULT (now())
 );

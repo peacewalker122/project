@@ -182,14 +182,14 @@ func ValidateURIAccount(param *GetAccountsParams, context echo.Context, URIparam
 	return param, nil
 }
 
-//	func ValidateURIPost(context echo.Context, URIparam string) error {
-//		n := ConverterParam(context, URIparam)
-//		if err := ValidateID(n); err != nil {
-//			return err
-//		}
-//		PostID := int64(n)
-//		return nil
-//	}
+func ValidateURI[T int64 | int](context echo.Context, URIparam string) (T, error) {
+	n := ConverterParam(context, URIparam)
+	if err := ValidateID(n); err != nil {
+		return 0, err
+	}
+	id := T(n)
+	return id, nil
+}
 func (s *GetPostParam) ValidateURIPost(context echo.Context, URIparam string) error {
 	n := ConverterParam(context, URIparam)
 	if err := ValidateID(n); err != nil {
@@ -220,7 +220,6 @@ func ValidateNum(num int) error {
 
 func GetErrorValidator(c echo.Context, err error, tag string) (int, error) {
 	if err != nil {
-		c.Error(err)
 		if err == sql.ErrNoRows {
 			err := fmt.Errorf("%v not found", tag)
 			return http.StatusNotFound, err
@@ -235,7 +234,7 @@ func CreateErrorValidator(c echo.Context, err error) error {
 		c.Error(err)
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	return err
+	return nil
 }
 
 func ValidateCreateListAccount(req *listAccountRequest) (errors []string) {

@@ -26,6 +26,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAccountQueue(ctx context.Context, arg DeleteAccountQueueParams) error
 	DeleteAccountsFollow(ctx context.Context, arg DeleteAccountsFollowParams) error
+	DeleteAcoountsQueue(ctx context.Context, arg DeleteAcoountsQueueParams) error
 	DeletePost(ctx context.Context, postID int64) error
 	DeletePostFeature(ctx context.Context, postID int64) error
 	DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweetParams) error
@@ -36,6 +37,7 @@ type Querier interface {
 	GetAccountsFollowRows(ctx context.Context, arg GetAccountsFollowRowsParams) (int64, error)
 	GetAccountsInfo(ctx context.Context, accountsID int64) (GetAccountsInfoRow, error)
 	GetAccountsOwner(ctx context.Context, owner string) (Account, error)
+	GetAccountsQueue(ctx context.Context, arg GetAccountsQueueParams) (bool, error)
 	GetEntries(ctx context.Context, entriesID int64) (Entry, error)
 	GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error
 	GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeFeature, error)
@@ -50,6 +52,7 @@ type Querier interface {
 	GetQouteRetweet(ctx context.Context, arg GetQouteRetweetParams) (QouteRetweetFeature, error)
 	GetQouteRetweetJoin(ctx context.Context, postID int64) (bool, error)
 	GetQouteRetweetRows(ctx context.Context, arg GetQouteRetweetRowsParams) (int64, error)
+	GetQueueRows(ctx context.Context, arg GetQueueRowsParams) (int64, error)
 	GetRetweet(ctx context.Context, arg GetRetweetParams) (RetweetFeature, error)
 	GetRetweetJoin(ctx context.Context, arg GetRetweetJoinParams) (bool, error)
 	GetRetweetRows(ctx context.Context, arg GetRetweetRowsParams) (int64, error)
@@ -60,9 +63,12 @@ type Querier interface {
 	ListComment(ctx context.Context, arg ListCommentParams) ([]ListCommentRow, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
 	ListPost(ctx context.Context, arg ListPostParams) ([]Post, error)
+	ListQueue(ctx context.Context, arg ListQueueParams) ([]ListQueueRow, error)
 	ListUser(ctx context.Context, arg ListUserParams) ([]User, error)
+	PrivateAccount(ctx context.Context, arg PrivateAccountParams) error
 	UpdateAccountFollower(ctx context.Context, arg UpdateAccountFollowerParams) (Account, error)
 	UpdateAccountFollowing(ctx context.Context, arg UpdateAccountFollowingParams) (Account, error)
+	UpdateAccountQueue(ctx context.Context, arg UpdateAccountQueueParams) error
 	UpdateLike(ctx context.Context, arg UpdateLikeParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
 	UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error)

@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	auth "github.com/peacewalker122/project/api/auth"
 	handler "github.com/peacewalker122/project/api/handler"
+	apiutil "github.com/peacewalker122/project/api/util"
 	"github.com/peacewalker122/project/db/redis"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/token"
@@ -17,12 +18,13 @@ import (
 )
 
 type Server struct {
-	Store      db.Store
-	Redis      redis.Store
-	Config     util.Config
-	handler    handler.HandlerService
-	Auth       *Util
-	Router     *echo.Echo
+	Store   db.Store
+	Redis   redis.Store
+	Config  util.Config
+	handler handler.HandlerService
+	Auth    *Util
+	Router  *echo.Echo
+	*apiutil.UtilTools
 	Token      token.Maker
 	FileString string
 }
@@ -39,7 +41,8 @@ func Newserver(c util.Config, store db.Store, redisStore redis.Store) (*Server, 
 		Auth:   NewUtil(validator.New()),
 		Token:  newtoken,
 	}
-	server.handler, server.FileString = handler.NewHandler(store, redisStore, c, newtoken)
+	server.UtilTools = apiutil.NewApiUtil(store, redisStore)
+	server.handler, server.FileString = handler.NewHandler(store, redisStore, c, newtoken, server.UtilTools)
 	server.routerhandle()
 	return server, nil
 }
@@ -59,6 +62,7 @@ func (s *Server) routerhandle() {
 	//authRouter.POST("/account", s.handler.createAccount)
 	authRouter.GET("/account/:id", s.handler.GetAccounts)
 	authRouter.GET("/account", s.handler.ListAccount)
+	authRouter.POST("/account/private/:id", s.handler.UpdatePrivate)
 	authRouter.POST("/account/follow", s.handler.FollowAccount)
 	authRouter.PUT("/account/follow", s.handler.AcceptFollower)
 	authRouter.POST("/post", s.handler.CreatePost, middleware.TimeoutWithConfig(s.TimeoutPost()))

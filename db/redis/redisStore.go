@@ -23,7 +23,7 @@ type RedisStore struct {
 func NewRedis(URL string) Store {
 	opt, err := redis.ParseURL(URL)
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 	rdb := redis.NewClient(opt)
 

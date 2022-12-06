@@ -54,3 +54,26 @@ INSERT INTO accounts_queue(
 -- name: DeleteAccountQueue :exec
 Delete from accounts_queue
 WHERE from_account_id = @FromAccountID and to_account_id = @ToAccountID;
+
+-- name: PrivateAccount :exec
+UPDATE accounts
+SET is_private = $1
+WHERE owner = @username
+RETURNING is_private;
+
+-- name: GetQueueRows :one
+SELECT COUNT(*) from accounts_queue
+WHERE from_account_id = @FromAccountID and to_account_id = @ToAccountID;
+
+-- name: UpdateAccountQueue :exec
+UPDATE accounts_queue
+SET queue = $1
+WHERE from_account_id = @FromAccountID and to_account_id = @ToAccountID;
+
+-- name: ListQueue :many
+select a."owner" ,aq.from_account_id  from accounts a
+left join accounts_queue aq ON a.accounts_id = aq.from_account_id 
+where aq.to_account_id  = @AccountID
+order by a.accounts_id
+limit $1
+offset $2;

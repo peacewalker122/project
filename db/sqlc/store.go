@@ -15,6 +15,7 @@ import (
 
 type Store interface {
 	Querier
+	CreateAccountsQueueTX(ctx context.Context, arg CreateAccountQueueParams) (bool, error)
 	DeleteQouteRetweetTX(ctx context.Context, arg UnRetweetTXParam) (int, error)
 	CreateQouteRetweet(ctx context.Context, arg CreateQRetweetParams) (int, error)
 	CreateQouteRetweetPostTX(ctx context.Context, arg CreateQRetweetParams) (CreateQRetweetResult, error)
@@ -53,6 +54,7 @@ func Newstore(db *sql.DB, RedisURL string) (Store, redis.Store) {
 		db:      db,
 	}, &NoSQLStore{Store: redis.NewRedis(RedisURL)}
 }
+
 
 func (s *SQLStore) execCtx(ctx context.Context, fn func(q *Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -110,6 +112,10 @@ type (
 		ErrCode int                 `json:"err_code"`
 		Retweet CreateRetweetResult `json:"retweet_result"`
 	}
+	CreateAccountsQueueParams struct {
+		Fromaccid int64 `json:"from_acc_id"`
+		Toaccid   int64 `json:"to_acc_id"`
+	}
 	FollowTXParam struct {
 		Fromaccid int64 `json:"from_acc_id"`
 		Toaccid   int64 `json:"to_acc_id"`
@@ -155,6 +161,34 @@ type (
 		ErrCode     int         `json:"err_code"`
 	}
 )
+
+func (s *SQLStore) CreateAccountsQueueTX(ctx context.Context, arg CreateAccountQueueParams) (bool, error) {
+	var result bool
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+		// here we getting info did account is private or no
+		ok, err := s.GetAccountsInfo(ctx, arg.ToAccountID)
+		if err != nil {
+			return err
+		}
+
+		if ok.IsPrivate {
+			res, err := s.CreatePrivateQueue(ctx, CreatePrivateQueueParams{
+				Fromaccountid: arg.FromAccountID,
+				Toaccountid:   arg.ToAccountID,
+			})
+			if err != nil {
+				return err
+			}
+			result = res.Queue
+			return err
+		}
+		result = false
+		return err
+	})
+
+	return result, err
+}
 
 func (s *SQLStore) DeleteQouteRetweetTX(ctx context.Context, arg UnRetweetTXParam) (int, error) {
 	var ErrCode int
@@ -671,21 +705,19 @@ func (s *SQLStore) Followtx(ctx context.Context, arg FollowTXParam) (FollowTXRes
 		var err error
 		result.FeatureType = F
 
-		
-
-		result.Follow, result.ToAcc, result.FromAcc, err = s.UpdateFollowing(ctx, arg.Fromaccid, arg.Toaccid, int64(1))
-		if err != nil {
-			return err
-		}
-
 		if arg.IsQueue {
-			err = s.DeleteAccountsFollow(ctx, DeleteAccountsFollowParams{
-				Fromid: arg.Fromaccid,
-				Toid:   arg.Toaccid,
+			err = s.DeleteAccountQueue(ctx, DeleteAccountQueueParams{
+				Fromaccountid: arg.Fromaccid,
+				Toaccountid:   arg.Toaccid,
 			})
 			if err != nil {
 				return err
 			}
+		}
+
+		result.Follow, result.ToAcc, result.FromAcc, err = s.UpdateFollowing(ctx, arg.Fromaccid, arg.Toaccid, int64(1))
+		if err != nil {
+			return err
 		}
 
 		return nil

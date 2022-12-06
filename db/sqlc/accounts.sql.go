@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createAccounts = `-- name: CreateAccounts :one
@@ -154,6 +155,23 @@ func (q *Queries) GetAccountsOwner(ctx context.Context, owner string) (Account, 
 	return i, err
 }
 
+const getQueueRows = `-- name: GetQueueRows :one
+SELECT COUNT(*) from accounts_queue
+WHERE from_account_id = $1 and to_account_id = $2
+`
+
+type GetQueueRowsParams struct {
+	Fromaccountid int64 `json:"fromaccountid"`
+	Toaccountid   int64 `json:"toaccountid"`
+}
+
+func (q *Queries) GetQueueRows(ctx context.Context, arg GetQueueRowsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getQueueRows, arg.Fromaccountid, arg.Toaccountid)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const listAccounts = `-- name: ListAccounts :many
 SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
 WHERE owner = $1
@@ -196,6 +214,66 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 		return nil, err
 	}
 	return items, nil
+}
+
+const listQueue = `-- name: ListQueue :many
+select a."owner" ,aq.from_account_id  from accounts a
+left join accounts_queue aq ON a.accounts_id = aq.from_account_id 
+where aq.to_account_id  = $3
+order by a.accounts_id
+limit $1
+offset $2
+`
+
+type ListQueueParams struct {
+	Limit     int32 `json:"limit"`
+	Offset    int32 `json:"offset"`
+	Accountid int64 `json:"accountid"`
+}
+
+type ListQueueRow struct {
+	Owner         string        `json:"owner"`
+	FromAccountID sql.NullInt64 `json:"from_account_id"`
+}
+
+func (q *Queries) ListQueue(ctx context.Context, arg ListQueueParams) ([]ListQueueRow, error) {
+	rows, err := q.db.QueryContext(ctx, listQueue, arg.Limit, arg.Offset, arg.Accountid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListQueueRow{}
+	for rows.Next() {
+		var i ListQueueRow
+		if err := rows.Scan(&i.Owner, &i.FromAccountID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const privateAccount = `-- name: PrivateAccount :exec
+UPDATE accounts
+SET is_private = $1
+WHERE owner = $2
+RETURNING is_private
+`
+
+type PrivateAccountParams struct {
+	IsPrivate bool   `json:"is_private"`
+	Username  string `json:"username"`
+}
+
+func (q *Queries) PrivateAccount(ctx context.Context, arg PrivateAccountParams) error {
+	_, err := q.db.ExecContext(ctx, privateAccount, arg.IsPrivate, arg.Username)
+	return err
 }
 
 const updateAccountFollower = `-- name: UpdateAccountFollower :one
@@ -248,4 +326,21 @@ func (q *Queries) UpdateAccountFollowing(ctx context.Context, arg UpdateAccountF
 		&i.Following,
 	)
 	return i, err
+}
+
+const updateAccountQueue = `-- name: UpdateAccountQueue :exec
+UPDATE accounts_queue
+SET queue = $1
+WHERE from_account_id = $2 and to_account_id = $3
+`
+
+type UpdateAccountQueueParams struct {
+	Queue         bool  `json:"queue"`
+	Fromaccountid int64 `json:"fromaccountid"`
+	Toaccountid   int64 `json:"toaccountid"`
+}
+
+func (q *Queries) UpdateAccountQueue(ctx context.Context, arg UpdateAccountQueueParams) error {
+	_, err := q.db.ExecContext(ctx, updateAccountQueue, arg.Queue, arg.Fromaccountid, arg.Toaccountid)
+	return err
 }
