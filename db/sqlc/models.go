@@ -12,12 +12,13 @@ import (
 )
 
 type Account struct {
-	AccountsID int64     `json:"accounts_id"`
-	Owner      string    `json:"owner"`
-	IsPrivate  bool      `json:"is_private"`
-	CreatedAt  time.Time `json:"created_at"`
-	Follower   int64     `json:"follower"`
-	Following  int64     `json:"following"`
+	AccountsID int64          `json:"accounts_id"`
+	Owner      string         `json:"owner"`
+	IsPrivate  bool           `json:"is_private"`
+	CreatedAt  time.Time      `json:"created_at"`
+	Follower   int64          `json:"follower"`
+	Following  int64          `json:"following"`
+	PhotoDir   sql.NullString `json:"photo_dir"`
 }
 
 type AccountsFollow struct {

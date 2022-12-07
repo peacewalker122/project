@@ -1000,6 +1000,21 @@ func (mr *MockStoreMockRecorder) ListPost(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPost", reflect.TypeOf((*MockStore)(nil).ListPost), arg0, arg1)
 }
 
+// ListQueue mocks base method.
+func (m *MockStore) ListQueue(arg0 context.Context, arg1 db.ListQueueParams) ([]db.ListQueueRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListQueue", arg0, arg1)
+	ret0, _ := ret[0].([]db.ListQueueRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListQueue indicates an expected call of ListQueue.
+func (mr *MockStoreMockRecorder) ListQueue(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListQueue", reflect.TypeOf((*MockStore)(nil).ListQueue), arg0, arg1)
+}
+
 // ListUser mocks base method.
 func (m *MockStore) ListUser(arg0 context.Context, arg1 db.ListUserParams) ([]db.User, error) {
 	m.ctrl.T.Helper()
@@ -1115,6 +1130,20 @@ func (m *MockStore) UpdateLike(arg0 context.Context, arg1 db.UpdateLikeParams) e
 func (mr *MockStoreMockRecorder) UpdateLike(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLike", reflect.TypeOf((*MockStore)(nil).UpdateLike), arg0, arg1)
+}
+
+// UpdatePhoto mocks base method.
+func (m *MockStore) UpdatePhoto(arg0 context.Context, arg1 db.UpdatePhotoParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePhoto", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePhoto indicates an expected call of UpdatePhoto.
+func (mr *MockStoreMockRecorder) UpdatePhoto(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePhoto", reflect.TypeOf((*MockStore)(nil).UpdatePhoto), arg0, arg1)
 }
 
 // UpdatePost mocks base method.

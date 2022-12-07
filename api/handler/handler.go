@@ -8,7 +8,7 @@ import (
 	"github.com/peacewalker122/project/util"
 )
 
-func NewHandler(store db.Store, redis redis.Store, config util.Config, token token.Maker, apiutil *apiutil.UtilTools) (HandlerService, string) {
+func NewHandler(store db.Store, redis redis.Store, config util.Config, token token.Maker, apiutil apiutil.UtilTools) (HandlerService, string) {
 	return &Handler{
 		store:  store,
 		redis:  redis,
@@ -19,7 +19,7 @@ func NewHandler(store db.Store, redis redis.Store, config util.Config, token tok
 }
 
 type Handler struct {
-	util   *apiutil.UtilTools
+	util   apiutil.UtilTools
 	store  db.Store
 	redis  redis.Store
 	config util.Config

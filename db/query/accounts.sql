@@ -1,9 +1,10 @@
 -- name: CreateAccounts :one
 INSERT INTO accounts(
     owner,
-    is_private
+    is_private,
+    photo_dir
 ) VALUES(
-    $1,$2
+    $1,$2,$3
 ) RETURNING *;
 
 -- name: GetAccounts :one
@@ -77,3 +78,8 @@ where aq.to_account_id  = @AccountID
 order by a.accounts_id
 limit $1
 offset $2;
+
+-- name: UpdatePhoto :exec
+UPDATE accounts
+SET photo_dir = @FileDirectory
+WHERE owner = @username or accounts_id = @AccountID;

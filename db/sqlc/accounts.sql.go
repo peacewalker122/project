@@ -13,19 +13,21 @@ import (
 const createAccounts = `-- name: CreateAccounts :one
 INSERT INTO accounts(
     owner,
-    is_private
+    is_private,
+    photo_dir
 ) VALUES(
-    $1,$2
-) RETURNING accounts_id, owner, is_private, created_at, follower, following
+    $1,$2,$3
+) RETURNING accounts_id, owner, is_private, created_at, follower, following, photo_dir
 `
 
 type CreateAccountsParams struct {
-	Owner     string `json:"owner"`
-	IsPrivate bool   `json:"is_private"`
+	Owner     string         `json:"owner"`
+	IsPrivate bool           `json:"is_private"`
+	PhotoDir  sql.NullString `json:"photo_dir"`
 }
 
 func (q *Queries) CreateAccounts(ctx context.Context, arg CreateAccountsParams) (Account, error) {
-	row := q.db.QueryRowContext(ctx, createAccounts, arg.Owner, arg.IsPrivate)
+	row := q.db.QueryRowContext(ctx, createAccounts, arg.Owner, arg.IsPrivate, arg.PhotoDir)
 	var i Account
 	err := row.Scan(
 		&i.AccountsID,
@@ -34,6 +36,7 @@ func (q *Queries) CreateAccounts(ctx context.Context, arg CreateAccountsParams) 
 		&i.CreatedAt,
 		&i.Follower,
 		&i.Following,
+		&i.PhotoDir,
 	)
 	return i, err
 }
@@ -81,7 +84,7 @@ func (q *Queries) DeleteAccountQueue(ctx context.Context, arg DeleteAccountQueue
 }
 
 const getAccountForUpdate = `-- name: GetAccountForUpdate :one
-SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
+SELECT accounts_id, owner, is_private, created_at, follower, following, photo_dir FROM accounts
 WHERE accounts_id = $1 LIMIT 1
 FOR NO KEY UPDATE
 `
@@ -96,12 +99,13 @@ func (q *Queries) GetAccountForUpdate(ctx context.Context, accountsID int64) (Ac
 		&i.CreatedAt,
 		&i.Follower,
 		&i.Following,
+		&i.PhotoDir,
 	)
 	return i, err
 }
 
 const getAccounts = `-- name: GetAccounts :one
-SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
+SELECT accounts_id, owner, is_private, created_at, follower, following, photo_dir FROM accounts
 WHERE accounts_id = $1 LIMIT 1
 `
 
@@ -115,6 +119,7 @@ func (q *Queries) GetAccounts(ctx context.Context, accountsID int64) (Account, e
 		&i.CreatedAt,
 		&i.Follower,
 		&i.Following,
+		&i.PhotoDir,
 	)
 	return i, err
 }
@@ -137,7 +142,7 @@ func (q *Queries) GetAccountsInfo(ctx context.Context, accountsID int64) (GetAcc
 }
 
 const getAccountsOwner = `-- name: GetAccountsOwner :one
-SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
+SELECT accounts_id, owner, is_private, created_at, follower, following, photo_dir FROM accounts
 WHERE owner = $1 LIMIT 1
 `
 
@@ -151,6 +156,7 @@ func (q *Queries) GetAccountsOwner(ctx context.Context, owner string) (Account, 
 		&i.CreatedAt,
 		&i.Follower,
 		&i.Following,
+		&i.PhotoDir,
 	)
 	return i, err
 }
@@ -173,7 +179,7 @@ func (q *Queries) GetQueueRows(ctx context.Context, arg GetQueueRowsParams) (int
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT accounts_id, owner, is_private, created_at, follower, following FROM accounts
+SELECT accounts_id, owner, is_private, created_at, follower, following, photo_dir FROM accounts
 WHERE owner = $1
 ORDER BY accounts_id
 LIMIT $2
@@ -202,6 +208,7 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 			&i.CreatedAt,
 			&i.Follower,
 			&i.Following,
+			&i.PhotoDir,
 		); err != nil {
 			return nil, err
 		}
@@ -280,7 +287,7 @@ const updateAccountFollower = `-- name: UpdateAccountFollower :one
 UPDATE accounts
 SET follower = follower + $1
 WHERE accounts_id = $2
-RETURNING accounts_id, owner, is_private, created_at, follower, following
+RETURNING accounts_id, owner, is_private, created_at, follower, following, photo_dir
 `
 
 type UpdateAccountFollowerParams struct {
@@ -298,6 +305,7 @@ func (q *Queries) UpdateAccountFollower(ctx context.Context, arg UpdateAccountFo
 		&i.CreatedAt,
 		&i.Follower,
 		&i.Following,
+		&i.PhotoDir,
 	)
 	return i, err
 }
@@ -306,7 +314,7 @@ const updateAccountFollowing = `-- name: UpdateAccountFollowing :one
 UPDATE accounts
 SET following = following + $1
 WHERE accounts_id = $2
-RETURNING accounts_id, owner, is_private, created_at, follower, following
+RETURNING accounts_id, owner, is_private, created_at, follower, following, photo_dir
 `
 
 type UpdateAccountFollowingParams struct {
@@ -324,6 +332,7 @@ func (q *Queries) UpdateAccountFollowing(ctx context.Context, arg UpdateAccountF
 		&i.CreatedAt,
 		&i.Follower,
 		&i.Following,
+		&i.PhotoDir,
 	)
 	return i, err
 }
@@ -342,5 +351,22 @@ type UpdateAccountQueueParams struct {
 
 func (q *Queries) UpdateAccountQueue(ctx context.Context, arg UpdateAccountQueueParams) error {
 	_, err := q.db.ExecContext(ctx, updateAccountQueue, arg.Queue, arg.Fromaccountid, arg.Toaccountid)
+	return err
+}
+
+const updatePhoto = `-- name: UpdatePhoto :exec
+UPDATE accounts
+SET photo_dir = $1
+WHERE owner = $2 or accounts_id = $3
+`
+
+type UpdatePhotoParams struct {
+	Filedirectory sql.NullString `json:"filedirectory"`
+	Username      string         `json:"username"`
+	Accountid     int64          `json:"accountid"`
+}
+
+func (q *Queries) UpdatePhoto(ctx context.Context, arg UpdatePhotoParams) error {
+	_, err := q.db.ExecContext(ctx, updatePhoto, arg.Filedirectory, arg.Username, arg.Accountid)
 	return err
 }

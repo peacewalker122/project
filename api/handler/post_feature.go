@@ -32,6 +32,11 @@ type (
 	}
 )
 
+const (
+	postTag      = "post"
+	profilephoto = "profilephoto"
+)
+
 var (
 	filePath string
 	isShow   bool
@@ -120,7 +125,7 @@ func (s *Handler) CreatingPost(c echo.Context, arg *CreatePostParams) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		filePath, err, isShow = s.SaveFile(c, arg)
+		filePath, err, isShow = s.SaveFile(c, postTag, arg.AccountID)
 	}()
 	wg.Wait()
 	if err != nil {
@@ -157,14 +162,28 @@ func (s *Handler) CreatingPost(c echo.Context, arg *CreatePostParams) error {
 	return c.JSON(http.StatusOK, PostResponse(post.Post, post.PostFeature))
 }
 
-func (s *Handler) SaveFile(c echo.Context, arg *CreatePostParams) (string, error, bool) {
+func (s *Handler) SaveFile(c echo.Context, PhotoType string, AccountID int64) (string, error, bool) {
 	// the bool return to indicate a error that will viewed by the client side.
 	// True = client will see and vice versa.
+
+	// PhotoType indicate in what folder this will save.
+	// only accept ProfilePhoto & PostPhoto
+	// will updated soon
+
+	// validate photoype if it doesn't recognise then throw error
+	if PhotoType != postTag && PhotoType != profilephoto {
+		return "", fmt.Errorf("must be either %v or %v", postTag, profilephoto), true
+	}
+
 	var wg sync.WaitGroup
 	var fileName string
-	folderPath := fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/", arg.AccountID)
+	folderPath := fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/", AccountID)
 
-	timeMark := time.Now()
+	// here we invoke if it's a profile photo then create a new folder if it's doesn't exist.
+	if PhotoType == profilephoto {
+		folderPath = fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/%v/", "profile", AccountID)
+	}
+
 	file, err := c.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile {
@@ -182,6 +201,8 @@ func (s *Handler) SaveFile(c echo.Context, arg *CreatePostParams) (string, error
 		file.Filename = fileName
 	}
 
+	// here check the file folder already exist or not
+	// if not then create the directory
 	if _, err = os.Stat(folderPath); errors.Is(err, os.ErrNotExist) {
 		err := os.Mkdir(folderPath, os.ModePerm)
 		if err != nil {
@@ -219,7 +240,7 @@ func (s *Handler) SaveFile(c echo.Context, arg *CreatePostParams) (string, error
 
 	filePath := folderPath + file.Filename
 
-	// Destination
+	// destination
 	dst, err := os.Create(filepath.Join(folderPath, filepath.Base(file.Filename)))
 	if err != nil {
 		return "", err, false
@@ -237,7 +258,7 @@ func (s *Handler) SaveFile(c echo.Context, arg *CreatePostParams) (string, error
 	if err != nil {
 		return "", err, false
 	}
-	log.Print("benchmark: ", time.Since(timeMark))
+
 	FileName = filePath
 	return filePath, nil, false
 }

@@ -13,7 +13,8 @@ CREATE TABLE "accounts" (
   "is_private" boolean NOT NULL DEFAULT true,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
   "follower" bigint NOT NULL DEFAULT 0,
-  "following" bigint NOT NULL DEFAULT 0
+  "following" bigint NOT NULL DEFAULT 0,
+  "photo_dir" varchar(70)
 );
 
 -- considered to add picture id in post.

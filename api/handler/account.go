@@ -20,6 +20,7 @@ type accountService interface {
 	FollowAccount(c echo.Context) error
 	AcceptFollower(c echo.Context) error
 	UpdatePrivate(c echo.Context) error
+	UpdatePhotoProfile(c echo.Context) error
 }
 
 var (
@@ -30,6 +31,9 @@ var (
 type (
 	UpdateAccountParams struct {
 		FromAccountID int64 `uri:"id" query:"from_account_id" validate:"required,min=1"`
+	}
+	UpdatePhotoProfileParams struct {
+		FromAccountID int64 `uri:"id" query:"id" validate:"required,min=1"`
 	}
 	GetAccountsParams struct {
 		Offset        int32 `json:"offset" form:"offset" query:"offset" validate:"required,min=0"`
@@ -314,4 +318,35 @@ func (s *Handler) UpdatePrivate(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, "status: OK")
+}
+
+func (s *Handler) UpdatePhotoProfile(c echo.Context) error {
+	// add form with photo param as a file bridge to sent into api
+
+	req := new(UpdatePhotoProfileParams)
+
+	if err = c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	req.FromAccountID, err = ValidateURI[int64](c, "id")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if errNum, err = s.AuthAccount(c, req.FromAccountID); err != nil {
+		return c.JSON(errNum, err.Error())
+	}
+	if err = c.Validate(req); err != nil {
+		return err
+	}
+
+	errNum, err = s.util.UpdateProfilePhoto(c, req.FromAccountID)
+	if err != nil {
+		return c.JSON(errNum, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"Status":    "Updated",
+		"UpdatedAt": time.Now().Unix(),
+	})
 }

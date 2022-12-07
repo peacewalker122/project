@@ -24,7 +24,7 @@ type Server struct {
 	handler handler.HandlerService
 	Auth    *Util
 	Router  *echo.Echo
-	*apiutil.UtilTools
+	apiutil.UtilTools
 	Token      token.Maker
 	FileString string
 }
@@ -63,6 +63,7 @@ func (s *Server) routerhandle() {
 	authRouter.GET("/account/:id", s.handler.GetAccounts)
 	authRouter.GET("/account", s.handler.ListAccount)
 	authRouter.POST("/account/private/:id", s.handler.UpdatePrivate)
+	authRouter.POST("/account/profile/photo/:id", s.handler.UpdatePhotoProfile)
 	authRouter.POST("/account/follow", s.handler.FollowAccount)
 	authRouter.PUT("/account/follow", s.handler.AcceptFollower)
 	authRouter.POST("/post", s.handler.CreatePost, middleware.TimeoutWithConfig(s.TimeoutPost()))

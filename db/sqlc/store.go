@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/peacewalker122/project/db/redis"
+	"github.com/peacewalker122/project/util"
 )
 
 type Store interface {
@@ -54,7 +55,6 @@ func Newstore(db *sql.DB, RedisURL string) (Store, redis.Store) {
 		db:      db,
 	}, &NoSQLStore{Store: redis.NewRedis(RedisURL)}
 }
-
 
 func (s *SQLStore) execCtx(ctx context.Context, fn func(q *Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -388,9 +388,18 @@ func (s *SQLStore) CreateQouteRetweetPostTX(ctx context.Context, arg CreateQRetw
 			return errors.New("already created")
 		}
 
+		post, err := s.GetPost(ctx, arg.PostID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				result.ErrCode = http.StatusNotFound
+			}
+			return err
+		}
+
 		arg := CreatePostParams{
 			AccountID: arg.FromAccountID,
 			IsRetweet: true,
+			PhotoDir:  util.InputSqlString(post.PhotoDir.String),
 		}
 		result.Post, err = s.CreatePost(ctx, arg)
 		if err != nil {
@@ -658,9 +667,19 @@ func (s *SQLStore) CreateRetweetPost(ctx context.Context, arg CreateRetweetParam
 		}
 
 		if !ok.Retweet {
+
+			post, err := s.GetPost(ctx, arg.PostID)
+			if err != nil {
+				if err == sql.ErrNoRows {
+					result.ErrCode = http.StatusNotFound
+				}
+				return err
+			}
+
 			arg := CreatePostParams{
 				AccountID: arg.FromAccountID,
 				IsRetweet: true,
+				PhotoDir:  util.InputSqlString(post.PhotoDir.String),
 			}
 			result.Post.Post, err = s.CreatePost(ctx, arg)
 			if err != nil {

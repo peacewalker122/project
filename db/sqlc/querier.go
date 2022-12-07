@@ -70,6 +70,7 @@ type Querier interface {
 	UpdateAccountFollowing(ctx context.Context, arg UpdateAccountFollowingParams) (Account, error)
 	UpdateAccountQueue(ctx context.Context, arg UpdateAccountQueueParams) error
 	UpdateLike(ctx context.Context, arg UpdateLikeParams) error
+	UpdatePhoto(ctx context.Context, arg UpdatePhotoParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
 	UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error)
 	UpdateQouteRetweet(ctx context.Context, arg UpdateQouteRetweetParams) error
