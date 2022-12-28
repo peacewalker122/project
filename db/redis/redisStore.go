@@ -13,7 +13,7 @@ import (
 type Store interface {
 	Set(ctx context.Context, key string, value interface{}) error
 	Get(ctx context.Context, key string) (string, error)
-	Del(ctx context.Context, keys string) error
+	Del(ctx context.Context, key string) error
 }
 
 type RedisStore struct {
@@ -52,8 +52,8 @@ func (r *RedisStore) Get(ctx context.Context, key string) (string, error) {
 	return res, nil
 }
 
-func (r *RedisStore) Del(ctx context.Context, keys string) error {
-	_, err := r.redis.Del(ctx, keys).Result()
+func (r *RedisStore) Del(ctx context.Context, key string) error {
+	_, err := r.redis.Del(ctx, key).Result()
 	if err != nil {
 		return err
 	}

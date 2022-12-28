@@ -41,6 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatal("can't establish the connection")
 	}
+	
 	if err := server.StartHTTP(config.HTTPServerAddress); err != nil {
 		log.Fatal("unable to establish the connection due: ", err.Error())
 	}

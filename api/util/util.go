@@ -10,8 +10,6 @@ import (
 	db "github.com/peacewalker122/project/db/sqlc"
 )
 
-
-
 type utilTools struct {
 	store db.Store
 	redis redis.Store
@@ -43,3 +41,4 @@ func ValidateFileType(input multipart.File) error {
 	}
 	return errors.New("invalid type! must be jpeg/jpg/gif/png/mp4")
 }
+

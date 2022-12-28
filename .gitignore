@@ -1,3 +1,4 @@
 project-socmed-a72a5157bae8.json
 backup.txt
-app.env
+*.env
+*.idea

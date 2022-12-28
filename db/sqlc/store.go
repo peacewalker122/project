@@ -10,32 +10,22 @@ import (
 	"os/exec"
 	"strings"
 
+	entsql "entgo.io/ent/dialect/sql"
+	notif "github.com/peacewalker122/project/db/notif_query"
 	"github.com/peacewalker122/project/db/redis"
 	"github.com/peacewalker122/project/util"
 )
 
 type Store interface {
 	Querier
-	CreateAccountsQueueTX(ctx context.Context, arg CreateAccountQueueParams) (bool, error)
-	DeleteQouteRetweetTX(ctx context.Context, arg UnRetweetTXParam) (int, error)
-	CreateQouteRetweet(ctx context.Context, arg CreateQRetweetParams) (int, error)
-	CreateQouteRetweetPostTX(ctx context.Context, arg CreateQRetweetParams) (CreateQRetweetResult, error)
-	CreateCommentTX(ctx context.Context, arg CreateCommentParams) (CreateCommentTXResult, error)
-	UnlikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
-	CreateLikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
-	DeleteRetweetTX(ctx context.Context, arg DeleteRetweetParams) error
-	CreateRetweetPost(ctx context.Context, arg CreateRetweetParams) (CreateRetweetResult, error)
-	CreateRetweetTX(ctx context.Context, arg CreateRetweetParams) (CreateRetweetTXResult, error)
-	Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error)
-	UnFollowtx(ctx context.Context, arg UnfollowTXParam) (UnFollowTXResult, error)
-	GetDirectory(path string) (string, error)
-	CreateFileIndex(path, filename string) (string, error)
-	CreatePostTx(ctx context.Context, arg CreatePostParams) (PostTXResult, error)
+	Model
+	notif.NotifQuery
 }
 
 type SQLStore struct {
 	*Queries
 	db *sql.DB
+	notif.NotifQuery
 }
 
 type NoSQLStore struct {
@@ -46,6 +36,7 @@ func newTeststore(db *sql.DB) Store {
 	return &SQLStore{
 		Queries: New(db),
 		db:      db,
+		NotifQuery: notif.NewNotifQuery(entsql.OpenDB("postgres", db)),
 	}
 }
 
@@ -81,6 +72,24 @@ const (
 	UR  = "unretweet"
 	UQR = "unqoute-retweet"
 )
+
+type Model interface {
+	CreateAccountsQueueTX(ctx context.Context, arg CreateAccountQueueParams) (bool, error)
+	DeleteQouteRetweetTX(ctx context.Context, arg UnRetweetTXParam) (int, error)
+	CreateQouteRetweet(ctx context.Context, arg CreateQRetweetParams) (int, error)
+	CreateQouteRetweetPostTX(ctx context.Context, arg CreateQRetweetParams) (CreateQRetweetResult, error)
+	CreateCommentTX(ctx context.Context, arg CreateCommentParams) (CreateCommentTXResult, error)
+	UnlikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
+	CreateLikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
+	DeleteRetweetTX(ctx context.Context, arg DeleteRetweetParams) error
+	CreateRetweetPost(ctx context.Context, arg CreateRetweetParams) (CreateRetweetResult, error)
+	CreateRetweetTX(ctx context.Context, arg CreateRetweetParams) (CreateRetweetTXResult, error)
+	Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error)
+	UnFollowtx(ctx context.Context, arg UnfollowTXParam) (UnFollowTXResult, error)
+	GetDirectory(path string) (string, error)
+	CreateFileIndex(path, filename string) (string, error)
+	CreatePostTx(ctx context.Context, arg CreatePostParams) (PostTXResult, error)
+}
 
 type (
 	CreateQRetweetParams struct {
