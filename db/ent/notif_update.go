@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/peacewalker122/project/db/ent/notif"
 	"github.com/peacewalker122/project/db/ent/predicate"
 )
@@ -26,20 +25,6 @@ type NotifUpdate struct {
 // Where appends a list predicates to the NotifUpdate builder.
 func (nu *NotifUpdate) Where(ps ...predicate.Notif) *NotifUpdate {
 	nu.mutation.Where(ps...)
-	return nu
-}
-
-// SetNotifID sets the "notif_id" field.
-func (nu *NotifUpdate) SetNotifID(u uuid.UUID) *NotifUpdate {
-	nu.mutation.SetNotifID(u)
-	return nu
-}
-
-// SetNillableNotifID sets the "notif_id" field if the given value is not nil.
-func (nu *NotifUpdate) SetNillableNotifID(u *uuid.UUID) *NotifUpdate {
-	if u != nil {
-		nu.SetNotifID(*u)
-	}
 	return nu
 }
 
@@ -68,9 +53,37 @@ func (nu *NotifUpdate) SetNotifTitle(s string) *NotifUpdate {
 	return nu
 }
 
+// SetNillableNotifTitle sets the "notif_title" field if the given value is not nil.
+func (nu *NotifUpdate) SetNillableNotifTitle(s *string) *NotifUpdate {
+	if s != nil {
+		nu.SetNotifTitle(*s)
+	}
+	return nu
+}
+
+// ClearNotifTitle clears the value of the "notif_title" field.
+func (nu *NotifUpdate) ClearNotifTitle() *NotifUpdate {
+	nu.mutation.ClearNotifTitle()
+	return nu
+}
+
 // SetNotifContent sets the "notif_content" field.
 func (nu *NotifUpdate) SetNotifContent(s string) *NotifUpdate {
 	nu.mutation.SetNotifContent(s)
+	return nu
+}
+
+// SetNillableNotifContent sets the "notif_content" field if the given value is not nil.
+func (nu *NotifUpdate) SetNillableNotifContent(s *string) *NotifUpdate {
+	if s != nil {
+		nu.SetNotifContent(*s)
+	}
+	return nu
+}
+
+// ClearNotifContent clears the value of the "notif_content" field.
+func (nu *NotifUpdate) ClearNotifContent() *NotifUpdate {
+	nu.mutation.ClearNotifContent()
 	return nu
 }
 
@@ -199,7 +212,7 @@ func (nu *NotifUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   notif.Table,
 			Columns: notif.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: notif.FieldID,
 			},
 		},
@@ -210,9 +223,6 @@ func (nu *NotifUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := nu.mutation.NotifID(); ok {
-		_spec.SetField(notif.FieldNotifID, field.TypeUUID, value)
 	}
 	if value, ok := nu.mutation.AccountID(); ok {
 		_spec.SetField(notif.FieldAccountID, field.TypeInt64, value)
@@ -226,8 +236,14 @@ func (nu *NotifUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := nu.mutation.NotifTitle(); ok {
 		_spec.SetField(notif.FieldNotifTitle, field.TypeString, value)
 	}
+	if nu.mutation.NotifTitleCleared() {
+		_spec.ClearField(notif.FieldNotifTitle, field.TypeString)
+	}
 	if value, ok := nu.mutation.NotifContent(); ok {
 		_spec.SetField(notif.FieldNotifContent, field.TypeString, value)
+	}
+	if nu.mutation.NotifContentCleared() {
+		_spec.ClearField(notif.FieldNotifContent, field.TypeString)
 	}
 	if value, ok := nu.mutation.NotifTime(); ok {
 		_spec.SetField(notif.FieldNotifTime, field.TypeTime, value)
@@ -257,20 +273,6 @@ type NotifUpdateOne struct {
 	mutation *NotifMutation
 }
 
-// SetNotifID sets the "notif_id" field.
-func (nuo *NotifUpdateOne) SetNotifID(u uuid.UUID) *NotifUpdateOne {
-	nuo.mutation.SetNotifID(u)
-	return nuo
-}
-
-// SetNillableNotifID sets the "notif_id" field if the given value is not nil.
-func (nuo *NotifUpdateOne) SetNillableNotifID(u *uuid.UUID) *NotifUpdateOne {
-	if u != nil {
-		nuo.SetNotifID(*u)
-	}
-	return nuo
-}
-
 // SetAccountID sets the "account_id" field.
 func (nuo *NotifUpdateOne) SetAccountID(i int64) *NotifUpdateOne {
 	nuo.mutation.ResetAccountID()
@@ -296,9 +298,37 @@ func (nuo *NotifUpdateOne) SetNotifTitle(s string) *NotifUpdateOne {
 	return nuo
 }
 
+// SetNillableNotifTitle sets the "notif_title" field if the given value is not nil.
+func (nuo *NotifUpdateOne) SetNillableNotifTitle(s *string) *NotifUpdateOne {
+	if s != nil {
+		nuo.SetNotifTitle(*s)
+	}
+	return nuo
+}
+
+// ClearNotifTitle clears the value of the "notif_title" field.
+func (nuo *NotifUpdateOne) ClearNotifTitle() *NotifUpdateOne {
+	nuo.mutation.ClearNotifTitle()
+	return nuo
+}
+
 // SetNotifContent sets the "notif_content" field.
 func (nuo *NotifUpdateOne) SetNotifContent(s string) *NotifUpdateOne {
 	nuo.mutation.SetNotifContent(s)
+	return nuo
+}
+
+// SetNillableNotifContent sets the "notif_content" field if the given value is not nil.
+func (nuo *NotifUpdateOne) SetNillableNotifContent(s *string) *NotifUpdateOne {
+	if s != nil {
+		nuo.SetNotifContent(*s)
+	}
+	return nuo
+}
+
+// ClearNotifContent clears the value of the "notif_content" field.
+func (nuo *NotifUpdateOne) ClearNotifContent() *NotifUpdateOne {
+	nuo.mutation.ClearNotifContent()
 	return nuo
 }
 
@@ -440,7 +470,7 @@ func (nuo *NotifUpdateOne) sqlSave(ctx context.Context) (_node *Notif, err error
 			Table:   notif.Table,
 			Columns: notif.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: notif.FieldID,
 			},
 		},
@@ -469,9 +499,6 @@ func (nuo *NotifUpdateOne) sqlSave(ctx context.Context) (_node *Notif, err error
 			}
 		}
 	}
-	if value, ok := nuo.mutation.NotifID(); ok {
-		_spec.SetField(notif.FieldNotifID, field.TypeUUID, value)
-	}
 	if value, ok := nuo.mutation.AccountID(); ok {
 		_spec.SetField(notif.FieldAccountID, field.TypeInt64, value)
 	}
@@ -484,8 +511,14 @@ func (nuo *NotifUpdateOne) sqlSave(ctx context.Context) (_node *Notif, err error
 	if value, ok := nuo.mutation.NotifTitle(); ok {
 		_spec.SetField(notif.FieldNotifTitle, field.TypeString, value)
 	}
+	if nuo.mutation.NotifTitleCleared() {
+		_spec.ClearField(notif.FieldNotifTitle, field.TypeString)
+	}
 	if value, ok := nuo.mutation.NotifContent(); ok {
 		_spec.SetField(notif.FieldNotifContent, field.TypeString, value)
+	}
+	if nuo.mutation.NotifContentCleared() {
+		_spec.ClearField(notif.FieldNotifContent, field.TypeString)
 	}
 	if value, ok := nuo.mutation.NotifTime(); ok {
 		_spec.SetField(notif.FieldNotifTime, field.TypeTime, value)

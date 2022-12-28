@@ -35,8 +35,7 @@ type NotifMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
-	notif_id      *uuid.UUID
+	id            *uuid.UUID
 	account_id    *int64
 	addaccount_id *int64
 	notif_type    *string
@@ -70,7 +69,7 @@ func newNotifMutation(c config, op Op, opts ...notifOption) *NotifMutation {
 }
 
 // withNotifID sets the ID field of the mutation.
-func withNotifID(id int) notifOption {
+func withNotifID(id uuid.UUID) notifOption {
 	return func(m *NotifMutation) {
 		var (
 			err   error
@@ -120,9 +119,15 @@ func (m NotifMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Notif entities.
+func (m *NotifMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *NotifMutation) ID() (id int, exists bool) {
+func (m *NotifMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -133,12 +138,12 @@ func (m *NotifMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *NotifMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *NotifMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -146,42 +151,6 @@ func (m *NotifMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetNotifID sets the "notif_id" field.
-func (m *NotifMutation) SetNotifID(u uuid.UUID) {
-	m.notif_id = &u
-}
-
-// NotifID returns the value of the "notif_id" field in the mutation.
-func (m *NotifMutation) NotifID() (r uuid.UUID, exists bool) {
-	v := m.notif_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNotifID returns the old "notif_id" field's value of the Notif entity.
-// If the Notif object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotifMutation) OldNotifID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNotifID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNotifID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNotifID: %w", err)
-	}
-	return oldValue.NotifID, nil
-}
-
-// ResetNotifID resets all changes to the "notif_id" field.
-func (m *NotifMutation) ResetNotifID() {
-	m.notif_id = nil
 }
 
 // SetAccountID sets the "account_id" field.
@@ -307,9 +276,22 @@ func (m *NotifMutation) OldNotifTitle(ctx context.Context) (v string, err error)
 	return oldValue.NotifTitle, nil
 }
 
+// ClearNotifTitle clears the value of the "notif_title" field.
+func (m *NotifMutation) ClearNotifTitle() {
+	m.notif_title = nil
+	m.clearedFields[notif.FieldNotifTitle] = struct{}{}
+}
+
+// NotifTitleCleared returns if the "notif_title" field was cleared in this mutation.
+func (m *NotifMutation) NotifTitleCleared() bool {
+	_, ok := m.clearedFields[notif.FieldNotifTitle]
+	return ok
+}
+
 // ResetNotifTitle resets all changes to the "notif_title" field.
 func (m *NotifMutation) ResetNotifTitle() {
 	m.notif_title = nil
+	delete(m.clearedFields, notif.FieldNotifTitle)
 }
 
 // SetNotifContent sets the "notif_content" field.
@@ -343,9 +325,22 @@ func (m *NotifMutation) OldNotifContent(ctx context.Context) (v string, err erro
 	return oldValue.NotifContent, nil
 }
 
+// ClearNotifContent clears the value of the "notif_content" field.
+func (m *NotifMutation) ClearNotifContent() {
+	m.notif_content = nil
+	m.clearedFields[notif.FieldNotifContent] = struct{}{}
+}
+
+// NotifContentCleared returns if the "notif_content" field was cleared in this mutation.
+func (m *NotifMutation) NotifContentCleared() bool {
+	_, ok := m.clearedFields[notif.FieldNotifContent]
+	return ok
+}
+
 // ResetNotifContent resets all changes to the "notif_content" field.
 func (m *NotifMutation) ResetNotifContent() {
 	m.notif_content = nil
+	delete(m.clearedFields, notif.FieldNotifContent)
 }
 
 // SetNotifTime sets the "notif_time" field.
@@ -452,10 +447,7 @@ func (m *NotifMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotifMutation) Fields() []string {
-	fields := make([]string, 0, 7)
-	if m.notif_id != nil {
-		fields = append(fields, notif.FieldNotifID)
-	}
+	fields := make([]string, 0, 6)
 	if m.account_id != nil {
 		fields = append(fields, notif.FieldAccountID)
 	}
@@ -482,8 +474,6 @@ func (m *NotifMutation) Fields() []string {
 // schema.
 func (m *NotifMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case notif.FieldNotifID:
-		return m.NotifID()
 	case notif.FieldAccountID:
 		return m.AccountID()
 	case notif.FieldNotifType:
@@ -505,8 +495,6 @@ func (m *NotifMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *NotifMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case notif.FieldNotifID:
-		return m.OldNotifID(ctx)
 	case notif.FieldAccountID:
 		return m.OldAccountID(ctx)
 	case notif.FieldNotifType:
@@ -528,13 +516,6 @@ func (m *NotifMutation) OldField(ctx context.Context, name string) (ent.Value, e
 // type.
 func (m *NotifMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case notif.FieldNotifID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNotifID(v)
-		return nil
 	case notif.FieldAccountID:
 		v, ok := value.(int64)
 		if !ok {
@@ -622,6 +603,12 @@ func (m *NotifMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *NotifMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(notif.FieldNotifTitle) {
+		fields = append(fields, notif.FieldNotifTitle)
+	}
+	if m.FieldCleared(notif.FieldNotifContent) {
+		fields = append(fields, notif.FieldNotifContent)
+	}
 	if m.FieldCleared(notif.FieldNotifTime) {
 		fields = append(fields, notif.FieldNotifTime)
 	}
@@ -639,6 +626,12 @@ func (m *NotifMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *NotifMutation) ClearField(name string) error {
 	switch name {
+	case notif.FieldNotifTitle:
+		m.ClearNotifTitle()
+		return nil
+	case notif.FieldNotifContent:
+		m.ClearNotifContent()
+		return nil
 	case notif.FieldNotifTime:
 		m.ClearNotifTime()
 		return nil
@@ -650,9 +643,6 @@ func (m *NotifMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *NotifMutation) ResetField(name string) error {
 	switch name {
-	case notif.FieldNotifID:
-		m.ResetNotifID()
-		return nil
 	case notif.FieldAccountID:
 		m.ResetAccountID()
 		return nil

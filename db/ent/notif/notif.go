@@ -13,8 +13,6 @@ const (
 	Label = "notif"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldNotifID holds the string denoting the notif_id field in the database.
-	FieldNotifID = "notif_id"
 	// FieldAccountID holds the string denoting the account_id field in the database.
 	FieldAccountID = "account_id"
 	// FieldNotifType holds the string denoting the notif_type field in the database.
@@ -28,13 +26,12 @@ const (
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// Table holds the table name of the notif in the database.
-	Table = "notifs"
+	Table = "account_notif"
 )
 
 // Columns holds all SQL columns for notif fields.
 var Columns = []string{
 	FieldID,
-	FieldNotifID,
 	FieldAccountID,
 	FieldNotifType,
 	FieldNotifTitle,
@@ -54,8 +51,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultNotifID holds the default value on creation for the "notif_id" field.
-	DefaultNotifID func() uuid.UUID
 	// NotifTypeValidator is a validator for the "notif_type" field. It is called by the builders before save.
 	NotifTypeValidator func(string) error
 	// NotifTitleValidator is a validator for the "notif_title" field. It is called by the builders before save.
@@ -66,4 +61,6 @@ var (
 	DefaultNotifTime func() time.Time
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
 )

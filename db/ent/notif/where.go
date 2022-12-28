@@ -11,28 +11,28 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Notif {
+func ID(id uuid.UUID) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Notif {
+func IDEQ(id uuid.UUID) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Notif {
+func IDNEQ(id uuid.UUID) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldID), id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Notif {
+func IDIn(ids ...uuid.UUID) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		v := make([]any, len(ids))
 		for i := range v {
@@ -43,7 +43,7 @@ func IDIn(ids ...int) predicate.Notif {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Notif {
+func IDNotIn(ids ...uuid.UUID) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		v := make([]any, len(ids))
 		for i := range v {
@@ -54,37 +54,30 @@ func IDNotIn(ids ...int) predicate.Notif {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Notif {
+func IDGT(id uuid.UUID) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldID), id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Notif {
+func IDGTE(id uuid.UUID) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldID), id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Notif {
+func IDLT(id uuid.UUID) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldID), id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Notif {
+func IDLTE(id uuid.UUID) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
-	})
-}
-
-// NotifID applies equality check predicate on the "notif_id" field. It's identical to NotifIDEQ.
-func NotifID(v uuid.UUID) predicate.Notif {
-	return predicate.Notif(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldNotifID), v))
 	})
 }
 
@@ -127,70 +120,6 @@ func NotifTime(v time.Time) predicate.Notif {
 func CreatedAt(v time.Time) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
-}
-
-// NotifIDEQ applies the EQ predicate on the "notif_id" field.
-func NotifIDEQ(v uuid.UUID) predicate.Notif {
-	return predicate.Notif(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldNotifID), v))
-	})
-}
-
-// NotifIDNEQ applies the NEQ predicate on the "notif_id" field.
-func NotifIDNEQ(v uuid.UUID) predicate.Notif {
-	return predicate.Notif(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldNotifID), v))
-	})
-}
-
-// NotifIDIn applies the In predicate on the "notif_id" field.
-func NotifIDIn(vs ...uuid.UUID) predicate.Notif {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Notif(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldNotifID), v...))
-	})
-}
-
-// NotifIDNotIn applies the NotIn predicate on the "notif_id" field.
-func NotifIDNotIn(vs ...uuid.UUID) predicate.Notif {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Notif(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldNotifID), v...))
-	})
-}
-
-// NotifIDGT applies the GT predicate on the "notif_id" field.
-func NotifIDGT(v uuid.UUID) predicate.Notif {
-	return predicate.Notif(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldNotifID), v))
-	})
-}
-
-// NotifIDGTE applies the GTE predicate on the "notif_id" field.
-func NotifIDGTE(v uuid.UUID) predicate.Notif {
-	return predicate.Notif(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldNotifID), v))
-	})
-}
-
-// NotifIDLT applies the LT predicate on the "notif_id" field.
-func NotifIDLT(v uuid.UUID) predicate.Notif {
-	return predicate.Notif(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldNotifID), v))
-	})
-}
-
-// NotifIDLTE applies the LTE predicate on the "notif_id" field.
-func NotifIDLTE(v uuid.UUID) predicate.Notif {
-	return predicate.Notif(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldNotifID), v))
 	})
 }
 
@@ -442,6 +371,20 @@ func NotifTitleHasSuffix(v string) predicate.Notif {
 	})
 }
 
+// NotifTitleIsNil applies the IsNil predicate on the "notif_title" field.
+func NotifTitleIsNil() predicate.Notif {
+	return predicate.Notif(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldNotifTitle)))
+	})
+}
+
+// NotifTitleNotNil applies the NotNil predicate on the "notif_title" field.
+func NotifTitleNotNil() predicate.Notif {
+	return predicate.Notif(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldNotifTitle)))
+	})
+}
+
 // NotifTitleEqualFold applies the EqualFold predicate on the "notif_title" field.
 func NotifTitleEqualFold(v string) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
@@ -538,6 +481,20 @@ func NotifContentHasPrefix(v string) predicate.Notif {
 func NotifContentHasSuffix(v string) predicate.Notif {
 	return predicate.Notif(func(s *sql.Selector) {
 		s.Where(sql.HasSuffix(s.C(FieldNotifContent), v))
+	})
+}
+
+// NotifContentIsNil applies the IsNil predicate on the "notif_content" field.
+func NotifContentIsNil() predicate.Notif {
+	return predicate.Notif(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldNotifContent)))
+	})
+}
+
+// NotifContentNotNil applies the NotNil predicate on the "notif_content" field.
+func NotifContentNotNil() predicate.Notif {
+	return predicate.Notif(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldNotifContent)))
 	})
 }
 

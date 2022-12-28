@@ -17,10 +17,6 @@ import (
 func init() {
 	notifFields := schema.Notif{}.Fields()
 	_ = notifFields
-	// notifDescNotifID is the schema descriptor for notif_id field.
-	notifDescNotifID := notifFields[0].Descriptor()
-	// notif.DefaultNotifID holds the default value on creation for the notif_id field.
-	notif.DefaultNotifID = notifDescNotifID.Default.(func() uuid.UUID)
 	// notifDescNotifType is the schema descriptor for notif_type field.
 	notifDescNotifType := notifFields[2].Descriptor()
 	// notif.NotifTypeValidator is a validator for the "notif_type" field. It is called by the builders before save.
@@ -41,6 +37,10 @@ func init() {
 	notifDescCreatedAt := notifFields[6].Descriptor()
 	// notif.DefaultCreatedAt holds the default value on creation for the created_at field.
 	notif.DefaultCreatedAt = notifDescCreatedAt.Default.(func() time.Time)
+	// notifDescID is the schema descriptor for id field.
+	notifDescID := notifFields[0].Descriptor()
+	// notif.DefaultID holds the default value on creation for the id field.
+	notif.DefaultID = notifDescID.Default.(func() uuid.UUID)
 	notifreadFields := schema.NotifRead{}.Fields()
 	_ = notifreadFields
 	// notifreadDescNotifID is the schema descriptor for notif_id field.

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/peacewalker122/project/db/ent/migrate"
 
 	"github.com/peacewalker122/project/db/ent/notif"
@@ -169,7 +170,7 @@ func (c *NotifClient) UpdateOne(n *Notif) *NotifUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *NotifClient) UpdateOneID(id int) *NotifUpdateOne {
+func (c *NotifClient) UpdateOneID(id uuid.UUID) *NotifUpdateOne {
 	mutation := newNotifMutation(c.config, OpUpdateOne, withNotifID(id))
 	return &NotifUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -186,7 +187,7 @@ func (c *NotifClient) DeleteOne(n *Notif) *NotifDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *NotifClient) DeleteOneID(id int) *NotifDeleteOne {
+func (c *NotifClient) DeleteOneID(id uuid.UUID) *NotifDeleteOne {
 	builder := c.Delete().Where(notif.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -201,12 +202,12 @@ func (c *NotifClient) Query() *NotifQuery {
 }
 
 // Get returns a Notif entity by its id.
-func (c *NotifClient) Get(ctx context.Context, id int) (*Notif, error) {
+func (c *NotifClient) Get(ctx context.Context, id uuid.UUID) (*Notif, error) {
 	return c.Query().Where(notif.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *NotifClient) GetX(ctx context.Context, id int) *Notif {
+func (c *NotifClient) GetX(ctx context.Context, id uuid.UUID) *Notif {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

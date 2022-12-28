@@ -10,8 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
-	entsql "entgo.io/ent/dialect/sql"
-	notif "github.com/peacewalker122/project/db/notif_query"
+	notif "github.com/peacewalker122/project/db/model/notif_query"
 	"github.com/peacewalker122/project/db/redis"
 	"github.com/peacewalker122/project/util"
 )
@@ -19,7 +18,7 @@ import (
 type Store interface {
 	Querier
 	Model
-	notif.NotifQuery
+	notif.NotifQuery // we using this due tx not needed right now
 }
 
 type SQLStore struct {
@@ -34,16 +33,17 @@ type NoSQLStore struct {
 
 func newTeststore(db *sql.DB) Store {
 	return &SQLStore{
-		Queries: New(db),
-		db:      db,
-		NotifQuery: notif.NewNotifQuery(entsql.OpenDB("postgres", db)),
+		Queries:    New(db),
+		db:         db,
+		NotifQuery: notif.NewNotifQuery("Notif"),
 	}
 }
 
-func Newstore(db *sql.DB, RedisURL string) (Store, redis.Store) {
+func Newstore(db *sql.DB, Notif, RedisURL string) (Store, redis.Store) {
 	return &SQLStore{
-		Queries: New(db),
-		db:      db,
+		Queries:    New(db),
+		db:         db,
+		NotifQuery: notif.NewNotifQuery(Notif),
 	}, &NoSQLStore{Store: redis.NewRedis(RedisURL)}
 }
 

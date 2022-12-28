@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/peacewalker122/project/db/ent/notif"
 	"github.com/peacewalker122/project/db/ent/predicate"
 )
@@ -83,8 +84,8 @@ func (nq *NotifQuery) FirstX(ctx context.Context) *Notif {
 
 // FirstID returns the first Notif ID from the query.
 // Returns a *NotFoundError when no Notif ID was found.
-func (nq *NotifQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (nq *NotifQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = nq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -96,7 +97,7 @@ func (nq *NotifQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (nq *NotifQuery) FirstIDX(ctx context.Context) int {
+func (nq *NotifQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := nq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -134,8 +135,8 @@ func (nq *NotifQuery) OnlyX(ctx context.Context) *Notif {
 // OnlyID is like Only, but returns the only Notif ID in the query.
 // Returns a *NotSingularError when more than one Notif ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (nq *NotifQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (nq *NotifQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = nq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -151,7 +152,7 @@ func (nq *NotifQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (nq *NotifQuery) OnlyIDX(ctx context.Context) int {
+func (nq *NotifQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := nq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,8 +178,8 @@ func (nq *NotifQuery) AllX(ctx context.Context) []*Notif {
 }
 
 // IDs executes the query and returns a list of Notif IDs.
-func (nq *NotifQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (nq *NotifQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := nq.Select(notif.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -186,7 +187,7 @@ func (nq *NotifQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (nq *NotifQuery) IDsX(ctx context.Context) []int {
+func (nq *NotifQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := nq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -253,12 +254,12 @@ func (nq *NotifQuery) Clone() *NotifQuery {
 // Example:
 //
 //	var v []struct {
-//		NotifID uuid.UUID `json:"notif_id,omitempty"`
+//		AccountID int64 `json:"account_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Notif.Query().
-//		GroupBy(notif.FieldNotifID).
+//		GroupBy(notif.FieldAccountID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (nq *NotifQuery) GroupBy(field string, fields ...string) *NotifGroupBy {
@@ -281,11 +282,11 @@ func (nq *NotifQuery) GroupBy(field string, fields ...string) *NotifGroupBy {
 // Example:
 //
 //	var v []struct {
-//		NotifID uuid.UUID `json:"notif_id,omitempty"`
+//		AccountID int64 `json:"account_id,omitempty"`
 //	}
 //
 //	client.Notif.Query().
-//		Select(notif.FieldNotifID).
+//		Select(notif.FieldAccountID).
 //		Scan(ctx, &v)
 func (nq *NotifQuery) Select(fields ...string) *NotifSelect {
 	nq.fields = append(nq.fields, fields...)
@@ -367,7 +368,7 @@ func (nq *NotifQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   notif.Table,
 			Columns: notif.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: notif.FieldID,
 			},
 		},

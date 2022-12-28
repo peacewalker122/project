@@ -10,12 +10,11 @@ import (
 var (
 	// NotifsColumns holds the columns for the "notifs" table.
 	NotifsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "notif_id", Type: field.TypeUUID, Unique: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "account_id", Type: field.TypeInt64},
 		{Name: "notif_type", Type: field.TypeString, Size: 255},
-		{Name: "notif_title", Type: field.TypeString, Size: 50},
-		{Name: "notif_content", Type: field.TypeString, Size: 255},
+		{Name: "notif_title", Type: field.TypeString, Nullable: true, Size: 50},
+		{Name: "notif_content", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "notif_time", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 	}
@@ -28,7 +27,7 @@ var (
 			{
 				Name:    "notif_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{NotifsColumns[7]},
+				Columns: []*schema.Column{NotifsColumns[6]},
 			},
 		},
 	}

@@ -21,20 +21,6 @@ type NotifCreate struct {
 	hooks    []Hook
 }
 
-// SetNotifID sets the "notif_id" field.
-func (nc *NotifCreate) SetNotifID(u uuid.UUID) *NotifCreate {
-	nc.mutation.SetNotifID(u)
-	return nc
-}
-
-// SetNillableNotifID sets the "notif_id" field if the given value is not nil.
-func (nc *NotifCreate) SetNillableNotifID(u *uuid.UUID) *NotifCreate {
-	if u != nil {
-		nc.SetNotifID(*u)
-	}
-	return nc
-}
-
 // SetAccountID sets the "account_id" field.
 func (nc *NotifCreate) SetAccountID(i int64) *NotifCreate {
 	nc.mutation.SetAccountID(i)
@@ -53,9 +39,25 @@ func (nc *NotifCreate) SetNotifTitle(s string) *NotifCreate {
 	return nc
 }
 
+// SetNillableNotifTitle sets the "notif_title" field if the given value is not nil.
+func (nc *NotifCreate) SetNillableNotifTitle(s *string) *NotifCreate {
+	if s != nil {
+		nc.SetNotifTitle(*s)
+	}
+	return nc
+}
+
 // SetNotifContent sets the "notif_content" field.
 func (nc *NotifCreate) SetNotifContent(s string) *NotifCreate {
 	nc.mutation.SetNotifContent(s)
+	return nc
+}
+
+// SetNillableNotifContent sets the "notif_content" field if the given value is not nil.
+func (nc *NotifCreate) SetNillableNotifContent(s *string) *NotifCreate {
+	if s != nil {
+		nc.SetNotifContent(*s)
+	}
 	return nc
 }
 
@@ -83,6 +85,20 @@ func (nc *NotifCreate) SetCreatedAt(t time.Time) *NotifCreate {
 func (nc *NotifCreate) SetNillableCreatedAt(t *time.Time) *NotifCreate {
 	if t != nil {
 		nc.SetCreatedAt(*t)
+	}
+	return nc
+}
+
+// SetID sets the "id" field.
+func (nc *NotifCreate) SetID(u uuid.UUID) *NotifCreate {
+	nc.mutation.SetID(u)
+	return nc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (nc *NotifCreate) SetNillableID(u *uuid.UUID) *NotifCreate {
+	if u != nil {
+		nc.SetID(*u)
 	}
 	return nc
 }
@@ -164,10 +180,6 @@ func (nc *NotifCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (nc *NotifCreate) defaults() {
-	if _, ok := nc.mutation.NotifID(); !ok {
-		v := notif.DefaultNotifID()
-		nc.mutation.SetNotifID(v)
-	}
 	if _, ok := nc.mutation.NotifTime(); !ok {
 		v := notif.DefaultNotifTime()
 		nc.mutation.SetNotifTime(v)
@@ -176,13 +188,14 @@ func (nc *NotifCreate) defaults() {
 		v := notif.DefaultCreatedAt()
 		nc.mutation.SetCreatedAt(v)
 	}
+	if _, ok := nc.mutation.ID(); !ok {
+		v := notif.DefaultID()
+		nc.mutation.SetID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (nc *NotifCreate) check() error {
-	if _, ok := nc.mutation.NotifID(); !ok {
-		return &ValidationError{Name: "notif_id", err: errors.New(`ent: missing required field "Notif.notif_id"`)}
-	}
 	if _, ok := nc.mutation.AccountID(); !ok {
 		return &ValidationError{Name: "account_id", err: errors.New(`ent: missing required field "Notif.account_id"`)}
 	}
@@ -194,16 +207,10 @@ func (nc *NotifCreate) check() error {
 			return &ValidationError{Name: "notif_type", err: fmt.Errorf(`ent: validator failed for field "Notif.notif_type": %w`, err)}
 		}
 	}
-	if _, ok := nc.mutation.NotifTitle(); !ok {
-		return &ValidationError{Name: "notif_title", err: errors.New(`ent: missing required field "Notif.notif_title"`)}
-	}
 	if v, ok := nc.mutation.NotifTitle(); ok {
 		if err := notif.NotifTitleValidator(v); err != nil {
 			return &ValidationError{Name: "notif_title", err: fmt.Errorf(`ent: validator failed for field "Notif.notif_title": %w`, err)}
 		}
-	}
-	if _, ok := nc.mutation.NotifContent(); !ok {
-		return &ValidationError{Name: "notif_content", err: errors.New(`ent: missing required field "Notif.notif_content"`)}
 	}
 	if v, ok := nc.mutation.NotifContent(); ok {
 		if err := notif.NotifContentValidator(v); err != nil {
@@ -224,8 +231,13 @@ func (nc *NotifCreate) sqlSave(ctx context.Context) (*Notif, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	return _node, nil
 }
 
@@ -235,14 +247,14 @@ func (nc *NotifCreate) createSpec() (*Notif, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: notif.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: notif.FieldID,
 			},
 		}
 	)
-	if value, ok := nc.mutation.NotifID(); ok {
-		_spec.SetField(notif.FieldNotifID, field.TypeUUID, value)
-		_node.NotifID = value
+	if id, ok := nc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := nc.mutation.AccountID(); ok {
 		_spec.SetField(notif.FieldAccountID, field.TypeInt64, value)
@@ -312,10 +324,6 @@ func (ncb *NotifCreateBulk) Save(ctx context.Context) ([]*Notif, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

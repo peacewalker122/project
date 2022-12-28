@@ -2,10 +2,13 @@ package api
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
+	api "github.com/peacewalker122/project/api/util"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/util"
 )
@@ -25,6 +28,9 @@ type CreateUserParam struct {
 func (s *Handler) CreateUser(c echo.Context) error {
 	req := new(CreateUserParam)
 	if err := c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := c.Validate(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	if errors := ValidationCreateUserRequest(req); errors != nil {
@@ -110,6 +116,16 @@ func (s *Handler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, ValidateError("password", err.Error()))
 	}
 
+	err = s.util.SendEmailWithNotif(c.Request().Context(), api.SendEmail{
+		AccountID: []int64{account.AccountsID},
+		Params:    []string{username.Email, c.RealIP()},
+		Type:      "login",
+		TimeSend:  time.Now().UTC().Local(),
+	})
+	if err != nil {
+		log.Panic(err.Error())
+	}
+
 	token, Accespayload, err := s.token.CreateToken(req.Username, s.config.TokenDuration)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -129,7 +145,7 @@ func (s *Handler) Login(c echo.Context) error {
 		IsBlocked:    false,
 		ExpiresAt:    refreshPayload.ExpiredAt,
 	}
-	
+
 	session, err := s.store.CreateSession(c.Request().Context(), arg)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -142,7 +158,6 @@ func (s *Handler) Login(c echo.Context) error {
 		AccesToken:            token,
 		AccesTokenExpiresAt:   Accespayload.ExpiredAt.UTC().Local(),
 	}
-	//c.Response().Header().Add("refreshtoken",refreshToken)
 	return c.JSON(http.StatusOK, resp)
 }
 

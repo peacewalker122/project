@@ -2,6 +2,8 @@ package notifquery
 
 import (
 	"context"
+	"database/sql"
+	"log"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -30,11 +32,9 @@ func (n *notifQuery) CreateNotif(ctx context.Context, Params *NotifParams) (*ent
 	for _, v := range Params.AccountID {
 		res, err = n.Client.Notif.
 			Create().
-			SetNotifID(uid).
+			SetID(uid).
 			SetAccountID(v).
 			SetNotifType(Params.NotifType).
-			SetNotifTitle(Params.NotifTitle).
-			SetNotifContent(Params.NotifContent).
 			SetNotifTime(Params.NotifTime).
 			Save(ctx)
 	}
@@ -60,7 +60,7 @@ func (n *notifQuery) GetNotifByAccount(ctx context.Context, accountID int64) ([]
 func (n *notifQuery) DeleteNotif(ctx context.Context, notifID uuid.UUID) error {
 	_, err := n.Client.Notif.
 		Delete().
-		Where(notif.NotifID(notifID)).
+		Where(notif.ID(notifID)).
 		Exec(ctx)
 	if err != nil {
 		return err
@@ -68,8 +68,15 @@ func (n *notifQuery) DeleteNotif(ctx context.Context, notifID uuid.UUID) error {
 	return nil
 }
 
-func NewNotifQuery(db *entsql.Driver) NotifQuery {
+func NewNotifQuery(db string) NotifQuery {
+	sql, err := sql.Open("postgres", db)
+	if err != nil {
+		log.Panic(err.Error())
+	}
+	drv := entsql.OpenDB("postgres", sql)
+	//defer sql.Close()
+
 	return &notifQuery{
-		Client: ent.NewClient(ent.Driver(db)),
+		Client: ent.NewClient(ent.Driver(drv)),
 	}
 }

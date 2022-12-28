@@ -16,9 +16,7 @@ import (
 type Notif struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
-	// NotifID holds the value of the "notif_id" field.
-	NotifID uuid.UUID `json:"notif_id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// AccountID holds the value of the "account_id" field.
 	AccountID int64 `json:"account_id,omitempty"`
 	// NotifType holds the value of the "notif_type" field.
@@ -38,13 +36,13 @@ func (*Notif) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case notif.FieldID, notif.FieldAccountID:
+		case notif.FieldAccountID:
 			values[i] = new(sql.NullInt64)
 		case notif.FieldNotifType, notif.FieldNotifTitle, notif.FieldNotifContent:
 			values[i] = new(sql.NullString)
 		case notif.FieldNotifTime, notif.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case notif.FieldNotifID:
+		case notif.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Notif", columns[i])
@@ -62,16 +60,10 @@ func (n *Notif) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case notif.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
-			}
-			n.ID = int(value.Int64)
-		case notif.FieldNotifID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field notif_id", values[i])
+				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				n.NotifID = *value
+				n.ID = *value
 			}
 		case notif.FieldAccountID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -138,9 +130,6 @@ func (n *Notif) String() string {
 	var builder strings.Builder
 	builder.WriteString("Notif(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", n.ID))
-	builder.WriteString("notif_id=")
-	builder.WriteString(fmt.Sprintf("%v", n.NotifID))
-	builder.WriteString(", ")
 	builder.WriteString("account_id=")
 	builder.WriteString(fmt.Sprintf("%v", n.AccountID))
 	builder.WriteString(", ")

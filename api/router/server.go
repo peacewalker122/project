@@ -41,7 +41,7 @@ func Newserver(c util.Config, store db.Store, redisStore redis.Store) (*Server, 
 		Auth:   NewUtil(validator.New()),
 		Token:  newtoken,
 	}
-	server.UtilTools = apiutil.NewApiUtil(store, redisStore)
+	server.UtilTools = apiutil.NewApiUtil(store, redisStore, c)
 	server.handler, server.FileString = handler.NewHandler(store, redisStore, c, newtoken, server.UtilTools)
 	server.routerhandle()
 	return server, nil

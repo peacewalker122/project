@@ -10,6 +10,8 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	uuid "github.com/google/uuid"
+	ent "github.com/peacewalker122/project/db/ent"
+	notifquery "github.com/peacewalker122/project/db/model/notif_query"
 	db "github.com/peacewalker122/project/db/sqlc"
 )
 
@@ -183,6 +185,21 @@ func (m *MockStore) CreateLike_feature(arg0 context.Context, arg1 db.CreateLike_
 func (mr *MockStoreMockRecorder) CreateLike_feature(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLike_feature", reflect.TypeOf((*MockStore)(nil).CreateLike_feature), arg0, arg1)
+}
+
+// CreateNotif mocks base method.
+func (m *MockStore) CreateNotif(arg0 context.Context, arg1 *notifquery.NotifParams) (*ent.Notif, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateNotif", arg0, arg1)
+	ret0, _ := ret[0].(*ent.Notif)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateNotif indicates an expected call of CreateNotif.
+func (mr *MockStoreMockRecorder) CreateNotif(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNotif", reflect.TypeOf((*MockStore)(nil).CreateNotif), arg0, arg1)
 }
 
 // CreatePost mocks base method.
@@ -404,6 +421,20 @@ func (m *MockStore) DeleteAcoountsQueue(arg0 context.Context, arg1 db.DeleteAcoo
 func (mr *MockStoreMockRecorder) DeleteAcoountsQueue(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAcoountsQueue", reflect.TypeOf((*MockStore)(nil).DeleteAcoountsQueue), arg0, arg1)
+}
+
+// DeleteNotif mocks base method.
+func (m *MockStore) DeleteNotif(arg0 context.Context, arg1 uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteNotif", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteNotif indicates an expected call of DeleteNotif.
+func (mr *MockStoreMockRecorder) DeleteNotif(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNotif", reflect.TypeOf((*MockStore)(nil).DeleteNotif), arg0, arg1)
 }
 
 // DeletePost mocks base method.
@@ -698,6 +729,21 @@ func (m *MockStore) GetLikejoin(arg0 context.Context, arg1 int64) (bool, error) 
 func (mr *MockStoreMockRecorder) GetLikejoin(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLikejoin", reflect.TypeOf((*MockStore)(nil).GetLikejoin), arg0, arg1)
+}
+
+// GetNotifByAccount mocks base method.
+func (m *MockStore) GetNotifByAccount(arg0 context.Context, arg1 int64) ([]*ent.Notif, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNotifByAccount", arg0, arg1)
+	ret0, _ := ret[0].([]*ent.Notif)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNotifByAccount indicates an expected call of GetNotifByAccount.
+func (mr *MockStoreMockRecorder) GetNotifByAccount(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNotifByAccount", reflect.TypeOf((*MockStore)(nil).GetNotifByAccount), arg0, arg1)
 }
 
 // GetPost mocks base method.

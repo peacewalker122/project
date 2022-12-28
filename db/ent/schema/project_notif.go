@@ -17,8 +17,7 @@ type Notif struct {
 // Fields of the Notif.
 func (Notif) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("notif_id", uuid.UUID{}).
-			StorageKey("oid").
+		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
 
 		field.Int64("account_id"),
@@ -27,9 +26,11 @@ func (Notif) Fields() []ent.Field {
 			MaxLen(255),
 
 		field.String("notif_title").
-			MaxLen(50),
+			MaxLen(50).
+			Optional(),
 
 		field.String("notif_content").
+			Optional().
 			MaxLen(255),
 
 		field.Time("notif_time").
