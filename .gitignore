@@ -2,3 +2,5 @@ project-socmed-a72a5157bae8.json
 backup.txt
 *.env
 *.idea
+/template
+/template/*

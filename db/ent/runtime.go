@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/peacewalker122/project/db/ent/notif"
+	"github.com/peacewalker122/project/db/ent/accountnotif"
 	"github.com/peacewalker122/project/db/ent/notifread"
 	"github.com/peacewalker122/project/db/ent/schema"
 )
@@ -15,32 +15,32 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	notifFields := schema.Notif{}.Fields()
-	_ = notifFields
-	// notifDescNotifType is the schema descriptor for notif_type field.
-	notifDescNotifType := notifFields[2].Descriptor()
-	// notif.NotifTypeValidator is a validator for the "notif_type" field. It is called by the builders before save.
-	notif.NotifTypeValidator = notifDescNotifType.Validators[0].(func(string) error)
-	// notifDescNotifTitle is the schema descriptor for notif_title field.
-	notifDescNotifTitle := notifFields[3].Descriptor()
-	// notif.NotifTitleValidator is a validator for the "notif_title" field. It is called by the builders before save.
-	notif.NotifTitleValidator = notifDescNotifTitle.Validators[0].(func(string) error)
-	// notifDescNotifContent is the schema descriptor for notif_content field.
-	notifDescNotifContent := notifFields[4].Descriptor()
-	// notif.NotifContentValidator is a validator for the "notif_content" field. It is called by the builders before save.
-	notif.NotifContentValidator = notifDescNotifContent.Validators[0].(func(string) error)
-	// notifDescNotifTime is the schema descriptor for notif_time field.
-	notifDescNotifTime := notifFields[5].Descriptor()
-	// notif.DefaultNotifTime holds the default value on creation for the notif_time field.
-	notif.DefaultNotifTime = notifDescNotifTime.Default.(func() time.Time)
-	// notifDescCreatedAt is the schema descriptor for created_at field.
-	notifDescCreatedAt := notifFields[6].Descriptor()
-	// notif.DefaultCreatedAt holds the default value on creation for the created_at field.
-	notif.DefaultCreatedAt = notifDescCreatedAt.Default.(func() time.Time)
-	// notifDescID is the schema descriptor for id field.
-	notifDescID := notifFields[0].Descriptor()
-	// notif.DefaultID holds the default value on creation for the id field.
-	notif.DefaultID = notifDescID.Default.(func() uuid.UUID)
+	accountnotifFields := schema.AccountNotif{}.Fields()
+	_ = accountnotifFields
+	// accountnotifDescNotifType is the schema descriptor for notif_type field.
+	accountnotifDescNotifType := accountnotifFields[2].Descriptor()
+	// accountnotif.NotifTypeValidator is a validator for the "notif_type" field. It is called by the builders before save.
+	accountnotif.NotifTypeValidator = accountnotifDescNotifType.Validators[0].(func(string) error)
+	// accountnotifDescNotifTitle is the schema descriptor for notif_title field.
+	accountnotifDescNotifTitle := accountnotifFields[3].Descriptor()
+	// accountnotif.NotifTitleValidator is a validator for the "notif_title" field. It is called by the builders before save.
+	accountnotif.NotifTitleValidator = accountnotifDescNotifTitle.Validators[0].(func(string) error)
+	// accountnotifDescNotifContent is the schema descriptor for notif_content field.
+	accountnotifDescNotifContent := accountnotifFields[4].Descriptor()
+	// accountnotif.NotifContentValidator is a validator for the "notif_content" field. It is called by the builders before save.
+	accountnotif.NotifContentValidator = accountnotifDescNotifContent.Validators[0].(func(string) error)
+	// accountnotifDescNotifTime is the schema descriptor for notif_time field.
+	accountnotifDescNotifTime := accountnotifFields[5].Descriptor()
+	// accountnotif.DefaultNotifTime holds the default value on creation for the notif_time field.
+	accountnotif.DefaultNotifTime = accountnotifDescNotifTime.Default.(func() time.Time)
+	// accountnotifDescCreatedAt is the schema descriptor for created_at field.
+	accountnotifDescCreatedAt := accountnotifFields[6].Descriptor()
+	// accountnotif.DefaultCreatedAt holds the default value on creation for the created_at field.
+	accountnotif.DefaultCreatedAt = accountnotifDescCreatedAt.Default.(func() time.Time)
+	// accountnotifDescID is the schema descriptor for id field.
+	accountnotifDescID := accountnotifFields[0].Descriptor()
+	// accountnotif.DefaultID holds the default value on creation for the id field.
+	accountnotif.DefaultID = accountnotifDescID.Default.(func() uuid.UUID)
 	notifreadFields := schema.NotifRead{}.Fields()
 	_ = notifreadFields
 	// notifreadDescNotifID is the schema descriptor for notif_id field.

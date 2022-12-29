@@ -13,6 +13,7 @@ type Config struct {
 	RedisSource       string        `mapstructure:"REDIS_ADDR"`
 	Email             string        `mapstructure:"EMAIL_HOST"`
 	EmailPass         string        `mapstructure:"EMAIL_PASSWORD"`
+	SignUpLink        string        `mapstructure:"SIGNUPLINK"`
 	HTTPServerAddress string        `mapstructure:"HTTP_SERVER_ADDRESS"`
 	TokenKey          string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	AuthErrorAddres   string        `mapstructure:"REDIRECT_AUTH_TOKEN"`

@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	// NotifsColumns holds the columns for the "notifs" table.
-	NotifsColumns = []*schema.Column{
+	// AccountNotifsColumns holds the columns for the "account_notifs" table.
+	AccountNotifsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "account_id", Type: field.TypeInt64},
 		{Name: "notif_type", Type: field.TypeString, Size: 255},
@@ -18,16 +18,16 @@ var (
 		{Name: "notif_time", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 	}
-	// NotifsTable holds the schema information for the "notifs" table.
-	NotifsTable = &schema.Table{
-		Name:       "notifs",
-		Columns:    NotifsColumns,
-		PrimaryKey: []*schema.Column{NotifsColumns[0]},
+	// AccountNotifsTable holds the schema information for the "account_notifs" table.
+	AccountNotifsTable = &schema.Table{
+		Name:       "account_notifs",
+		Columns:    AccountNotifsColumns,
+		PrimaryKey: []*schema.Column{AccountNotifsColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "notif_created_at",
+				Name:    "accountnotif_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{NotifsColumns[6]},
+				Columns: []*schema.Column{AccountNotifsColumns[6]},
 			},
 		},
 	}
@@ -46,7 +46,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		NotifsTable,
+		AccountNotifsTable,
 		NotifReadsTable,
 	}
 )

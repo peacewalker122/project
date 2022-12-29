@@ -9,11 +9,11 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/peacewalker122/project/db/ent/notif"
+	"github.com/peacewalker122/project/db/ent/accountnotif"
 )
 
-// Notif is the model entity for the Notif schema.
-type Notif struct {
+// AccountNotif is the model entity for the AccountNotif schema.
+type AccountNotif struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
@@ -32,132 +32,132 @@ type Notif struct {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Notif) scanValues(columns []string) ([]any, error) {
+func (*AccountNotif) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case notif.FieldAccountID:
+		case accountnotif.FieldAccountID:
 			values[i] = new(sql.NullInt64)
-		case notif.FieldNotifType, notif.FieldNotifTitle, notif.FieldNotifContent:
+		case accountnotif.FieldNotifType, accountnotif.FieldNotifTitle, accountnotif.FieldNotifContent:
 			values[i] = new(sql.NullString)
-		case notif.FieldNotifTime, notif.FieldCreatedAt:
+		case accountnotif.FieldNotifTime, accountnotif.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
-		case notif.FieldID:
+		case accountnotif.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Notif", columns[i])
+			return nil, fmt.Errorf("unexpected column %q for type AccountNotif", columns[i])
 		}
 	}
 	return values, nil
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Notif fields.
-func (n *Notif) assignValues(columns []string, values []any) error {
+// to the AccountNotif fields.
+func (an *AccountNotif) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case notif.FieldID:
+		case accountnotif.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				n.ID = *value
+				an.ID = *value
 			}
-		case notif.FieldAccountID:
+		case accountnotif.FieldAccountID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field account_id", values[i])
 			} else if value.Valid {
-				n.AccountID = value.Int64
+				an.AccountID = value.Int64
 			}
-		case notif.FieldNotifType:
+		case accountnotif.FieldNotifType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field notif_type", values[i])
 			} else if value.Valid {
-				n.NotifType = value.String
+				an.NotifType = value.String
 			}
-		case notif.FieldNotifTitle:
+		case accountnotif.FieldNotifTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field notif_title", values[i])
 			} else if value.Valid {
-				n.NotifTitle = value.String
+				an.NotifTitle = value.String
 			}
-		case notif.FieldNotifContent:
+		case accountnotif.FieldNotifContent:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field notif_content", values[i])
 			} else if value.Valid {
-				n.NotifContent = value.String
+				an.NotifContent = value.String
 			}
-		case notif.FieldNotifTime:
+		case accountnotif.FieldNotifTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field notif_time", values[i])
 			} else if value.Valid {
-				n.NotifTime = new(time.Time)
-				*n.NotifTime = value.Time
+				an.NotifTime = new(time.Time)
+				*an.NotifTime = value.Time
 			}
-		case notif.FieldCreatedAt:
+		case accountnotif.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				n.CreatedAt = value.Time
+				an.CreatedAt = value.Time
 			}
 		}
 	}
 	return nil
 }
 
-// Update returns a builder for updating this Notif.
-// Note that you need to call Notif.Unwrap() before calling this method if this Notif
+// Update returns a builder for updating this AccountNotif.
+// Note that you need to call AccountNotif.Unwrap() before calling this method if this AccountNotif
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (n *Notif) Update() *NotifUpdateOne {
-	return (&NotifClient{config: n.config}).UpdateOne(n)
+func (an *AccountNotif) Update() *AccountNotifUpdateOne {
+	return (&AccountNotifClient{config: an.config}).UpdateOne(an)
 }
 
-// Unwrap unwraps the Notif entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the AccountNotif entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (n *Notif) Unwrap() *Notif {
-	_tx, ok := n.config.driver.(*txDriver)
+func (an *AccountNotif) Unwrap() *AccountNotif {
+	_tx, ok := an.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: Notif is not a transactional entity")
+		panic("ent: AccountNotif is not a transactional entity")
 	}
-	n.config.driver = _tx.drv
-	return n
+	an.config.driver = _tx.drv
+	return an
 }
 
 // String implements the fmt.Stringer.
-func (n *Notif) String() string {
+func (an *AccountNotif) String() string {
 	var builder strings.Builder
-	builder.WriteString("Notif(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", n.ID))
+	builder.WriteString("AccountNotif(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", an.ID))
 	builder.WriteString("account_id=")
-	builder.WriteString(fmt.Sprintf("%v", n.AccountID))
+	builder.WriteString(fmt.Sprintf("%v", an.AccountID))
 	builder.WriteString(", ")
 	builder.WriteString("notif_type=")
-	builder.WriteString(n.NotifType)
+	builder.WriteString(an.NotifType)
 	builder.WriteString(", ")
 	builder.WriteString("notif_title=")
-	builder.WriteString(n.NotifTitle)
+	builder.WriteString(an.NotifTitle)
 	builder.WriteString(", ")
 	builder.WriteString("notif_content=")
-	builder.WriteString(n.NotifContent)
+	builder.WriteString(an.NotifContent)
 	builder.WriteString(", ")
-	if v := n.NotifTime; v != nil {
+	if v := an.NotifTime; v != nil {
 		builder.WriteString("notif_time=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(n.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(an.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// Notifs is a parsable slice of Notif.
-type Notifs []*Notif
+// AccountNotifs is a parsable slice of AccountNotif.
+type AccountNotifs []*AccountNotif
 
-func (n Notifs) config(cfg config) {
-	for _i := range n {
-		n[_i].config = cfg
+func (an AccountNotifs) config(cfg config) {
+	for _i := range an {
+		an[_i].config = cfg
 	}
 }

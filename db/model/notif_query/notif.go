@@ -8,13 +8,13 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/peacewalker122/project/db/ent"
-	"github.com/peacewalker122/project/db/ent/notif"
+	notif "github.com/peacewalker122/project/db/ent/accountnotif"
 )
 
 // NotifQuery returns a query builder for Notif.
 type NotifQuery interface {
-	CreateNotif(ctx context.Context, Params *NotifParams) (*ent.Notif, error)
-	GetNotifByAccount(ctx context.Context, accountID int64) ([]*ent.Notif, error)
+	CreateNotif(ctx context.Context, Params *NotifParams) (*ent.AccountNotif, error)
+	GetNotifByAccount(ctx context.Context, accountID int64) ([]*ent.AccountNotif, error)
 	DeleteNotif(ctx context.Context, notifID uuid.UUID) error
 }
 
@@ -23,14 +23,14 @@ type notifQuery struct {
 }
 
 // CreateNotif implements NotifQuery
-func (n *notifQuery) CreateNotif(ctx context.Context, Params *NotifParams) (*ent.Notif, error) {
+func (n *notifQuery) CreateNotif(ctx context.Context, Params *NotifParams) (*ent.AccountNotif, error) {
 	var (
 		err error
-		res *ent.Notif
+		res *ent.AccountNotif
 	)
 	uid := uuid.New() // we create this for make sure if we have a plenty notif it will called at the same time then sending it
 	for _, v := range Params.AccountID {
-		res, err = n.Client.Notif.
+		res, err = n.Client.AccountNotif.
 			Create().
 			SetID(uid).
 			SetAccountID(v).
@@ -45,8 +45,8 @@ func (n *notifQuery) CreateNotif(ctx context.Context, Params *NotifParams) (*ent
 }
 
 // GetNotifByAccount implements NotifQuery
-func (n *notifQuery) GetNotifByAccount(ctx context.Context, accountID int64) ([]*ent.Notif, error) {
-	res, err := n.Client.Notif.
+func (n *notifQuery) GetNotifByAccount(ctx context.Context, accountID int64) ([]*ent.AccountNotif, error) {
+	res, err := n.Client.AccountNotif.
 		Query().
 		Where(notif.AccountID(accountID)).
 		All(ctx)
@@ -58,7 +58,7 @@ func (n *notifQuery) GetNotifByAccount(ctx context.Context, accountID int64) ([]
 
 // DeleteNotif implements NotifQuery
 func (n *notifQuery) DeleteNotif(ctx context.Context, notifID uuid.UUID) error {
-	_, err := n.Client.Notif.
+	_, err := n.Client.AccountNotif.
 		Delete().
 		Where(notif.ID(notifID)).
 		Exec(ctx)

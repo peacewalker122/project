@@ -6,8 +6,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Notif is the predicate function for notif builders.
-type Notif func(*sql.Selector)
+// AccountNotif is the predicate function for accountnotif builders.
+type AccountNotif func(*sql.Selector)
 
 // NotifRead is the predicate function for notifread builders.
 type NotifRead func(*sql.Selector)

@@ -42,7 +42,14 @@ func main() {
 		log.Fatal("can't establish the connection")
 	}
 
-	if err := server.StartHTTP(config.HTTPServerAddress); err != nil {
-		log.Fatal("unable to establish the connection due: ", err.Error())
+	chanerr := make(chan error)
+
+	go func(server *api.Server, chanerr chan error) {
+		chanerr <- server.StartHTTP(config.HTTPServerAddress)
+	}(server, chanerr)
+
+	err = <-chanerr
+	if err != nil {
+		log.Fatal("can't start the server")
 	}
 }

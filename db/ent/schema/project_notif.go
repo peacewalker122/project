@@ -10,12 +10,12 @@ import (
 )
 
 // Notif holds the schema definition for the Notif entity.
-type Notif struct {
+type AccountNotif struct {
 	ent.Schema
 }
 
 // Fields of the Notif.
-func (Notif) Fields() []ent.Field {
+func (AccountNotif) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
@@ -44,13 +44,13 @@ func (Notif) Fields() []ent.Field {
 	}
 }
 
-// Edges of the Notif.
-func (Notif) Edges() []ent.Edge {
+// Edges of the AccountNotif.
+func (AccountNotif) Edges() []ent.Edge {
 	return nil
 }
 
-// Indexes of the Notif.
-func (Notif) Indexes() []ent.Index {
+// Indexes of the AccountNotif.
+func (AccountNotif) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("created_at"),
 	}

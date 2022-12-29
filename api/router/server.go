@@ -49,12 +49,13 @@ func Newserver(c util.Config, store db.Store, redisStore redis.Store) (*Server, 
 
 func (s *Server) routerhandle() {
 	router := echo.New()
-	router.Use(middleware.LoggerWithConfig(Logger()))
+	router.Use(middlewareLogging)
 	//router.Use(middleware.HTTPSRedirectWithConfig(Redirect()))
 	router.Validator = s.Auth.Validator
 	router.HTTPErrorHandler = s.Auth.HTTPErrorHandler
 
-	router.POST("/user", s.handler.CreateUser)
+	router.POST("/user", s.handler.CreateRequestUser)
+	router.POST("/user/signup/:uuid", s.handler.CreateUser)
 	router.POST("/token/renew", s.handler.RenewToken)
 	router.POST("/user/login", s.handler.Login)
 

@@ -188,10 +188,10 @@ func (mr *MockStoreMockRecorder) CreateLike_feature(arg0, arg1 interface{}) *gom
 }
 
 // CreateNotif mocks base method.
-func (m *MockStore) CreateNotif(arg0 context.Context, arg1 *notifquery.NotifParams) (*ent.Notif, error) {
+func (m *MockStore) CreateNotif(arg0 context.Context, arg1 *notifquery.NotifParams) (*ent.AccountNotif, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateNotif", arg0, arg1)
-	ret0, _ := ret[0].(*ent.Notif)
+	ret0, _ := ret[0].(*ent.AccountNotif)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -657,6 +657,21 @@ func (mr *MockStoreMockRecorder) GetDirectory(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDirectory", reflect.TypeOf((*MockStore)(nil).GetDirectory), arg0)
 }
 
+// GetEmail mocks base method.
+func (m *MockStore) GetEmail(arg0 context.Context, arg1 db.GetEmailParams) (db.GetEmailRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetEmail", arg0, arg1)
+	ret0, _ := ret[0].(db.GetEmailRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetEmail indicates an expected call of GetEmail.
+func (mr *MockStoreMockRecorder) GetEmail(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEmail", reflect.TypeOf((*MockStore)(nil).GetEmail), arg0, arg1)
+}
+
 // GetEntries mocks base method.
 func (m *MockStore) GetEntries(arg0 context.Context, arg1 int64) (db.Entry, error) {
 	m.ctrl.T.Helper()
@@ -732,10 +747,10 @@ func (mr *MockStoreMockRecorder) GetLikejoin(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // GetNotifByAccount mocks base method.
-func (m *MockStore) GetNotifByAccount(arg0 context.Context, arg1 int64) ([]*ent.Notif, error) {
+func (m *MockStore) GetNotifByAccount(arg0 context.Context, arg1 int64) ([]*ent.AccountNotif, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNotifByAccount", arg0, arg1)
-	ret0, _ := ret[0].([]*ent.Notif)
+	ret0, _ := ret[0].([]*ent.AccountNotif)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

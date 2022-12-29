@@ -1,4 +1,4 @@
-CREATE TABLE "account_notif"(
+CREATE TABLE "account_notifs"(
     "id" uuid PRIMARY KEY,
     "account_id" bigint NOT NULL,
     "notif_type" varchar NOT NULL,
