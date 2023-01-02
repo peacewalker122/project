@@ -11,7 +11,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lib/pq"
 	api "github.com/peacewalker122/project/api/util"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/util"
@@ -33,7 +32,6 @@ type CreateUserParam struct {
 	FullName       string `json:"full_name" form:"full_name" validate:"required,min=3,max=100"`
 	Email          string `json:"email" form:"email" validate:"required,email"`
 }
-
 type CreatingUser struct {
 	Token int `json:"token" form:"token" validate:"required"`
 }
@@ -50,13 +48,10 @@ func (s *Handler) CreateRequestUser(c echo.Context) error {
 		return c.JSONPretty(http.StatusBadRequest, errors, "    ")
 	}
 
-	test, err := s.store.GetEmail(c.Request().Context(), db.GetEmailParams{Email: req.Email})
+	_, err := s.store.GetEmail(c.Request().Context(), db.GetEmailParams{Email: req.Email})
 	if err == nil {
 		Errors["email"] = errors.New("email already exist").Error()
 	}
-
-	log.Println(test)
-
 	_, err = s.store.GetEmail(c.Request().Context(), db.GetEmailParams{Username: req.Username})
 	if err == nil {
 		Errors["username"] = errors.New("username already exist").Error()
@@ -89,9 +84,9 @@ func (s *Handler) CreateRequestUser(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, v.Error())
 		}
 	}
-	wg.Wait()
 	// here we send the email
 	c.Response().Header().Add("uuid", uid.String())
+	wg.Wait()
 	return c.JSON(http.StatusOK, "success")
 }
 
@@ -124,40 +119,20 @@ func (s *Handler) CreateUser(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	arg := db.CreateUserParams{
-		Username:       req.Username,
-		HashedPassword: hashpass,
-		FullName:       req.FullName,
-		Email:          req.Email,
+	arg := db.CreateUserParamsTx{
+		Username: req.Username,
+		Password: hashpass,
+		FullName: req.FullName,
+		Email:    req.Email,
 	}
 
-	user, err := s.store.CreateUser(c.Request().Context(), arg)
+	res, err := s.store.CreateUserTx(c.Request().Context(), arg)
 	if err != nil {
-		if pqerr, ok := err.(*pq.Error); ok {
-			switch pqerr.Code.Name() {
-			case "unique_violation":
-				return c.JSON(http.StatusForbidden, err.Error())
-			}
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(res.ErrCode, res.Error.Error())
 	}
 
-	argaccount := db.CreateAccountsParams{
-		Owner: req.Username,
-	}
-
-	res, err := s.store.CreateAccounts(c.Request().Context(), argaccount)
-	if err != nil {
-		if pqerr, ok := err.(*pq.Error); ok {
-			switch pqerr.Code.Name() {
-			case "unique_violation", "foreign_key_violation":
-				return c.JSON(http.StatusForbidden, err.Error())
-			}
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	output := AccountResponse(res)
-	resp := CreateUserResponses(user, output)
+	output := AccountResponse(res.Account)
+	resp := CreateUserResponses(res.User, output)
 	return c.JSON(http.StatusOK, resp)
 }
 

@@ -12,6 +12,7 @@ import (
 	uuid "github.com/google/uuid"
 	ent "github.com/peacewalker122/project/db/ent"
 	notifquery "github.com/peacewalker122/project/db/model/notif_query"
+	tokens "github.com/peacewalker122/project/db/model/tokens"
 	db "github.com/peacewalker122/project/db/sqlc"
 )
 
@@ -379,6 +380,21 @@ func (m *MockStore) CreateUser(arg0 context.Context, arg1 db.CreateUserParams) (
 func (mr *MockStoreMockRecorder) CreateUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockStore)(nil).CreateUser), arg0, arg1)
+}
+
+// CreateUserTx mocks base method.
+func (m *MockStore) CreateUserTx(arg0 context.Context, arg1 db.CreateUserParamsTx) (db.CreateUserTXResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUserTx", arg0, arg1)
+	ret0, _ := ret[0].(db.CreateUserTXResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUserTx indicates an expected call of CreateUserTx.
+func (mr *MockStoreMockRecorder) CreateUserTx(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserTx", reflect.TypeOf((*MockStore)(nil).CreateUserTx), arg0, arg1)
 }
 
 // DeleteAccountQueue mocks base method.
@@ -986,6 +1002,21 @@ func (mr *MockStoreMockRecorder) GetSessionuser(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSessionuser", reflect.TypeOf((*MockStore)(nil).GetSessionuser), arg0, arg1)
 }
 
+// GetToken mocks base method.
+func (m *MockStore) GetToken(arg0 context.Context, arg1 string) (*ent.Tokens, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetToken", arg0, arg1)
+	ret0, _ := ret[0].(*ent.Tokens)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetToken indicates an expected call of GetToken.
+func (mr *MockStoreMockRecorder) GetToken(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken", reflect.TypeOf((*MockStore)(nil).GetToken), arg0, arg1)
+}
+
 // GetUser mocks base method.
 func (m *MockStore) GetUser(arg0 context.Context, arg1 string) (db.User, error) {
 	m.ctrl.T.Helper()
@@ -999,6 +1030,21 @@ func (m *MockStore) GetUser(arg0 context.Context, arg1 string) (db.User, error) 
 func (mr *MockStoreMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockStore)(nil).GetUser), arg0, arg1)
+}
+
+// IsTokenExist mocks base method.
+func (m *MockStore) IsTokenExist(arg0 context.Context, arg1 string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsTokenExist", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsTokenExist indicates an expected call of IsTokenExist.
+func (mr *MockStoreMockRecorder) IsTokenExist(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTokenExist", reflect.TypeOf((*MockStore)(nil).IsTokenExist), arg0, arg1)
 }
 
 // ListAccounts mocks base method.
@@ -1103,6 +1149,21 @@ func (m *MockStore) PrivateAccount(arg0 context.Context, arg1 db.PrivateAccountP
 func (mr *MockStoreMockRecorder) PrivateAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrivateAccount", reflect.TypeOf((*MockStore)(nil).PrivateAccount), arg0, arg1)
+}
+
+// SetToken mocks base method.
+func (m *MockStore) SetToken(arg0 context.Context, arg1 *tokens.TokensParams) (*ent.Tokens, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetToken", arg0, arg1)
+	ret0, _ := ret[0].(*ent.Tokens)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetToken indicates an expected call of SetToken.
+func (mr *MockStoreMockRecorder) SetToken(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetToken", reflect.TypeOf((*MockStore)(nil).SetToken), arg0, arg1)
 }
 
 // UnFollowtx mocks base method.
@@ -1263,4 +1324,18 @@ func (m *MockStore) UpdateRetweet(arg0 context.Context, arg1 db.UpdateRetweetPar
 func (mr *MockStoreMockRecorder) UpdateRetweet(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRetweet", reflect.TypeOf((*MockStore)(nil).UpdateRetweet), arg0, arg1)
+}
+
+// UpdateToken mocks base method.
+func (m *MockStore) UpdateToken(arg0 context.Context, arg1 *tokens.TokensParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateToken", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateToken indicates an expected call of UpdateToken.
+func (mr *MockStoreMockRecorder) UpdateToken(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateToken", reflect.TypeOf((*MockStore)(nil).UpdateToken), arg0, arg1)
 }

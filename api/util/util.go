@@ -1,4 +1,4 @@
-package api
+package util
 
 import (
 	"context"
@@ -12,9 +12,11 @@ import (
 
 	"github.com/google/uuid"
 	notifquery "github.com/peacewalker122/project/db/model/notif_query"
+	"github.com/peacewalker122/project/db/model/tokens"
 	"github.com/peacewalker122/project/db/redis"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/util"
+	"golang.org/x/oauth2"
 	"gopkg.in/gomail.v2"
 )
 
@@ -29,6 +31,7 @@ type UtilTools interface {
 	SendEmailWithNotif(ctx context.Context, params SendEmail) error // make sure params.params is in order: email, ipAdrress, type
 	CreateEmailAuth(ctx context.Context, email string) (uuid.UUID, error)
 	VerifyEmailAuth(ctx context.Context, uid string, token int) (bool, error)
+	TokenHelper(ctx context.Context, token oauth2.TokenSource) (*oauth2.Token, error)
 }
 
 func NewApiUtil(store db.Store, redis redis.Store, cfg util.Config) UtilTools {
@@ -37,6 +40,39 @@ func NewApiUtil(store db.Store, redis redis.Store, cfg util.Config) UtilTools {
 		redis: redis,
 		cfg:   cfg,
 	}
+}
+
+func (s *utilTools) TokenHelper(ctx context.Context, token oauth2.TokenSource) (*oauth2.Token, error) {
+	t, err := token.Token()
+	if err != nil {
+		return nil, err
+	}
+	if t.Valid() {
+		return t, nil
+	}
+	t, err = s.RefreshToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+func (s *utilTools) RefreshToken(ctx context.Context, token oauth2.TokenSource) (*oauth2.Token, error) {
+	var res oauth2.Token
+
+	newToken, err := oauth2.ReuseTokenSource(&res, token).Token()
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.store.UpdateToken(ctx, &tokens.TokensParams{
+		AccessToken:  newToken.AccessToken,
+		RefreshToken: newToken.RefreshToken,
+		ExpiresIn:    newToken.Expiry,
+		TokenType:    newToken.TokenType,
+	})
+
+	return newToken, nil
 }
 
 func ValidateFileType(input multipart.File) error {

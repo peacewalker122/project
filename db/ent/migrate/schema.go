@@ -44,10 +44,27 @@ var (
 		Columns:    NotifReadsColumns,
 		PrimaryKey: []*schema.Column{NotifReadsColumns[0]},
 	}
+	// TokensColumns holds the columns for the "tokens" table.
+	TokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "access_token", Type: field.TypeString, Size: 255},
+		{Name: "refresh_token", Type: field.TypeString, Size: 255},
+		{Name: "token_type", Type: field.TypeString, Size: 255},
+		{Name: "expires_in", Type: field.TypeTime},
+		{Name: "raw", Type: field.TypeJSON},
+	}
+	// TokensTable holds the schema information for the "tokens" table.
+	TokensTable = &schema.Table{
+		Name:       "tokens",
+		Columns:    TokensColumns,
+		PrimaryKey: []*schema.Column{TokensColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountNotifsTable,
 		NotifReadsTable,
+		TokensTable,
 	}
 )
 

@@ -9,6 +9,7 @@ import (
 	"github.com/peacewalker122/project/db/ent/accountnotif"
 	"github.com/peacewalker122/project/db/ent/notifread"
 	"github.com/peacewalker122/project/db/ent/schema"
+	"github.com/peacewalker122/project/db/ent/tokens"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -47,4 +48,50 @@ func init() {
 	notifreadDescNotifID := notifreadFields[0].Descriptor()
 	// notifread.DefaultNotifID holds the default value on creation for the notif_id field.
 	notifread.DefaultNotifID = notifreadDescNotifID.Default.(func() uuid.UUID)
+	tokensFields := schema.Tokens{}.Fields()
+	_ = tokensFields
+	// tokensDescEmail is the schema descriptor for email field.
+	tokensDescEmail := tokensFields[0].Descriptor()
+	// tokens.EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	tokens.EmailValidator = func() func(string) error {
+		validators := tokensDescEmail.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(email string) error {
+			for _, fn := range fns {
+				if err := fn(email); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// tokensDescAccessToken is the schema descriptor for access_token field.
+	tokensDescAccessToken := tokensFields[1].Descriptor()
+	// tokens.AccessTokenValidator is a validator for the "access_token" field. It is called by the builders before save.
+	tokens.AccessTokenValidator = func() func(string) error {
+		validators := tokensDescAccessToken.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(access_token string) error {
+			for _, fn := range fns {
+				if err := fn(access_token); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// tokensDescRefreshToken is the schema descriptor for refresh_token field.
+	tokensDescRefreshToken := tokensFields[2].Descriptor()
+	// tokens.RefreshTokenValidator is a validator for the "refresh_token" field. It is called by the builders before save.
+	tokens.RefreshTokenValidator = tokensDescRefreshToken.Validators[0].(func(string) error)
+	// tokensDescTokenType is the schema descriptor for token_type field.
+	tokensDescTokenType := tokensFields[3].Descriptor()
+	// tokens.TokenTypeValidator is a validator for the "token_type" field. It is called by the builders before save.
+	tokens.TokenTypeValidator = tokensDescTokenType.Validators[0].(func(string) error)
 }

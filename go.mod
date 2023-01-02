@@ -10,6 +10,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/lib/pq v1.10.7
 	github.com/spf13/viper v1.14.0
+	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
 	google.golang.org/api v0.102.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
@@ -35,7 +36,6 @@ require (
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect

@@ -11,3 +11,6 @@ type AccountNotif func(*sql.Selector)
 
 // NotifRead is the predicate function for notifread builders.
 type NotifRead func(*sql.Selector)
+
+// Tokens is the predicate function for tokens builders.
+type Tokens func(*sql.Selector)

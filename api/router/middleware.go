@@ -11,7 +11,7 @@ import (
 
 func middlewareLogging(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		makeLogEntry(c).Info("incoming request")
+		makeLogEntry(c).WithTime(time.Now()).Info("Request")
 		return next(c)
 	}
 }
@@ -28,7 +28,7 @@ func makeLogEntry(c echo.Context) *log.Entry {
 			"At": time.Now().Format("15:04:05"),
 		})
 	}
-	
+
 	return log.WithFields(log.Fields{
 		"Time":   time.Now().Format("15:04:05"),
 		"Method": c.Request().Method,

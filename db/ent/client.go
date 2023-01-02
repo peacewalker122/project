@@ -13,6 +13,7 @@ import (
 
 	"github.com/peacewalker122/project/db/ent/accountnotif"
 	"github.com/peacewalker122/project/db/ent/notifread"
+	"github.com/peacewalker122/project/db/ent/tokens"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -27,6 +28,8 @@ type Client struct {
 	AccountNotif *AccountNotifClient
 	// NotifRead is the client for interacting with the NotifRead builders.
 	NotifRead *NotifReadClient
+	// Tokens is the client for interacting with the Tokens builders.
+	Tokens *TokensClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -42,6 +45,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AccountNotif = NewAccountNotifClient(c.config)
 	c.NotifRead = NewNotifReadClient(c.config)
+	c.Tokens = NewTokensClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -77,6 +81,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:       cfg,
 		AccountNotif: NewAccountNotifClient(cfg),
 		NotifRead:    NewNotifReadClient(cfg),
+		Tokens:       NewTokensClient(cfg),
 	}, nil
 }
 
@@ -98,6 +103,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:       cfg,
 		AccountNotif: NewAccountNotifClient(cfg),
 		NotifRead:    NewNotifReadClient(cfg),
+		Tokens:       NewTokensClient(cfg),
 	}, nil
 }
 
@@ -128,6 +134,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.AccountNotif.Use(hooks...)
 	c.NotifRead.Use(hooks...)
+	c.Tokens.Use(hooks...)
 }
 
 // AccountNotifClient is a client for the AccountNotif schema.
@@ -308,4 +315,94 @@ func (c *NotifReadClient) GetX(ctx context.Context, id int) *NotifRead {
 // Hooks returns the client hooks.
 func (c *NotifReadClient) Hooks() []Hook {
 	return c.hooks.NotifRead
+}
+
+// TokensClient is a client for the Tokens schema.
+type TokensClient struct {
+	config
+}
+
+// NewTokensClient returns a client for the Tokens from the given config.
+func NewTokensClient(c config) *TokensClient {
+	return &TokensClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tokens.Hooks(f(g(h())))`.
+func (c *TokensClient) Use(hooks ...Hook) {
+	c.hooks.Tokens = append(c.hooks.Tokens, hooks...)
+}
+
+// Create returns a builder for creating a Tokens entity.
+func (c *TokensClient) Create() *TokensCreate {
+	mutation := newTokensMutation(c.config, OpCreate)
+	return &TokensCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Tokens entities.
+func (c *TokensClient) CreateBulk(builders ...*TokensCreate) *TokensCreateBulk {
+	return &TokensCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Tokens.
+func (c *TokensClient) Update() *TokensUpdate {
+	mutation := newTokensMutation(c.config, OpUpdate)
+	return &TokensUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TokensClient) UpdateOne(t *Tokens) *TokensUpdateOne {
+	mutation := newTokensMutation(c.config, OpUpdateOne, withTokens(t))
+	return &TokensUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TokensClient) UpdateOneID(id int) *TokensUpdateOne {
+	mutation := newTokensMutation(c.config, OpUpdateOne, withTokensID(id))
+	return &TokensUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Tokens.
+func (c *TokensClient) Delete() *TokensDelete {
+	mutation := newTokensMutation(c.config, OpDelete)
+	return &TokensDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TokensClient) DeleteOne(t *Tokens) *TokensDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TokensClient) DeleteOneID(id int) *TokensDeleteOne {
+	builder := c.Delete().Where(tokens.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TokensDeleteOne{builder}
+}
+
+// Query returns a query builder for Tokens.
+func (c *TokensClient) Query() *TokensQuery {
+	return &TokensQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Tokens entity by its id.
+func (c *TokensClient) Get(ctx context.Context, id int) (*Tokens, error) {
+	return c.Query().Where(tokens.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TokensClient) GetX(ctx context.Context, id int) *Tokens {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TokensClient) Hooks() []Hook {
+	return c.hooks.Tokens
 }
