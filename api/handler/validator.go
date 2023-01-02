@@ -10,6 +10,7 @@ import (
 	"net/mail"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
@@ -61,7 +62,7 @@ func (s *Handler) AuthAccount(c echo.Context, accountID int64) (int, error) {
 		}
 
 		// set into redis cache
-		err = s.redis.Set(c.Request().Context(), key, acc)
+		err = s.redis.Set(c.Request().Context(), key, acc, 15*time.Minute)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -74,6 +75,7 @@ func (s *Handler) AuthAccount(c echo.Context, accountID int64) (int, error) {
 
 		return 0, nil
 	}
+
 	// unmarshaling because we marshal into json for any value into set.
 	err = json.Unmarshal([]byte(session), &acc)
 	if err != nil {

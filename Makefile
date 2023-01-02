@@ -6,8 +6,8 @@ dropdb:
 	docker exec -it postgres12 dropdb project
 createdb:
 	docker exec -it postgres12 createdb --username=root --owner=root project
-migrateup:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose up
+migrateup:postg
+	migrate -path db/migration -database "resql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose up
 migrateup1:
 	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose up 1
 migrateup2:

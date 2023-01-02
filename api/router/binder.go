@@ -49,5 +49,5 @@ func (u *Util) HTTPErrorHandler(err error, c echo.Context) {
 	}
 
 	c.JSON(report.Code, errmsg)
-	c.Logger().Error(report)
+	makeLogEntry(c).Error(report.Message)
 }

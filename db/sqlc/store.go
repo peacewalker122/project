@@ -10,32 +10,22 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/lib/pq"
+	"github.com/peacewalker122/project/db/model"
 	"github.com/peacewalker122/project/db/redis"
 	"github.com/peacewalker122/project/util"
 )
 
 type Store interface {
 	Querier
-	CreateAccountsQueueTX(ctx context.Context, arg CreateAccountQueueParams) (bool, error)
-	DeleteQouteRetweetTX(ctx context.Context, arg UnRetweetTXParam) (int, error)
-	CreateQouteRetweet(ctx context.Context, arg CreateQRetweetParams) (int, error)
-	CreateQouteRetweetPostTX(ctx context.Context, arg CreateQRetweetParams) (CreateQRetweetResult, error)
-	CreateCommentTX(ctx context.Context, arg CreateCommentParams) (CreateCommentTXResult, error)
-	UnlikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
-	CreateLikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
-	DeleteRetweetTX(ctx context.Context, arg DeleteRetweetParams) error
-	CreateRetweetPost(ctx context.Context, arg CreateRetweetParams) (CreateRetweetResult, error)
-	CreateRetweetTX(ctx context.Context, arg CreateRetweetParams) (CreateRetweetTXResult, error)
-	Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error)
-	UnFollowtx(ctx context.Context, arg UnfollowTXParam) (UnFollowTXResult, error)
-	GetDirectory(path string) (string, error)
-	CreateFileIndex(path, filename string) (string, error)
-	CreatePostTx(ctx context.Context, arg CreatePostParams) (PostTXResult, error)
+	Model
+	model.Model // we using this due tx not needed right now
 }
 
 type SQLStore struct {
 	*Queries
 	db *sql.DB
+	model.Model
 }
 
 type NoSQLStore struct {
@@ -46,13 +36,15 @@ func newTeststore(db *sql.DB) Store {
 	return &SQLStore{
 		Queries: New(db),
 		db:      db,
+		Model:   model.NewModel(db),
 	}
 }
 
-func Newstore(db *sql.DB, RedisURL string) (Store, redis.Store) {
+func Newstore(db *sql.DB, Notif, RedisURL string) (Store, redis.Store) {
 	return &SQLStore{
 		Queries: New(db),
 		db:      db,
+		Model:   model.NewModel(db),
 	}, &NoSQLStore{Store: redis.NewRedis(RedisURL)}
 }
 
@@ -82,7 +74,32 @@ const (
 	UQR = "unqoute-retweet"
 )
 
+type Model interface {
+	CreateUserTx(ctx context.Context, arg CreateUserParamsTx) (CreateUserTXResult, error)
+	CreateAccountsQueueTX(ctx context.Context, arg CreateAccountQueueParams) (bool, error)
+	DeleteQouteRetweetTX(ctx context.Context, arg UnRetweetTXParam) (int, error)
+	CreateQouteRetweet(ctx context.Context, arg CreateQRetweetParams) (int, error)
+	CreateQouteRetweetPostTX(ctx context.Context, arg CreateQRetweetParams) (CreateQRetweetResult, error)
+	CreateCommentTX(ctx context.Context, arg CreateCommentParams) (CreateCommentTXResult, error)
+	UnlikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
+	CreateLikeTX(ctx context.Context, arg CreateLikeParams) (CreateLikeTXResult, error)
+	DeleteRetweetTX(ctx context.Context, arg DeleteRetweetParams) error
+	CreateRetweetPost(ctx context.Context, arg CreateRetweetParams) (CreateRetweetResult, error)
+	CreateRetweetTX(ctx context.Context, arg CreateRetweetParams) (CreateRetweetTXResult, error)
+	Followtx(ctx context.Context, arg FollowTXParam) (FollowTXResult, error)
+	UnFollowtx(ctx context.Context, arg UnfollowTXParam) (UnFollowTXResult, error)
+	GetDirectory(path string) (string, error)
+	CreateFileIndex(path, filename string) (string, error)
+	CreatePostTx(ctx context.Context, arg CreatePostParams) (PostTXResult, error)
+}
+
 type (
+	CreateUserParamsTx struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
+		FullName string `json:"full_name"`
+	}
 	CreateQRetweetParams struct {
 		FromAccountID int64  `json:"from_acc_id"`
 		PostID        int64  `json:"post_id"`
@@ -160,7 +177,55 @@ type (
 		PostFeature PostFeature `json:"post_feature"`
 		ErrCode     int         `json:"err_code"`
 	}
+	CreateUserTXResult struct {
+		User    User    `json:"user"`
+		Account Account `json:"account"`
+		Error   error   `json:"error"`
+		ErrCode int     `json:"err_code"`
+	}
 )
+
+func (s *SQLStore) CreateUserTx(ctx context.Context, arg CreateUserParamsTx) (CreateUserTXResult, error) {
+	var res CreateUserTXResult
+	err := s.execCtx(ctx, func(q *Queries) error {
+		var err error
+
+		res.User, err = q.CreateUser(ctx, CreateUserParams{
+			Username:       arg.Username,
+			HashedPassword: arg.Password,
+			Email:          arg.Email,
+			FullName:       arg.FullName,
+		})
+		if err != nil {
+			if pqerr, ok := err.(*pq.Error); ok {
+				switch pqerr.Code.Name() {
+				case "unique_violation":
+					res.ErrCode = http.StatusForbidden
+					res.Error = errors.New("username or email already exists")
+				}
+			}
+			res.ErrCode = http.StatusInternalServerError
+			res.Error = err
+		}
+
+		res.Account, err = q.CreateAccounts(ctx, CreateAccountsParams{
+			Owner: arg.Username,
+		})
+		if err != nil {
+			if pqerr, ok := err.(*pq.Error); ok {
+				switch pqerr.Code.Name() {
+				case "unique_violation", "foreign_key_violation":
+					res.ErrCode = http.StatusForbidden
+					res.Error = err
+				}
+			}
+			res.ErrCode = http.StatusInternalServerError
+			res.Error = err
+		}
+		return err
+	})
+	return res, err
+}
 
 func (s *SQLStore) CreateAccountsQueueTX(ctx context.Context, arg CreateAccountQueueParams) (bool, error) {
 	var result bool

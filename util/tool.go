@@ -60,3 +60,7 @@ func RandomType() string {
 	l := len(c)
 	return c[rand.Intn(l)]
 }
+
+func RandomUUID() string {
+	return fmt.Sprintf("%v-%v-%v-%v", Randomstring(8), Randomstring(4), Randomstring(4), Randomstring(12))
+}

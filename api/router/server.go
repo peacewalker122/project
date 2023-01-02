@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	auth "github.com/peacewalker122/project/api/auth"
 	handler "github.com/peacewalker122/project/api/handler"
+	"github.com/peacewalker122/project/api/oauth"
 	apiutil "github.com/peacewalker122/project/api/util"
 	"github.com/peacewalker122/project/db/redis"
 	db "github.com/peacewalker122/project/db/sqlc"
@@ -24,6 +25,7 @@ type Server struct {
 	handler handler.HandlerService
 	Auth    *Util
 	Router  *echo.Echo
+	Oauth   oauth.OauthService
 	apiutil.UtilTools
 	Token      token.Maker
 	FileString string
@@ -41,25 +43,30 @@ func Newserver(c util.Config, store db.Store, redisStore redis.Store) (*Server, 
 		Auth:   NewUtil(validator.New()),
 		Token:  newtoken,
 	}
-	server.UtilTools = apiutil.NewApiUtil(store, redisStore)
+	server.UtilTools = apiutil.NewApiUtil(store, redisStore, c)
 	server.handler, server.FileString = handler.NewHandler(store, redisStore, c, newtoken, server.UtilTools)
+	server.Oauth = oauth.NewHandler(store, redisStore, c, newtoken, server.UtilTools)
 	server.routerhandle()
 	return server, nil
 }
 
 func (s *Server) routerhandle() {
 	router := echo.New()
-	router.Use(middleware.LoggerWithConfig(Logger()))
+	router.Use(middlewareLogging)
 	//router.Use(middleware.HTTPSRedirectWithConfig(Redirect()))
 	router.Validator = s.Auth.Validator
 	router.HTTPErrorHandler = s.Auth.HTTPErrorHandler
 
-	router.POST("/user", s.handler.CreateUser)
+	router.POST("/user", s.handler.CreateRequestUser)
+	router.POST("/user/signup/:uuid", s.handler.CreateUser)
 	router.POST("/token/renew", s.handler.RenewToken)
 	router.POST("/user/login", s.handler.Login)
 
-	authRouter := router.Group("", auth.AuthMiddleware(s.Token))
-	//authRouter.POST("/account", s.handler.createAccount)
+	OauthRouter := router.Group("/oauth")
+	OauthRouter.GET("/google", s.Oauth.GoogleVerif)
+	OauthRouter.GET("/google/callback", s.Oauth.GoogleToken)
+
+	authRouter := router.Group("/auth", auth.AuthMiddleware(s.Token))
 	authRouter.GET("/account/:id", s.handler.GetAccounts)
 	authRouter.GET("/account", s.handler.ListAccount)
 	authRouter.POST("/account/private/:id", s.handler.UpdatePrivate)

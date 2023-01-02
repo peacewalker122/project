@@ -12,6 +12,10 @@ INSERT INTO users(
 SELECT * FROM users
 WHERE username = $1 LIMIT 1;
 
+-- name: GetEmail :one
+SELECT username,email FROM users
+WHERE email = @Email or username = @Username LIMIT 1;
+
 -- name: ListUser :many
 SELECT * FROM users
 ORDER BY username

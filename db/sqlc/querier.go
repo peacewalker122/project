@@ -38,6 +38,7 @@ type Querier interface {
 	GetAccountsInfo(ctx context.Context, accountsID int64) (GetAccountsInfoRow, error)
 	GetAccountsOwner(ctx context.Context, owner string) (Account, error)
 	GetAccountsQueue(ctx context.Context, arg GetAccountsQueueParams) (bool, error)
+	GetEmail(ctx context.Context, arg GetEmailParams) (GetEmailRow, error)
 	GetEntries(ctx context.Context, entriesID int64) (Entry, error)
 	GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error
 	GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeFeature, error)

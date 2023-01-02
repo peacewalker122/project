@@ -46,6 +46,28 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getEmail = `-- name: GetEmail :one
+SELECT username,email FROM users
+WHERE email = $1 or username = $2 LIMIT 1
+`
+
+type GetEmailParams struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+}
+
+type GetEmailRow struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+func (q *Queries) GetEmail(ctx context.Context, arg GetEmailParams) (GetEmailRow, error) {
+	row := q.db.QueryRowContext(ctx, getEmail, arg.Email, arg.Username)
+	var i GetEmailRow
+	err := row.Scan(&i.Username, &i.Email)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT username, hashed_password, full_name, email, password_changed_at, created_at FROM users
 WHERE username = $1 LIMIT 1

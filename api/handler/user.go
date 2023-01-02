@@ -2,72 +2,137 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
+	"sync"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lib/pq"
+	api "github.com/peacewalker122/project/api/util"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/util"
 )
 
+var (
+	Errors = map[string]string{}
+)
+
 type userService interface {
+	CreateRequestUser(c echo.Context) error
 	CreateUser(c echo.Context) error
 	Login(c echo.Context) error
 }
 
 type CreateUserParam struct {
-	Username       string `json:"username" validate:"required,min=4,max=100"`
-	HashedPassword string `json:"password" validate:"required,min=6,max=100"`
-	FullName       string `json:"full_name" validate:"required,min=3,max=100"`
-	Email          string `json:"email" validate:"required,email"`
+	Username       string `json:"username" form:"username" validate:"required,min=4,max=100"`
+	HashedPassword string `json:"password" form:"password" validate:"required,min=6,max=100"`
+	FullName       string `json:"full_name" form:"full_name" validate:"required,min=3,max=100"`
+	Email          string `json:"email" form:"email" validate:"required,email"`
+}
+type CreatingUser struct {
+	Token int `json:"token" form:"token" validate:"required"`
 }
 
-func (s *Handler) CreateUser(c echo.Context) error {
+func (s *Handler) CreateRequestUser(c echo.Context) error {
 	req := new(CreateUserParam)
 	if err := c.Bind(req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := c.Validate(req); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	if errors := ValidationCreateUserRequest(req); errors != nil {
 		return c.JSONPretty(http.StatusBadRequest, errors, "    ")
 	}
 
+	_, err := s.store.GetEmail(c.Request().Context(), db.GetEmailParams{Email: req.Email})
+	if err == nil {
+		Errors["email"] = errors.New("email already exist").Error()
+	}
+	_, err = s.store.GetEmail(c.Request().Context(), db.GetEmailParams{Username: req.Username})
+	if err == nil {
+		Errors["username"] = errors.New("username already exist").Error()
+	}
+
+	if len(Errors) > 0 {
+		return c.JSONPretty(http.StatusBadRequest, Errors, "    ")
+	}
+
+	var wg sync.WaitGroup
+	uuidchan := make(chan uuid.UUID, 1)
+	errchan := make(chan error, 2)
+
+	wg.Add(1)
+	go func(errchan chan error, uuidchan chan uuid.UUID) {
+		defer wg.Done()
+		uid, err := s.util.CreateEmailAuth(c.Request().Context(), req.Email)
+		errchan <- err
+		uuidchan <- uid
+		// here we set the key to redis
+		// to get the key we use the uuid
+		err = s.redis.Set(c.Request().Context(), uid.String()+"h", req, 3*time.Minute)
+		errchan <- err
+	}(errchan, uuidchan)
+
+	uid := <-uuidchan
+
+	for v := range errchan {
+		if v != nil {
+			return c.JSON(http.StatusBadRequest, v.Error())
+		}
+	}
+	// here we send the email
+	c.Response().Header().Add("uuid", uid.String())
+	wg.Wait()
+	return c.JSON(http.StatusOK, "success")
+}
+
+func (s *Handler) CreateUser(c echo.Context) error {
+	reqs := new(CreatingUser)
+	if err := c.Bind(reqs); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := c.Validate(reqs); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	requid := c.Param("uuid")
+
+	var req CreateUserParam
+	_, err = s.util.VerifyEmailAuth(c.Request().Context(), requid, reqs.Token)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, err.Error())
+	}
+
+	// here we get the key from redis
+	result, err := s.redis.Get(c.Request().Context(), requid+"h")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := json.Unmarshal([]byte(result), &req); err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
 	hashpass, err := util.HashPassword(req.HashedPassword)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	arg := db.CreateUserParams{
-		Username:       req.Username,
-		HashedPassword: hashpass,
-		FullName:       req.FullName,
-		Email:          req.Email,
-	}
-	user, err := s.store.CreateUser(c.Request().Context(), arg)
-	if err != nil {
-		if pqerr, ok := err.(*pq.Error); ok {
-			switch pqerr.Code.Name() {
-			case "unique_violation":
-				return c.JSON(http.StatusForbidden, err.Error())
-			}
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
+	arg := db.CreateUserParamsTx{
+		Username: req.Username,
+		Password: hashpass,
+		FullName: req.FullName,
+		Email:    req.Email,
 	}
 
-	argaccount := db.CreateAccountsParams{
-		Owner: req.Username,
+	res, err := s.store.CreateUserTx(c.Request().Context(), arg)
+	if err != nil {
+		return c.JSON(res.ErrCode, res.Error.Error())
 	}
 
-	res, err := s.store.CreateAccounts(c.Request().Context(), argaccount)
-	if err != nil {
-		if pqerr, ok := err.(*pq.Error); ok {
-			switch pqerr.Code.Name() {
-			case "unique_violation", "foreign_key_violation":
-				return c.JSON(http.StatusForbidden, err.Error())
-			}
-		}
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	output := AccountResponse(res)
-	resp := CreateUserResponses(user, output)
+	output := AccountResponse(res.Account)
+	resp := CreateUserResponses(res.User, output)
 	return c.JSON(http.StatusOK, resp)
 }
 
@@ -110,6 +175,16 @@ func (s *Handler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, ValidateError("password", err.Error()))
 	}
 
+	err = s.util.SendEmailWithNotif(c.Request().Context(), api.SendEmail{
+		AccountID: []int64{account.AccountsID},
+		Params:    []string{username.Email, c.RealIP()},
+		Type:      "login",
+		TimeSend:  time.Now().UTC().Local(),
+	})
+	if err != nil {
+		log.Panic(err.Error())
+	}
+
 	token, Accespayload, err := s.token.CreateToken(req.Username, s.config.TokenDuration)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -129,7 +204,7 @@ func (s *Handler) Login(c echo.Context) error {
 		IsBlocked:    false,
 		ExpiresAt:    refreshPayload.ExpiredAt,
 	}
-	
+
 	session, err := s.store.CreateSession(c.Request().Context(), arg)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -142,7 +217,6 @@ func (s *Handler) Login(c echo.Context) error {
 		AccesToken:            token,
 		AccesTokenExpiresAt:   Accespayload.ExpiredAt.UTC().Local(),
 	}
-	//c.Response().Header().Add("refreshtoken",refreshToken)
 	return c.JSON(http.StatusOK, resp)
 }
 
