@@ -53,8 +53,17 @@ jobs:
         curl -L https://github.com/golang-migrate/migrate/releases/download/v4.12.2/migrate.linux-amd64.tar.gz | tar xvz
         sudo mv migrate.linux-amd64 /usr/bin/migrate
         which migrate
+
     - name: Run migrations
-      run: make migrateup
+      run: sh ./scripts/migrate.sh migration project up
+
+    # create database project_notif
+    - name: Create project_notif
+      run: psql -h localhost -p 4321 -U root -c "CREATE DATABASE project_notif;"
+
+    # create migrate for project_notif
+    - name: Create migrate for project_notif
+      run: sh ./scripts/migrate.sh notif project_notif up
 
     - name: Build
       run: go build main.go
