@@ -59,7 +59,7 @@ jobs:
 
     # create database project_notif
     - name: Create project_notif
-      run: psql -h localhost -p 4321 -U root -W rootpass -c "CREATE DATABASE project_notif;"
+      run: psql -h localhost -p 4321 -U root -w -c "CREATE DATABASE project_notif;"
 
     # create migrate for project_notif
     - name: Create migrate for project_notif
