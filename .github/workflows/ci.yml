@@ -41,7 +41,7 @@ jobs:
     steps:
 
     - name: Create project_notif
-      run: psql -h localhost -p 4321 -U root -c "CREATE DATABASE project_notif;"
+      run: psql -h localhost -p 4321 -U root project -c "CREATE DATABASE project_notif;"
       env:
         PGPASSWORD: rootpass
 
