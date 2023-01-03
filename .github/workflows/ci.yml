@@ -37,20 +37,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      postgres-notif:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: root
-          POSTGRES_PASSWORD: rootpass
-          POSTGRES_DB: project_noitf
-        ports:
-          - 4321:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
 
     steps:
 
