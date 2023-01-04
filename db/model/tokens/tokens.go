@@ -48,7 +48,7 @@ func (s *TokenQueries) SetToken(ctx context.Context, Params *TokensParams) (*ent
 		SetEmail(Params.Email).
 		SetAccessToken(Params.AccessToken).
 		SetRefreshToken(Params.RefreshToken).
-		SetExpiresIn(Params.ExpiresIn).
+		SetExpiry(Params.ExpiresIn).
 		SetTokenType(Params.TokenType).
 		SetRaw(Params.Raw).
 		Save(ctx)
@@ -75,7 +75,7 @@ func (s *TokenQueries) UpdateToken(ctx context.Context, Params *TokensParams) er
 		Where(tokens.AccessToken(Params.AccessToken)).
 		SetAccessToken(Params.AccessToken).
 		SetRefreshToken(Params.RefreshToken).
-		SetExpiresIn(Params.ExpiresIn).
+		SetExpiry(Params.ExpiresIn).
 		SetTokenType(Params.TokenType).
 		SetRaw(Params.Raw).
 		Exec(ctx)

@@ -9,7 +9,7 @@ import (
 	"github.com/peacewalker122/project/db/model/tokens"
 )
 
-func NewModel(sql *sql.DB) Model {
+func NewModel(sql *sql.DB,) Model {
 	drv := entsql.OpenDB("postgres", sql)
 	//defer sql.Close()
 

@@ -1,0 +1,1 @@
+alter TABLE tokens DROP CONSTRAINT tokens_email_fkey;

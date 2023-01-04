@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/peacewalker122/project/db/ent/tokens"
 )
 
@@ -16,7 +17,7 @@ import (
 type Tokens struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// AccessToken holds the value of the "access_token" field.
@@ -25,8 +26,8 @@ type Tokens struct {
 	RefreshToken string `json:"refresh_token,omitempty"`
 	// TokenType holds the value of the "token_type" field.
 	TokenType string `json:"token_type,omitempty"`
-	// ExpiresIn holds the value of the "expires_in" field.
-	ExpiresIn time.Time `json:"expires_in,omitempty"`
+	// Expiry holds the value of the "expiry" field.
+	Expiry time.Time `json:"expiry,omitempty"`
 	// Raw holds the value of the "raw" field.
 	Raw map[string]interface{} `json:"raw,omitempty"`
 }
@@ -38,12 +39,12 @@ func (*Tokens) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case tokens.FieldRaw:
 			values[i] = new([]byte)
-		case tokens.FieldID:
-			values[i] = new(sql.NullInt64)
 		case tokens.FieldEmail, tokens.FieldAccessToken, tokens.FieldRefreshToken, tokens.FieldTokenType:
 			values[i] = new(sql.NullString)
-		case tokens.FieldExpiresIn:
+		case tokens.FieldExpiry:
 			values[i] = new(sql.NullTime)
+		case tokens.FieldID:
+			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Tokens", columns[i])
 		}
@@ -60,11 +61,11 @@ func (t *Tokens) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case tokens.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				t.ID = *value
 			}
-			t.ID = int(value.Int64)
 		case tokens.FieldEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
@@ -89,11 +90,11 @@ func (t *Tokens) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.TokenType = value.String
 			}
-		case tokens.FieldExpiresIn:
+		case tokens.FieldExpiry:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field expires_in", values[i])
+				return fmt.Errorf("unexpected type %T for field expiry", values[i])
 			} else if value.Valid {
-				t.ExpiresIn = value.Time
+				t.Expiry = value.Time
 			}
 		case tokens.FieldRaw:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -143,8 +144,8 @@ func (t *Tokens) String() string {
 	builder.WriteString("token_type=")
 	builder.WriteString(t.TokenType)
 	builder.WriteString(", ")
-	builder.WriteString("expires_in=")
-	builder.WriteString(t.ExpiresIn.Format(time.ANSIC))
+	builder.WriteString("expiry=")
+	builder.WriteString(t.Expiry.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("raw=")
 	builder.WriteString(fmt.Sprintf("%v", t.Raw))
