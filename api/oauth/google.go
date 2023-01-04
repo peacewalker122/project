@@ -13,7 +13,6 @@ import (
 )
 
 const (
-	domain   = "https://58b0-2001-448a-6021-850e-2d31-3650-e295-8bff.ap.ngrok.io"
 	redirect = "/oauth/google/callback"
 )
 
@@ -25,7 +24,7 @@ func (s *Handler) GoogleVerif(c echo.Context) error {
 	GoogleCfg = oauth2.Config{
 		ClientID:     s.config.GoogleClientID,
 		ClientSecret: s.config.GoogleClientSecret,
-		RedirectURL:  fmt.Sprintf("%s%s", domain, redirect),
+		RedirectURL:  fmt.Sprintf("%s%s", s.config.BaseURL, redirect),
 		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"},
 		Endpoint:     google.Endpoint,
 	}
@@ -63,7 +62,7 @@ func (s *Handler) GoogleToken(c echo.Context) error {
 	url := fmt.Sprintf("https://www.googleapis.com/oauth2/v2/userinfo?access_token=%s", token.AccessToken)
 
 	var wg sync.WaitGroup
-	errchan := make(chan error, 2)
+	errchan := make(chan error, 1)
 
 	wg.Add(1)
 	go func(url string) {
@@ -71,21 +70,37 @@ func (s *Handler) GoogleToken(c echo.Context) error {
 		resp, err := client.Get(url)
 		if err != nil {
 			errchan <- err
+			return
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			errchan <- fmt.Errorf("status code: %d", resp.StatusCode)
+			return
 		}
 
 		err = json.NewDecoder(resp.Body).Decode(&payload)
 		if err != nil {
 			errchan <- err
+			return
 		}
 	}(url)
 
-	if len(errchan) > 0 {
-		for v := range errchan {
-			return c.JSON(http.StatusBadRequest, v.Error())
+	select {
+	case err := <-errchan:
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err.Error())
 		}
+	default:
+	}
+	wg.Wait()
+
+	ok, err := s.store.IsTokenExist(ctx, payload.Email)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	if ok, err := s.store.IsTokenExist(ctx, payload.Email); !ok && err == nil {
+	if !ok {
 		_, err = s.store.SetToken(ctx, &tokens.TokensParams{
 			Email:        payload.Email,
 			AccessToken:  token.AccessToken,
@@ -98,6 +113,5 @@ func (s *Handler) GoogleToken(c echo.Context) error {
 		}
 	}
 
-	wg.Wait()
 	return c.JSON(http.StatusOK, payload)
 }

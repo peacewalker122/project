@@ -13,6 +13,7 @@ type Config struct {
 	RedisSource        string        `mapstructure:"REDIS_ADDR"`
 	Email              string        `mapstructure:"EMAIL_HOST"`
 	EmailPass          string        `mapstructure:"EMAIL_PASSWORD"`
+	BaseURL            string        `mapstructure:"BASE_URL"`
 	SignUpLink         string        `mapstructure:"SIGNUPLINK"`
 	HTTPServerAddress  string        `mapstructure:"HTTP_SERVER_ADDRESS"`
 	TokenKey           string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
@@ -28,8 +29,7 @@ type Config struct {
 
 func LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
-	viper.SetConfigName("app")
-	viper.SetConfigType("env")
+	viper.SetConfigFile(".env")
 
 	viper.AutomaticEnv()
 	err = viper.ReadInConfig()

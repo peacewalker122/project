@@ -2,6 +2,10 @@
 
 package tokens
 
+import (
+	"github.com/google/uuid"
+)
+
 const (
 	// Label holds the string label denoting the tokens type in the database.
 	Label = "tokens"
@@ -15,8 +19,8 @@ const (
 	FieldRefreshToken = "refresh_token"
 	// FieldTokenType holds the string denoting the token_type field in the database.
 	FieldTokenType = "token_type"
-	// FieldExpiresIn holds the string denoting the expires_in field in the database.
-	FieldExpiresIn = "expires_in"
+	// FieldExpiry holds the string denoting the expiry field in the database.
+	FieldExpiry = "expiry"
 	// FieldRaw holds the string denoting the raw field in the database.
 	FieldRaw = "raw"
 	// Table holds the table name of the tokens in the database.
@@ -30,7 +34,7 @@ var Columns = []string{
 	FieldAccessToken,
 	FieldRefreshToken,
 	FieldTokenType,
-	FieldExpiresIn,
+	FieldExpiry,
 	FieldRaw,
 }
 
@@ -49,8 +53,8 @@ var (
 	EmailValidator func(string) error
 	// AccessTokenValidator is a validator for the "access_token" field. It is called by the builders before save.
 	AccessTokenValidator func(string) error
-	// RefreshTokenValidator is a validator for the "refresh_token" field. It is called by the builders before save.
-	RefreshTokenValidator func(string) error
 	// TokenTypeValidator is a validator for the "token_type" field. It is called by the builders before save.
 	TokenTypeValidator func(string) error
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
 )

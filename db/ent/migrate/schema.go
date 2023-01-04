@@ -46,12 +46,12 @@ var (
 	}
 	// TokensColumns holds the columns for the "tokens" table.
 	TokensColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
-		{Name: "access_token", Type: field.TypeString, Size: 255},
-		{Name: "refresh_token", Type: field.TypeString, Size: 255},
+		{Name: "access_token", Type: field.TypeString},
+		{Name: "refresh_token", Type: field.TypeString},
 		{Name: "token_type", Type: field.TypeString, Size: 255},
-		{Name: "expires_in", Type: field.TypeTime},
+		{Name: "expiry", Type: field.TypeTime},
 		{Name: "raw", Type: field.TypeJSON},
 	}
 	// TokensTable holds the schema information for the "tokens" table.

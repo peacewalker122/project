@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/peacewalker122/project/db/ent/tokens"
 )
 
@@ -44,15 +45,29 @@ func (tc *TokensCreate) SetTokenType(s string) *TokensCreate {
 	return tc
 }
 
-// SetExpiresIn sets the "expires_in" field.
-func (tc *TokensCreate) SetExpiresIn(t time.Time) *TokensCreate {
-	tc.mutation.SetExpiresIn(t)
+// SetExpiry sets the "expiry" field.
+func (tc *TokensCreate) SetExpiry(t time.Time) *TokensCreate {
+	tc.mutation.SetExpiry(t)
 	return tc
 }
 
 // SetRaw sets the "raw" field.
 func (tc *TokensCreate) SetRaw(m map[string]interface{}) *TokensCreate {
 	tc.mutation.SetRaw(m)
+	return tc
+}
+
+// SetID sets the "id" field.
+func (tc *TokensCreate) SetID(u uuid.UUID) *TokensCreate {
+	tc.mutation.SetID(u)
+	return tc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (tc *TokensCreate) SetNillableID(u *uuid.UUID) *TokensCreate {
+	if u != nil {
+		tc.SetID(*u)
+	}
 	return tc
 }
 
@@ -67,6 +82,7 @@ func (tc *TokensCreate) Save(ctx context.Context) (*Tokens, error) {
 		err  error
 		node *Tokens
 	)
+	tc.defaults()
 	if len(tc.hooks) == 0 {
 		if err = tc.check(); err != nil {
 			return nil, err
@@ -130,6 +146,14 @@ func (tc *TokensCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (tc *TokensCreate) defaults() {
+	if _, ok := tc.mutation.ID(); !ok {
+		v := tokens.DefaultID()
+		tc.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (tc *TokensCreate) check() error {
 	if _, ok := tc.mutation.Email(); !ok {
@@ -151,11 +175,6 @@ func (tc *TokensCreate) check() error {
 	if _, ok := tc.mutation.RefreshToken(); !ok {
 		return &ValidationError{Name: "refresh_token", err: errors.New(`ent: missing required field "Tokens.refresh_token"`)}
 	}
-	if v, ok := tc.mutation.RefreshToken(); ok {
-		if err := tokens.RefreshTokenValidator(v); err != nil {
-			return &ValidationError{Name: "refresh_token", err: fmt.Errorf(`ent: validator failed for field "Tokens.refresh_token": %w`, err)}
-		}
-	}
 	if _, ok := tc.mutation.TokenType(); !ok {
 		return &ValidationError{Name: "token_type", err: errors.New(`ent: missing required field "Tokens.token_type"`)}
 	}
@@ -164,8 +183,8 @@ func (tc *TokensCreate) check() error {
 			return &ValidationError{Name: "token_type", err: fmt.Errorf(`ent: validator failed for field "Tokens.token_type": %w`, err)}
 		}
 	}
-	if _, ok := tc.mutation.ExpiresIn(); !ok {
-		return &ValidationError{Name: "expires_in", err: errors.New(`ent: missing required field "Tokens.expires_in"`)}
+	if _, ok := tc.mutation.Expiry(); !ok {
+		return &ValidationError{Name: "expiry", err: errors.New(`ent: missing required field "Tokens.expiry"`)}
 	}
 	if _, ok := tc.mutation.Raw(); !ok {
 		return &ValidationError{Name: "raw", err: errors.New(`ent: missing required field "Tokens.raw"`)}
@@ -181,8 +200,13 @@ func (tc *TokensCreate) sqlSave(ctx context.Context) (*Tokens, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	return _node, nil
 }
 
@@ -192,11 +216,15 @@ func (tc *TokensCreate) createSpec() (*Tokens, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: tokens.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: tokens.FieldID,
 			},
 		}
 	)
+	if id, ok := tc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := tc.mutation.Email(); ok {
 		_spec.SetField(tokens.FieldEmail, field.TypeString, value)
 		_node.Email = value
@@ -213,9 +241,9 @@ func (tc *TokensCreate) createSpec() (*Tokens, *sqlgraph.CreateSpec) {
 		_spec.SetField(tokens.FieldTokenType, field.TypeString, value)
 		_node.TokenType = value
 	}
-	if value, ok := tc.mutation.ExpiresIn(); ok {
-		_spec.SetField(tokens.FieldExpiresIn, field.TypeTime, value)
-		_node.ExpiresIn = value
+	if value, ok := tc.mutation.Expiry(); ok {
+		_spec.SetField(tokens.FieldExpiry, field.TypeTime, value)
+		_node.Expiry = value
 	}
 	if value, ok := tc.mutation.Raw(); ok {
 		_spec.SetField(tokens.FieldRaw, field.TypeJSON, value)
@@ -238,6 +266,7 @@ func (tcb *TokensCreateBulk) Save(ctx context.Context) ([]*Tokens, error) {
 	for i := range tcb.builders {
 		func(i int, root context.Context) {
 			builder := tcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TokensMutation)
 				if !ok {
@@ -264,10 +293,6 @@ func (tcb *TokensCreateBulk) Save(ctx context.Context) ([]*Tokens, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

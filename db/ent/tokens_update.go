@@ -52,9 +52,9 @@ func (tu *TokensUpdate) SetTokenType(s string) *TokensUpdate {
 	return tu
 }
 
-// SetExpiresIn sets the "expires_in" field.
-func (tu *TokensUpdate) SetExpiresIn(t time.Time) *TokensUpdate {
-	tu.mutation.SetExpiresIn(t)
+// SetExpiry sets the "expiry" field.
+func (tu *TokensUpdate) SetExpiry(t time.Time) *TokensUpdate {
+	tu.mutation.SetExpiry(t)
 	return tu
 }
 
@@ -141,11 +141,6 @@ func (tu *TokensUpdate) check() error {
 			return &ValidationError{Name: "access_token", err: fmt.Errorf(`ent: validator failed for field "Tokens.access_token": %w`, err)}
 		}
 	}
-	if v, ok := tu.mutation.RefreshToken(); ok {
-		if err := tokens.RefreshTokenValidator(v); err != nil {
-			return &ValidationError{Name: "refresh_token", err: fmt.Errorf(`ent: validator failed for field "Tokens.refresh_token": %w`, err)}
-		}
-	}
 	if v, ok := tu.mutation.TokenType(); ok {
 		if err := tokens.TokenTypeValidator(v); err != nil {
 			return &ValidationError{Name: "token_type", err: fmt.Errorf(`ent: validator failed for field "Tokens.token_type": %w`, err)}
@@ -160,7 +155,7 @@ func (tu *TokensUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   tokens.Table,
 			Columns: tokens.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: tokens.FieldID,
 			},
 		},
@@ -184,8 +179,8 @@ func (tu *TokensUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := tu.mutation.TokenType(); ok {
 		_spec.SetField(tokens.FieldTokenType, field.TypeString, value)
 	}
-	if value, ok := tu.mutation.ExpiresIn(); ok {
-		_spec.SetField(tokens.FieldExpiresIn, field.TypeTime, value)
+	if value, ok := tu.mutation.Expiry(); ok {
+		_spec.SetField(tokens.FieldExpiry, field.TypeTime, value)
 	}
 	if value, ok := tu.mutation.Raw(); ok {
 		_spec.SetField(tokens.FieldRaw, field.TypeJSON, value)
@@ -233,9 +228,9 @@ func (tuo *TokensUpdateOne) SetTokenType(s string) *TokensUpdateOne {
 	return tuo
 }
 
-// SetExpiresIn sets the "expires_in" field.
-func (tuo *TokensUpdateOne) SetExpiresIn(t time.Time) *TokensUpdateOne {
-	tuo.mutation.SetExpiresIn(t)
+// SetExpiry sets the "expiry" field.
+func (tuo *TokensUpdateOne) SetExpiry(t time.Time) *TokensUpdateOne {
+	tuo.mutation.SetExpiry(t)
 	return tuo
 }
 
@@ -335,11 +330,6 @@ func (tuo *TokensUpdateOne) check() error {
 			return &ValidationError{Name: "access_token", err: fmt.Errorf(`ent: validator failed for field "Tokens.access_token": %w`, err)}
 		}
 	}
-	if v, ok := tuo.mutation.RefreshToken(); ok {
-		if err := tokens.RefreshTokenValidator(v); err != nil {
-			return &ValidationError{Name: "refresh_token", err: fmt.Errorf(`ent: validator failed for field "Tokens.refresh_token": %w`, err)}
-		}
-	}
 	if v, ok := tuo.mutation.TokenType(); ok {
 		if err := tokens.TokenTypeValidator(v); err != nil {
 			return &ValidationError{Name: "token_type", err: fmt.Errorf(`ent: validator failed for field "Tokens.token_type": %w`, err)}
@@ -354,7 +344,7 @@ func (tuo *TokensUpdateOne) sqlSave(ctx context.Context) (_node *Tokens, err err
 			Table:   tokens.Table,
 			Columns: tokens.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: tokens.FieldID,
 			},
 		},
@@ -395,8 +385,8 @@ func (tuo *TokensUpdateOne) sqlSave(ctx context.Context) (_node *Tokens, err err
 	if value, ok := tuo.mutation.TokenType(); ok {
 		_spec.SetField(tokens.FieldTokenType, field.TypeString, value)
 	}
-	if value, ok := tuo.mutation.ExpiresIn(); ok {
-		_spec.SetField(tokens.FieldExpiresIn, field.TypeTime, value)
+	if value, ok := tuo.mutation.Expiry(); ok {
+		_spec.SetField(tokens.FieldExpiry, field.TypeTime, value)
 	}
 	if value, ok := tuo.mutation.Raw(); ok {
 		_spec.SetField(tokens.FieldRaw, field.TypeJSON, value)

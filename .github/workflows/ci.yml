@@ -60,10 +60,10 @@ jobs:
         which migrate
 
     - name: Run migrations
-      run: sh migrate.sh migration project up
+      run: sh migrate.sh project project up
 
     # create migrate for project_notif
-    - name: Create migrate for project_notif
+    - name: Run migration project_notif
       run: sh migrate.sh notif project_notif up
 
     - name: Build

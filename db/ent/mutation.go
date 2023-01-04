@@ -1175,12 +1175,12 @@ type TokensMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
 	email         *string
 	access_token  *string
 	refresh_token *string
 	token_type    *string
-	expires_in    *time.Time
+	expiry        *time.Time
 	raw           *map[string]interface{}
 	clearedFields map[string]struct{}
 	done          bool
@@ -1208,7 +1208,7 @@ func newTokensMutation(c config, op Op, opts ...tokensOption) *TokensMutation {
 }
 
 // withTokensID sets the ID field of the mutation.
-func withTokensID(id int) tokensOption {
+func withTokensID(id uuid.UUID) tokensOption {
 	return func(m *TokensMutation) {
 		var (
 			err   error
@@ -1258,9 +1258,15 @@ func (m TokensMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Tokens entities.
+func (m *TokensMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *TokensMutation) ID() (id int, exists bool) {
+func (m *TokensMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1271,12 +1277,12 @@ func (m *TokensMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *TokensMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *TokensMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1430,40 +1436,40 @@ func (m *TokensMutation) ResetTokenType() {
 	m.token_type = nil
 }
 
-// SetExpiresIn sets the "expires_in" field.
-func (m *TokensMutation) SetExpiresIn(t time.Time) {
-	m.expires_in = &t
+// SetExpiry sets the "expiry" field.
+func (m *TokensMutation) SetExpiry(t time.Time) {
+	m.expiry = &t
 }
 
-// ExpiresIn returns the value of the "expires_in" field in the mutation.
-func (m *TokensMutation) ExpiresIn() (r time.Time, exists bool) {
-	v := m.expires_in
+// Expiry returns the value of the "expiry" field in the mutation.
+func (m *TokensMutation) Expiry() (r time.Time, exists bool) {
+	v := m.expiry
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldExpiresIn returns the old "expires_in" field's value of the Tokens entity.
+// OldExpiry returns the old "expiry" field's value of the Tokens entity.
 // If the Tokens object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TokensMutation) OldExpiresIn(ctx context.Context) (v time.Time, err error) {
+func (m *TokensMutation) OldExpiry(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExpiresIn is only allowed on UpdateOne operations")
+		return v, errors.New("OldExpiry is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExpiresIn requires an ID field in the mutation")
+		return v, errors.New("OldExpiry requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExpiresIn: %w", err)
+		return v, fmt.Errorf("querying old value for OldExpiry: %w", err)
 	}
-	return oldValue.ExpiresIn, nil
+	return oldValue.Expiry, nil
 }
 
-// ResetExpiresIn resets all changes to the "expires_in" field.
-func (m *TokensMutation) ResetExpiresIn() {
-	m.expires_in = nil
+// ResetExpiry resets all changes to the "expiry" field.
+func (m *TokensMutation) ResetExpiry() {
+	m.expiry = nil
 }
 
 // SetRaw sets the "raw" field.
@@ -1534,8 +1540,8 @@ func (m *TokensMutation) Fields() []string {
 	if m.token_type != nil {
 		fields = append(fields, tokens.FieldTokenType)
 	}
-	if m.expires_in != nil {
-		fields = append(fields, tokens.FieldExpiresIn)
+	if m.expiry != nil {
+		fields = append(fields, tokens.FieldExpiry)
 	}
 	if m.raw != nil {
 		fields = append(fields, tokens.FieldRaw)
@@ -1556,8 +1562,8 @@ func (m *TokensMutation) Field(name string) (ent.Value, bool) {
 		return m.RefreshToken()
 	case tokens.FieldTokenType:
 		return m.TokenType()
-	case tokens.FieldExpiresIn:
-		return m.ExpiresIn()
+	case tokens.FieldExpiry:
+		return m.Expiry()
 	case tokens.FieldRaw:
 		return m.Raw()
 	}
@@ -1577,8 +1583,8 @@ func (m *TokensMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldRefreshToken(ctx)
 	case tokens.FieldTokenType:
 		return m.OldTokenType(ctx)
-	case tokens.FieldExpiresIn:
-		return m.OldExpiresIn(ctx)
+	case tokens.FieldExpiry:
+		return m.OldExpiry(ctx)
 	case tokens.FieldRaw:
 		return m.OldRaw(ctx)
 	}
@@ -1618,12 +1624,12 @@ func (m *TokensMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTokenType(v)
 		return nil
-	case tokens.FieldExpiresIn:
+	case tokens.FieldExpiry:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetExpiresIn(v)
+		m.SetExpiry(v)
 		return nil
 	case tokens.FieldRaw:
 		v, ok := value.(map[string]interface{})
@@ -1693,8 +1699,8 @@ func (m *TokensMutation) ResetField(name string) error {
 	case tokens.FieldTokenType:
 		m.ResetTokenType()
 		return nil
-	case tokens.FieldExpiresIn:
-		m.ResetExpiresIn()
+	case tokens.FieldExpiry:
+		m.ResetExpiry()
 		return nil
 	case tokens.FieldRaw:
 		m.ResetRaw()

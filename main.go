@@ -50,6 +50,6 @@ func main() {
 
 	err = <-chanerr
 	if err != nil {
-		log.Fatal("can't start the server")
+		log.Fatal("can't start the server: ",err.Error())
 	}
 }
