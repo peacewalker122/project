@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/lib/pq"
-	"github.com/peacewalker122/project/db/model"
+	"github.com/peacewalker122/project/db/payload"
 	"github.com/peacewalker122/project/db/redis"
 	"github.com/peacewalker122/project/util"
 )
@@ -19,13 +19,13 @@ import (
 type Store interface {
 	Querier
 	Model
-	model.Model // we using this due tx not needed right now
+	payload.Payload // we using this due tx not needed right now
 }
 
 type SQLStore struct {
 	*Queries
 	db *sql.DB
-	model.Model
+	payload.Payload
 }
 
 type NoSQLStore struct {
@@ -36,7 +36,7 @@ func newTeststore(db *sql.DB) Store {
 	return &SQLStore{
 		Queries: New(db),
 		db:      db,
-		Model:   model.NewModel(db),
+		Payload: payload.NewPayload(db),
 	}
 }
 
@@ -44,7 +44,7 @@ func Newstore(db *sql.DB, Notif, RedisURL string) (Store, redis.Store) {
 	return &SQLStore{
 		Queries: New(db),
 		db:      db,
-		Model:   model.NewModel(db),
+		Payload:   payload.NewPayload(db),
 	}, &NoSQLStore{Store: redis.NewRedis(RedisURL)}
 }
 

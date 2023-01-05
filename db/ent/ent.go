@@ -13,6 +13,7 @@ import (
 	"github.com/peacewalker122/project/db/ent/accountnotif"
 	"github.com/peacewalker122/project/db/ent/notifread"
 	"github.com/peacewalker122/project/db/ent/tokens"
+	"github.com/peacewalker122/project/db/ent/users"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -36,6 +37,7 @@ func columnChecker(table string) func(string) error {
 		accountnotif.Table: accountnotif.ValidColumn,
 		notifread.Table:    notifread.ValidColumn,
 		tokens.Table:       tokens.ValidColumn,
+		users.Table:        users.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

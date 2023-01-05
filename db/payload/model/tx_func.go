@@ -1,14 +1,14 @@
-package ent
+package model
 
 import (
 	"context"
 	"fmt"
 
-	"entgo.io/ent/examples/fs/ent"
+	"github.com/peacewalker122/project/db/ent"
 )
 
-func WithTx(ctx context.Context, client *ent.Client, fn func(tx *ent.Tx) error) error {
-	tx, err := client.Tx(ctx)
+func (s *Models) WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error {
+	tx, err := s.Client.Tx(ctx)
 	if err != nil {
 		return err
 	}

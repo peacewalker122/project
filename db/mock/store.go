@@ -11,8 +11,10 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	uuid "github.com/google/uuid"
 	ent "github.com/peacewalker122/project/db/ent"
-	notifquery "github.com/peacewalker122/project/db/model/notif_query"
-	tokens "github.com/peacewalker122/project/db/model/tokens"
+	model "github.com/peacewalker122/project/db/payload/model"
+	notifquery "github.com/peacewalker122/project/db/payload/model/notif_query"
+	tokens "github.com/peacewalker122/project/db/payload/model/tokens"
+	users "github.com/peacewalker122/project/db/payload/model/users"
 	db "github.com/peacewalker122/project/db/sqlc"
 )
 
@@ -395,6 +397,21 @@ func (m *MockStore) CreateUserTx(arg0 context.Context, arg1 db.CreateUserParamsT
 func (mr *MockStoreMockRecorder) CreateUserTx(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserTx", reflect.TypeOf((*MockStore)(nil).CreateUserTx), arg0, arg1)
+}
+
+// CreateUsersOauth mocks base method.
+func (m *MockStore) CreateUsersOauth(arg0 context.Context, arg1 *model.CreateUsersOauthParam) (*model.OauthUserResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUsersOauth", arg0, arg1)
+	ret0, _ := ret[0].(*model.OauthUserResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUsersOauth indicates an expected call of CreateUsersOauth.
+func (mr *MockStoreMockRecorder) CreateUsersOauth(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUsersOauth", reflect.TypeOf((*MockStore)(nil).CreateUsersOauth), arg0, arg1)
 }
 
 // DeleteAccountQueue mocks base method.
@@ -1047,6 +1064,21 @@ func (mr *MockStoreMockRecorder) IsTokenExist(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTokenExist", reflect.TypeOf((*MockStore)(nil).IsTokenExist), arg0, arg1)
 }
 
+// IsUserExist mocks base method.
+func (m *MockStore) IsUserExist(arg0 context.Context, arg1 string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsUserExist", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsUserExist indicates an expected call of IsUserExist.
+func (mr *MockStoreMockRecorder) IsUserExist(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserExist", reflect.TypeOf((*MockStore)(nil).IsUserExist), arg0, arg1)
+}
+
 // ListAccounts mocks base method.
 func (m *MockStore) ListAccounts(arg0 context.Context, arg1 db.ListAccountsParams) ([]db.Account, error) {
 	m.ctrl.T.Helper()
@@ -1164,6 +1196,21 @@ func (m *MockStore) SetToken(arg0 context.Context, arg1 *tokens.TokensParams) (*
 func (mr *MockStoreMockRecorder) SetToken(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetToken", reflect.TypeOf((*MockStore)(nil).SetToken), arg0, arg1)
+}
+
+// SetUser mocks base method.
+func (m *MockStore) SetUser(arg0 context.Context, arg1 *users.UsersParam) (*ent.Users, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetUser", arg0, arg1)
+	ret0, _ := ret[0].(*ent.Users)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetUser indicates an expected call of SetUser.
+func (mr *MockStoreMockRecorder) SetUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUser", reflect.TypeOf((*MockStore)(nil).SetUser), arg0, arg1)
 }
 
 // UnFollowtx mocks base method.
@@ -1338,4 +1385,18 @@ func (m *MockStore) UpdateToken(arg0 context.Context, arg1 *tokens.TokensParams)
 func (mr *MockStoreMockRecorder) UpdateToken(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateToken", reflect.TypeOf((*MockStore)(nil).UpdateToken), arg0, arg1)
+}
+
+// UpdateUser mocks base method.
+func (m *MockStore) UpdateUser(arg0 context.Context, arg1 *users.UsersParam) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUser", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUser indicates an expected call of UpdateUser.
+func (mr *MockStoreMockRecorder) UpdateUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockStore)(nil).UpdateUser), arg0, arg1)
 }

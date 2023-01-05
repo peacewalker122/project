@@ -14,3 +14,6 @@ type NotifRead func(*sql.Selector)
 
 // Tokens is the predicate function for tokens builders.
 type Tokens func(*sql.Selector)
+
+// Users is the predicate function for users builders.
+type Users func(*sql.Selector)

@@ -27,6 +27,7 @@ type hooks struct {
 	AccountNotif []ent.Hook
 	NotifRead    []ent.Hook
 	Tokens       []ent.Hook
+	Users        []ent.Hook
 }
 
 // Options applies the options on the config object.

@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
-	"github.com/peacewalker122/project/db/model/tokens"
+	"github.com/peacewalker122/project/db/payload/model/tokens"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
