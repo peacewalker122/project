@@ -7,7 +7,9 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
+	"github.com/peacewalker122/project/db/payload/model"
 	"github.com/peacewalker122/project/db/payload/model/tokens"
+	"github.com/peacewalker122/project/db/payload/model/users"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -101,17 +103,28 @@ func (s *Handler) GoogleToken(c echo.Context) error {
 	}
 
 	if !ok {
-		_, err = s.store.SetToken(ctx, &tokens.TokensParams{
-			Email:        payload.Email,
-			AccessToken:  token.AccessToken,
-			RefreshToken: token.RefreshToken,
-			TokenType:    token.TokenType,
-			ExpiresIn:    token.Expiry,
+		_, err = s.store.SetUsersOauth(ctx, &model.CreateUsersOauthParam{
+			User: &users.UsersParam{
+				Email:          payload.Email,
+				FullName:       payload.Name,
+				Username:       payload.Name,
+				HashedPassword: "",
+			},
+			OauthToken: &tokens.TokensParams{
+				Email:        payload.Email,
+				AccessToken:  token.AccessToken,
+				RefreshToken: token.RefreshToken,
+				TokenType:    token.TokenType,
+				ExpiresIn:    token.Expiry,
+			},
 		})
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, err.Error())
 		}
 	}
 
-	return c.JSON(http.StatusOK, payload)
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "success",
+		"token":   token.AccessToken,
+	})
 }

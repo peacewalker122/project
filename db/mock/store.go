@@ -399,21 +399,6 @@ func (mr *MockStoreMockRecorder) CreateUserTx(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserTx", reflect.TypeOf((*MockStore)(nil).CreateUserTx), arg0, arg1)
 }
 
-// CreateUsersOauth mocks base method.
-func (m *MockStore) CreateUsersOauth(arg0 context.Context, arg1 *model.CreateUsersOauthParam) (*model.OauthUserResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUsersOauth", arg0, arg1)
-	ret0, _ := ret[0].(*model.OauthUserResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateUsersOauth indicates an expected call of CreateUsersOauth.
-func (mr *MockStoreMockRecorder) CreateUsersOauth(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUsersOauth", reflect.TypeOf((*MockStore)(nil).CreateUsersOauth), arg0, arg1)
-}
-
 // DeleteAccountQueue mocks base method.
 func (m *MockStore) DeleteAccountQueue(arg0 context.Context, arg1 db.DeleteAccountQueueParams) error {
 	m.ctrl.T.Helper()
@@ -1211,6 +1196,21 @@ func (m *MockStore) SetUser(arg0 context.Context, arg1 *users.UsersParam) (*ent.
 func (mr *MockStoreMockRecorder) SetUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUser", reflect.TypeOf((*MockStore)(nil).SetUser), arg0, arg1)
+}
+
+// SetUsersOauth mocks base method.
+func (m *MockStore) SetUsersOauth(arg0 context.Context, arg1 *model.CreateUsersOauthParam) (*model.OauthUserResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetUsersOauth", arg0, arg1)
+	ret0, _ := ret[0].(*model.OauthUserResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetUsersOauth indicates an expected call of SetUsersOauth.
+func (mr *MockStoreMockRecorder) SetUsersOauth(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUsersOauth", reflect.TypeOf((*MockStore)(nil).SetUsersOauth), arg0, arg1)
 }
 
 // UnFollowtx mocks base method.

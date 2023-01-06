@@ -7,10 +7,10 @@ import (
 )
 
 type TX interface {
-	CreateUsersOauth(ctx context.Context, params *CreateUsersOauthParam) (*OauthUserResponse, error)
+	SetUsersOauth(ctx context.Context, params *CreateUsersOauthParam) (*OauthUserResponse, error)
 }
 
-func (s *Models) CreateUsersOauth(ctx context.Context, params *CreateUsersOauthParam) (*OauthUserResponse, error) {
+func (s *Models) SetUsersOauth(ctx context.Context, params *CreateUsersOauthParam) (*OauthUserResponse, error) {
 	var res *OauthUserResponse
 	errTX := s.WithTx(ctx, func(tx *ent.Tx) error {
 		var err error
