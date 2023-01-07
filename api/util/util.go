@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	notifquery "github.com/peacewalker122/project/db/model/notif_query"
-	"github.com/peacewalker122/project/db/model/tokens"
+	notifquery "github.com/peacewalker122/project/db/payload/model/notif_query"
+	"github.com/peacewalker122/project/db/payload/model/tokens"
 	"github.com/peacewalker122/project/db/redis"
 	db "github.com/peacewalker122/project/db/sqlc"
 	"github.com/peacewalker122/project/util"
@@ -71,6 +71,9 @@ func (s *utilTools) RefreshToken(ctx context.Context, token oauth2.TokenSource) 
 		ExpiresIn:    newToken.Expiry,
 		TokenType:    newToken.TokenType,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return newToken, nil
 }

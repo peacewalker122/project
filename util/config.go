@@ -31,6 +31,8 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigFile(".env")
 
+	viper.SetDefault("DB_DRIVER", "postgres")
+
 	viper.AutomaticEnv()
 	err = viper.ReadInConfig()
 	if err != nil {

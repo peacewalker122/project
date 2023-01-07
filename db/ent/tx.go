@@ -18,6 +18,8 @@ type Tx struct {
 	NotifRead *NotifReadClient
 	// Tokens is the client for interacting with the Tokens builders.
 	Tokens *TokensClient
+	// Users is the client for interacting with the Users builders.
+	Users *UsersClient
 
 	// lazily loaded.
 	client     *Client
@@ -152,6 +154,7 @@ func (tx *Tx) init() {
 	tx.AccountNotif = NewAccountNotifClient(tx.config)
 	tx.NotifRead = NewNotifReadClient(tx.config)
 	tx.Tokens = NewTokensClient(tx.config)
+	tx.Users = NewUsersClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

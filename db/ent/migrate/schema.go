@@ -60,11 +60,28 @@ var (
 		Columns:    TokensColumns,
 		PrimaryKey: []*schema.Column{TokensColumns[0]},
 	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "username", Type: field.TypeString, Unique: true},
+		{Name: "hashed_password", Type: field.TypeString},
+		{Name: "email", Type: field.TypeString, Unique: true},
+		{Name: "full_name", Type: field.TypeString},
+		{Name: "password_changed_at", Type: field.TypeString, Default: "0001-01-01 00:00:00Z"},
+		{Name: "created_at", Type: field.TypeString, Default: "now()"},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AccountNotifsTable,
 		NotifReadsTable,
 		TokensTable,
+		UsersTable,
 	}
 )
 
