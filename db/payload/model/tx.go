@@ -22,6 +22,10 @@ func (s *Models) SetUsersOauth(ctx context.Context, params *CreateUsersOauthPara
 		if err != nil {
 			return err
 		}
+		res.Account, err = s.SetAccount(ctx, params.Account)
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 	if errTX != nil {

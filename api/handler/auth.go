@@ -32,7 +32,7 @@ func (s *Handler) AuthUser(c echo.Context) error {
 	id := uuid.New()
 
 	errchan := make(chan error, 1)
-	done := make(chan bool, 1)
+	done := make(chan struct{})
 
 	go func() {
 		err := s.util.ChangePasswordAuth(c.Request().Context(), util.SendEmail{
@@ -54,7 +54,7 @@ func (s *Handler) AuthUser(c echo.Context) error {
 			errchan <- err
 		}
 
-		done <- true
+		done <- struct{}{}
 	}()
 	select {
 	case <-done:
@@ -99,7 +99,7 @@ func (s *Handler) ChangePassword(c echo.Context) error {
 	}
 
 	errchan := make(chan error, 1)
-	done := make(chan bool, 1)
+	done := make(chan struct{})
 
 	go func() {
 		err = s.util.SendEmailWithNotif(ctx, util.SendEmail{
@@ -110,7 +110,7 @@ func (s *Handler) ChangePassword(c echo.Context) error {
 		if err != nil {
 			errchan <- err
 		}
-		done <- true
+		done <- struct{}{}
 	}()
 	select {
 	case <-done:

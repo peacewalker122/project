@@ -8,8 +8,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/peacewalker122/project/db/payload/model"
+	"github.com/peacewalker122/project/db/payload/model/account"
 	"github.com/peacewalker122/project/db/payload/model/tokens"
 	"github.com/peacewalker122/project/db/payload/model/users"
+	"github.com/peacewalker122/project/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -116,6 +118,11 @@ func (s *Handler) GoogleToken(c echo.Context) error {
 				RefreshToken: token.RefreshToken,
 				TokenType:    token.TokenType,
 				ExpiresIn:    token.Expiry,
+			},
+			Account: &account.AccountParam{
+				Owner:     payload.Email,
+				IsPrivate: false,
+				PhotoDir:  util.InputSqlString(payload.Picture),
 			},
 		})
 		if err != nil {

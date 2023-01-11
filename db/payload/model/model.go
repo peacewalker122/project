@@ -8,6 +8,7 @@ import (
 	not "github.com/peacewalker122/project/db/payload/model/notif_query"
 	"github.com/peacewalker122/project/db/payload/model/tokens"
 	"github.com/peacewalker122/project/db/payload/model/users"
+	"github.com/peacewalker122/project/db/payload/model/account"
 )
 
 func NewModel(sql ...*sql.DB) Model {
@@ -22,6 +23,7 @@ func NewModel(sql ...*sql.DB) Model {
 		NotifsQueries: not.NewNotifQuery(res),
 		TokenQueries:  tokens.NewTokenQuery(res),
 		UserQueries:   users.NewUserQuery(project),
+		AccountQueries: account.NewAccountQuery(project),
 	}
 }
 
@@ -30,6 +32,7 @@ type Model interface {
 	not.NotifQuery
 	tokens.TokensQuery
 	users.UsersQuery
+	account.AccountQuery
 }
 
 type Models struct {
@@ -37,4 +40,5 @@ type Models struct {
 	*not.NotifsQueries
 	*tokens.TokenQueries
 	*users.UserQueries
+	*account.AccountQueries
 }
