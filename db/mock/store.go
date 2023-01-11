@@ -191,10 +191,10 @@ func (mr *MockStoreMockRecorder) CreateLike_feature(arg0, arg1 interface{}) *gom
 }
 
 // CreateNotif mocks base method.
-func (m *MockStore) CreateNotif(arg0 context.Context, arg1 *notifquery.NotifParams) (*ent.AccountNotif, error) {
+func (m *MockStore) CreateNotif(arg0 context.Context, arg1 *notifquery.NotifParams) (*ent.AccountNotifs, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateNotif", arg0, arg1)
-	ret0, _ := ret[0].(*ent.AccountNotif)
+	ret0, _ := ret[0].(*ent.AccountNotifs)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -203,6 +203,21 @@ func (m *MockStore) CreateNotif(arg0 context.Context, arg1 *notifquery.NotifPara
 func (mr *MockStoreMockRecorder) CreateNotif(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNotif", reflect.TypeOf((*MockStore)(nil).CreateNotif), arg0, arg1)
+}
+
+// CreateNotifUsername mocks base method.
+func (m *MockStore) CreateNotifUsername(arg0 context.Context, arg1 *notifquery.NotifParams) (*ent.AccountNotifs, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateNotifUsername", arg0, arg1)
+	ret0, _ := ret[0].(*ent.AccountNotifs)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateNotifUsername indicates an expected call of CreateNotifUsername.
+func (mr *MockStoreMockRecorder) CreateNotifUsername(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNotifUsername", reflect.TypeOf((*MockStore)(nil).CreateNotifUsername), arg0, arg1)
 }
 
 // CreatePost mocks base method.
@@ -555,6 +570,21 @@ func (mr *MockStoreMockRecorder) Followtx(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Followtx", reflect.TypeOf((*MockStore)(nil).Followtx), arg0, arg1)
 }
 
+// GetAccountByEmail mocks base method.
+func (m *MockStore) GetAccountByEmail(arg0 context.Context, arg1 string) (db.GetAccountByEmailRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccountByEmail", arg0, arg1)
+	ret0, _ := ret[0].(db.GetAccountByEmailRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccountByEmail indicates an expected call of GetAccountByEmail.
+func (mr *MockStoreMockRecorder) GetAccountByEmail(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountByEmail", reflect.TypeOf((*MockStore)(nil).GetAccountByEmail), arg0, arg1)
+}
+
 // GetAccountForUpdate mocks base method.
 func (m *MockStore) GetAccountForUpdate(arg0 context.Context, arg1 int64) (db.Account, error) {
 	m.ctrl.T.Helper()
@@ -658,6 +688,21 @@ func (m *MockStore) GetAccountsQueue(arg0 context.Context, arg1 db.GetAccountsQu
 func (mr *MockStoreMockRecorder) GetAccountsQueue(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountsQueue", reflect.TypeOf((*MockStore)(nil).GetAccountsQueue), arg0, arg1)
+}
+
+// GetAllWithEmail mocks base method.
+func (m *MockStore) GetAllWithEmail(arg0 context.Context, arg1 string) (*ent.Users, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllWithEmail", arg0, arg1)
+	ret0, _ := ret[0].(*ent.Users)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllWithEmail indicates an expected call of GetAllWithEmail.
+func (mr *MockStoreMockRecorder) GetAllWithEmail(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllWithEmail", reflect.TypeOf((*MockStore)(nil).GetAllWithEmail), arg0, arg1)
 }
 
 // GetDirectory mocks base method.
@@ -765,10 +810,10 @@ func (mr *MockStoreMockRecorder) GetLikejoin(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // GetNotifByAccount mocks base method.
-func (m *MockStore) GetNotifByAccount(arg0 context.Context, arg1 int64) ([]*ent.AccountNotif, error) {
+func (m *MockStore) GetNotifByAccount(arg0 context.Context, arg1 int64) ([]*ent.AccountNotifs, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNotifByAccount", arg0, arg1)
-	ret0, _ := ret[0].([]*ent.AccountNotif)
+	ret0, _ := ret[0].([]*ent.AccountNotifs)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1166,6 +1211,20 @@ func (m *MockStore) PrivateAccount(arg0 context.Context, arg1 db.PrivateAccountP
 func (mr *MockStoreMockRecorder) PrivateAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrivateAccount", reflect.TypeOf((*MockStore)(nil).PrivateAccount), arg0, arg1)
+}
+
+// SetPassword mocks base method.
+func (m *MockStore) SetPassword(arg0 context.Context, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetPassword", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetPassword indicates an expected call of SetPassword.
+func (mr *MockStoreMockRecorder) SetPassword(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetPassword", reflect.TypeOf((*MockStore)(nil).SetPassword), arg0, arg1, arg2)
 }
 
 // SetToken mocks base method.

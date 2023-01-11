@@ -9,9 +9,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	auth "github.com/peacewalker122/project/api/auth"
+	jwttoken "github.com/peacewalker122/project/token"
 )
 
-type tokenService interface{
+type tokenService interface {
 	RenewToken(c echo.Context) error
 }
 
@@ -55,7 +56,12 @@ func (s *Handler) RenewToken(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, err.Error())
 	}
 
-	accesToken, accesPayload, err := s.token.CreateToken(payload.Username, s.config.RefreshToken)
+	accesToken, accesPayload, err := s.token.CreateToken(&jwttoken.PayloadRequest{
+		Username:  payload.Username,
+		AccountID: payload.AccountID,
+		Duration:  s.config.RefreshToken,
+	})
+	
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

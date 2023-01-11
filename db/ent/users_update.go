@@ -39,6 +39,20 @@ func (uu *UsersUpdate) SetHashedPassword(s string) *UsersUpdate {
 	return uu
 }
 
+// SetNillableHashedPassword sets the "hashed_password" field if the given value is not nil.
+func (uu *UsersUpdate) SetNillableHashedPassword(s *string) *UsersUpdate {
+	if s != nil {
+		uu.SetHashedPassword(*s)
+	}
+	return uu
+}
+
+// ClearHashedPassword clears the value of the "hashed_password" field.
+func (uu *UsersUpdate) ClearHashedPassword() *UsersUpdate {
+	uu.mutation.ClearHashedPassword()
+	return uu
+}
+
 // SetEmail sets the "email" field.
 func (uu *UsersUpdate) SetEmail(s string) *UsersUpdate {
 	uu.mutation.SetEmail(s)
@@ -203,6 +217,9 @@ func (uu *UsersUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.HashedPassword(); ok {
 		_spec.SetField(users.FieldHashedPassword, field.TypeString, value)
 	}
+	if uu.mutation.HashedPasswordCleared() {
+		_spec.ClearField(users.FieldHashedPassword, field.TypeString)
+	}
 	if value, ok := uu.mutation.Email(); ok {
 		_spec.SetField(users.FieldEmail, field.TypeString, value)
 	}
@@ -243,6 +260,20 @@ func (uuo *UsersUpdateOne) SetUsername(s string) *UsersUpdateOne {
 // SetHashedPassword sets the "hashed_password" field.
 func (uuo *UsersUpdateOne) SetHashedPassword(s string) *UsersUpdateOne {
 	uuo.mutation.SetHashedPassword(s)
+	return uuo
+}
+
+// SetNillableHashedPassword sets the "hashed_password" field if the given value is not nil.
+func (uuo *UsersUpdateOne) SetNillableHashedPassword(s *string) *UsersUpdateOne {
+	if s != nil {
+		uuo.SetHashedPassword(*s)
+	}
+	return uuo
+}
+
+// ClearHashedPassword clears the value of the "hashed_password" field.
+func (uuo *UsersUpdateOne) ClearHashedPassword() *UsersUpdateOne {
+	uuo.mutation.ClearHashedPassword()
 	return uuo
 }
 
@@ -439,6 +470,9 @@ func (uuo *UsersUpdateOne) sqlSave(ctx context.Context) (_node *Users, err error
 	}
 	if value, ok := uuo.mutation.HashedPassword(); ok {
 		_spec.SetField(users.FieldHashedPassword, field.TypeString, value)
+	}
+	if uuo.mutation.HashedPasswordCleared() {
+		_spec.ClearField(users.FieldHashedPassword, field.TypeString)
 	}
 	if value, ok := uuo.mutation.Email(); ok {
 		_spec.SetField(users.FieldEmail, field.TypeString, value)

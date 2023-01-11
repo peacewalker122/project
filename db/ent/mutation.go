@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/peacewalker122/project/db/ent/accountnotif"
+	"github.com/peacewalker122/project/db/ent/accountnotifs"
 	"github.com/peacewalker122/project/db/ent/notifread"
 	"github.com/peacewalker122/project/db/ent/predicate"
 	"github.com/peacewalker122/project/db/ent/tokens"
@@ -28,14 +28,14 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAccountNotif = "AccountNotif"
-	TypeNotifRead    = "NotifRead"
-	TypeTokens       = "Tokens"
-	TypeUsers        = "Users"
+	TypeAccountNotifs = "AccountNotifs"
+	TypeNotifRead     = "NotifRead"
+	TypeTokens        = "Tokens"
+	TypeUsers         = "Users"
 )
 
-// AccountNotifMutation represents an operation that mutates the AccountNotif nodes in the graph.
-type AccountNotifMutation struct {
+// AccountNotifsMutation represents an operation that mutates the AccountNotifs nodes in the graph.
+type AccountNotifsMutation struct {
 	config
 	op            Op
 	typ           string
@@ -46,24 +46,25 @@ type AccountNotifMutation struct {
 	notif_title   *string
 	notif_content *string
 	notif_time    *time.Time
+	username      *string
 	created_at    *time.Time
 	clearedFields map[string]struct{}
 	done          bool
-	oldValue      func(context.Context) (*AccountNotif, error)
-	predicates    []predicate.AccountNotif
+	oldValue      func(context.Context) (*AccountNotifs, error)
+	predicates    []predicate.AccountNotifs
 }
 
-var _ ent.Mutation = (*AccountNotifMutation)(nil)
+var _ ent.Mutation = (*AccountNotifsMutation)(nil)
 
-// accountnotifOption allows management of the mutation configuration using functional options.
-type accountnotifOption func(*AccountNotifMutation)
+// accountnotifsOption allows management of the mutation configuration using functional options.
+type accountnotifsOption func(*AccountNotifsMutation)
 
-// newAccountNotifMutation creates new mutation for the AccountNotif entity.
-func newAccountNotifMutation(c config, op Op, opts ...accountnotifOption) *AccountNotifMutation {
-	m := &AccountNotifMutation{
+// newAccountNotifsMutation creates new mutation for the AccountNotifs entity.
+func newAccountNotifsMutation(c config, op Op, opts ...accountnotifsOption) *AccountNotifsMutation {
+	m := &AccountNotifsMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeAccountNotif,
+		typ:           TypeAccountNotifs,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -72,20 +73,20 @@ func newAccountNotifMutation(c config, op Op, opts ...accountnotifOption) *Accou
 	return m
 }
 
-// withAccountNotifID sets the ID field of the mutation.
-func withAccountNotifID(id uuid.UUID) accountnotifOption {
-	return func(m *AccountNotifMutation) {
+// withAccountNotifsID sets the ID field of the mutation.
+func withAccountNotifsID(id uuid.UUID) accountnotifsOption {
+	return func(m *AccountNotifsMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *AccountNotif
+			value *AccountNotifs
 		)
-		m.oldValue = func(ctx context.Context) (*AccountNotif, error) {
+		m.oldValue = func(ctx context.Context) (*AccountNotifs, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().AccountNotif.Get(ctx, id)
+					value, err = m.Client().AccountNotifs.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -94,10 +95,10 @@ func withAccountNotifID(id uuid.UUID) accountnotifOption {
 	}
 }
 
-// withAccountNotif sets the old AccountNotif of the mutation.
-func withAccountNotif(node *AccountNotif) accountnotifOption {
-	return func(m *AccountNotifMutation) {
-		m.oldValue = func(context.Context) (*AccountNotif, error) {
+// withAccountNotifs sets the old AccountNotifs of the mutation.
+func withAccountNotifs(node *AccountNotifs) accountnotifsOption {
+	return func(m *AccountNotifsMutation) {
+		m.oldValue = func(context.Context) (*AccountNotifs, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -106,7 +107,7 @@ func withAccountNotif(node *AccountNotif) accountnotifOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m AccountNotifMutation) Client() *Client {
+func (m AccountNotifsMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -114,7 +115,7 @@ func (m AccountNotifMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m AccountNotifMutation) Tx() (*Tx, error) {
+func (m AccountNotifsMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -124,14 +125,14 @@ func (m AccountNotifMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of AccountNotif entities.
-func (m *AccountNotifMutation) SetID(id uuid.UUID) {
+// operation is only accepted on creation of AccountNotifs entities.
+func (m *AccountNotifsMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *AccountNotifMutation) ID() (id uuid.UUID, exists bool) {
+func (m *AccountNotifsMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -142,7 +143,7 @@ func (m *AccountNotifMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *AccountNotifMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *AccountNotifsMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -151,20 +152,20 @@ func (m *AccountNotifMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().AccountNotif.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().AccountNotifs.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
 // SetAccountID sets the "account_id" field.
-func (m *AccountNotifMutation) SetAccountID(i int64) {
+func (m *AccountNotifsMutation) SetAccountID(i int64) {
 	m.account_id = &i
 	m.addaccount_id = nil
 }
 
 // AccountID returns the value of the "account_id" field in the mutation.
-func (m *AccountNotifMutation) AccountID() (r int64, exists bool) {
+func (m *AccountNotifsMutation) AccountID() (r int64, exists bool) {
 	v := m.account_id
 	if v == nil {
 		return
@@ -172,10 +173,10 @@ func (m *AccountNotifMutation) AccountID() (r int64, exists bool) {
 	return *v, true
 }
 
-// OldAccountID returns the old "account_id" field's value of the AccountNotif entity.
-// If the AccountNotif object wasn't provided to the builder, the object is fetched from the database.
+// OldAccountID returns the old "account_id" field's value of the AccountNotifs entity.
+// If the AccountNotifs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountNotifMutation) OldAccountID(ctx context.Context) (v int64, err error) {
+func (m *AccountNotifsMutation) OldAccountID(ctx context.Context) (v *int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAccountID is only allowed on UpdateOne operations")
 	}
@@ -190,7 +191,7 @@ func (m *AccountNotifMutation) OldAccountID(ctx context.Context) (v int64, err e
 }
 
 // AddAccountID adds i to the "account_id" field.
-func (m *AccountNotifMutation) AddAccountID(i int64) {
+func (m *AccountNotifsMutation) AddAccountID(i int64) {
 	if m.addaccount_id != nil {
 		*m.addaccount_id += i
 	} else {
@@ -199,7 +200,7 @@ func (m *AccountNotifMutation) AddAccountID(i int64) {
 }
 
 // AddedAccountID returns the value that was added to the "account_id" field in this mutation.
-func (m *AccountNotifMutation) AddedAccountID() (r int64, exists bool) {
+func (m *AccountNotifsMutation) AddedAccountID() (r int64, exists bool) {
 	v := m.addaccount_id
 	if v == nil {
 		return
@@ -207,19 +208,33 @@ func (m *AccountNotifMutation) AddedAccountID() (r int64, exists bool) {
 	return *v, true
 }
 
-// ResetAccountID resets all changes to the "account_id" field.
-func (m *AccountNotifMutation) ResetAccountID() {
+// ClearAccountID clears the value of the "account_id" field.
+func (m *AccountNotifsMutation) ClearAccountID() {
 	m.account_id = nil
 	m.addaccount_id = nil
+	m.clearedFields[accountnotifs.FieldAccountID] = struct{}{}
+}
+
+// AccountIDCleared returns if the "account_id" field was cleared in this mutation.
+func (m *AccountNotifsMutation) AccountIDCleared() bool {
+	_, ok := m.clearedFields[accountnotifs.FieldAccountID]
+	return ok
+}
+
+// ResetAccountID resets all changes to the "account_id" field.
+func (m *AccountNotifsMutation) ResetAccountID() {
+	m.account_id = nil
+	m.addaccount_id = nil
+	delete(m.clearedFields, accountnotifs.FieldAccountID)
 }
 
 // SetNotifType sets the "notif_type" field.
-func (m *AccountNotifMutation) SetNotifType(s string) {
+func (m *AccountNotifsMutation) SetNotifType(s string) {
 	m.notif_type = &s
 }
 
 // NotifType returns the value of the "notif_type" field in the mutation.
-func (m *AccountNotifMutation) NotifType() (r string, exists bool) {
+func (m *AccountNotifsMutation) NotifType() (r string, exists bool) {
 	v := m.notif_type
 	if v == nil {
 		return
@@ -227,10 +242,10 @@ func (m *AccountNotifMutation) NotifType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldNotifType returns the old "notif_type" field's value of the AccountNotif entity.
-// If the AccountNotif object wasn't provided to the builder, the object is fetched from the database.
+// OldNotifType returns the old "notif_type" field's value of the AccountNotifs entity.
+// If the AccountNotifs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountNotifMutation) OldNotifType(ctx context.Context) (v string, err error) {
+func (m *AccountNotifsMutation) OldNotifType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNotifType is only allowed on UpdateOne operations")
 	}
@@ -245,17 +260,17 @@ func (m *AccountNotifMutation) OldNotifType(ctx context.Context) (v string, err 
 }
 
 // ResetNotifType resets all changes to the "notif_type" field.
-func (m *AccountNotifMutation) ResetNotifType() {
+func (m *AccountNotifsMutation) ResetNotifType() {
 	m.notif_type = nil
 }
 
 // SetNotifTitle sets the "notif_title" field.
-func (m *AccountNotifMutation) SetNotifTitle(s string) {
+func (m *AccountNotifsMutation) SetNotifTitle(s string) {
 	m.notif_title = &s
 }
 
 // NotifTitle returns the value of the "notif_title" field in the mutation.
-func (m *AccountNotifMutation) NotifTitle() (r string, exists bool) {
+func (m *AccountNotifsMutation) NotifTitle() (r string, exists bool) {
 	v := m.notif_title
 	if v == nil {
 		return
@@ -263,10 +278,10 @@ func (m *AccountNotifMutation) NotifTitle() (r string, exists bool) {
 	return *v, true
 }
 
-// OldNotifTitle returns the old "notif_title" field's value of the AccountNotif entity.
-// If the AccountNotif object wasn't provided to the builder, the object is fetched from the database.
+// OldNotifTitle returns the old "notif_title" field's value of the AccountNotifs entity.
+// If the AccountNotifs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountNotifMutation) OldNotifTitle(ctx context.Context) (v string, err error) {
+func (m *AccountNotifsMutation) OldNotifTitle(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNotifTitle is only allowed on UpdateOne operations")
 	}
@@ -281,30 +296,30 @@ func (m *AccountNotifMutation) OldNotifTitle(ctx context.Context) (v string, err
 }
 
 // ClearNotifTitle clears the value of the "notif_title" field.
-func (m *AccountNotifMutation) ClearNotifTitle() {
+func (m *AccountNotifsMutation) ClearNotifTitle() {
 	m.notif_title = nil
-	m.clearedFields[accountnotif.FieldNotifTitle] = struct{}{}
+	m.clearedFields[accountnotifs.FieldNotifTitle] = struct{}{}
 }
 
 // NotifTitleCleared returns if the "notif_title" field was cleared in this mutation.
-func (m *AccountNotifMutation) NotifTitleCleared() bool {
-	_, ok := m.clearedFields[accountnotif.FieldNotifTitle]
+func (m *AccountNotifsMutation) NotifTitleCleared() bool {
+	_, ok := m.clearedFields[accountnotifs.FieldNotifTitle]
 	return ok
 }
 
 // ResetNotifTitle resets all changes to the "notif_title" field.
-func (m *AccountNotifMutation) ResetNotifTitle() {
+func (m *AccountNotifsMutation) ResetNotifTitle() {
 	m.notif_title = nil
-	delete(m.clearedFields, accountnotif.FieldNotifTitle)
+	delete(m.clearedFields, accountnotifs.FieldNotifTitle)
 }
 
 // SetNotifContent sets the "notif_content" field.
-func (m *AccountNotifMutation) SetNotifContent(s string) {
+func (m *AccountNotifsMutation) SetNotifContent(s string) {
 	m.notif_content = &s
 }
 
 // NotifContent returns the value of the "notif_content" field in the mutation.
-func (m *AccountNotifMutation) NotifContent() (r string, exists bool) {
+func (m *AccountNotifsMutation) NotifContent() (r string, exists bool) {
 	v := m.notif_content
 	if v == nil {
 		return
@@ -312,10 +327,10 @@ func (m *AccountNotifMutation) NotifContent() (r string, exists bool) {
 	return *v, true
 }
 
-// OldNotifContent returns the old "notif_content" field's value of the AccountNotif entity.
-// If the AccountNotif object wasn't provided to the builder, the object is fetched from the database.
+// OldNotifContent returns the old "notif_content" field's value of the AccountNotifs entity.
+// If the AccountNotifs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountNotifMutation) OldNotifContent(ctx context.Context) (v string, err error) {
+func (m *AccountNotifsMutation) OldNotifContent(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNotifContent is only allowed on UpdateOne operations")
 	}
@@ -330,30 +345,30 @@ func (m *AccountNotifMutation) OldNotifContent(ctx context.Context) (v string, e
 }
 
 // ClearNotifContent clears the value of the "notif_content" field.
-func (m *AccountNotifMutation) ClearNotifContent() {
+func (m *AccountNotifsMutation) ClearNotifContent() {
 	m.notif_content = nil
-	m.clearedFields[accountnotif.FieldNotifContent] = struct{}{}
+	m.clearedFields[accountnotifs.FieldNotifContent] = struct{}{}
 }
 
 // NotifContentCleared returns if the "notif_content" field was cleared in this mutation.
-func (m *AccountNotifMutation) NotifContentCleared() bool {
-	_, ok := m.clearedFields[accountnotif.FieldNotifContent]
+func (m *AccountNotifsMutation) NotifContentCleared() bool {
+	_, ok := m.clearedFields[accountnotifs.FieldNotifContent]
 	return ok
 }
 
 // ResetNotifContent resets all changes to the "notif_content" field.
-func (m *AccountNotifMutation) ResetNotifContent() {
+func (m *AccountNotifsMutation) ResetNotifContent() {
 	m.notif_content = nil
-	delete(m.clearedFields, accountnotif.FieldNotifContent)
+	delete(m.clearedFields, accountnotifs.FieldNotifContent)
 }
 
 // SetNotifTime sets the "notif_time" field.
-func (m *AccountNotifMutation) SetNotifTime(t time.Time) {
+func (m *AccountNotifsMutation) SetNotifTime(t time.Time) {
 	m.notif_time = &t
 }
 
 // NotifTime returns the value of the "notif_time" field in the mutation.
-func (m *AccountNotifMutation) NotifTime() (r time.Time, exists bool) {
+func (m *AccountNotifsMutation) NotifTime() (r time.Time, exists bool) {
 	v := m.notif_time
 	if v == nil {
 		return
@@ -361,10 +376,10 @@ func (m *AccountNotifMutation) NotifTime() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldNotifTime returns the old "notif_time" field's value of the AccountNotif entity.
-// If the AccountNotif object wasn't provided to the builder, the object is fetched from the database.
+// OldNotifTime returns the old "notif_time" field's value of the AccountNotifs entity.
+// If the AccountNotifs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountNotifMutation) OldNotifTime(ctx context.Context) (v *time.Time, err error) {
+func (m *AccountNotifsMutation) OldNotifTime(ctx context.Context) (v *time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldNotifTime is only allowed on UpdateOne operations")
 	}
@@ -379,30 +394,79 @@ func (m *AccountNotifMutation) OldNotifTime(ctx context.Context) (v *time.Time, 
 }
 
 // ClearNotifTime clears the value of the "notif_time" field.
-func (m *AccountNotifMutation) ClearNotifTime() {
+func (m *AccountNotifsMutation) ClearNotifTime() {
 	m.notif_time = nil
-	m.clearedFields[accountnotif.FieldNotifTime] = struct{}{}
+	m.clearedFields[accountnotifs.FieldNotifTime] = struct{}{}
 }
 
 // NotifTimeCleared returns if the "notif_time" field was cleared in this mutation.
-func (m *AccountNotifMutation) NotifTimeCleared() bool {
-	_, ok := m.clearedFields[accountnotif.FieldNotifTime]
+func (m *AccountNotifsMutation) NotifTimeCleared() bool {
+	_, ok := m.clearedFields[accountnotifs.FieldNotifTime]
 	return ok
 }
 
 // ResetNotifTime resets all changes to the "notif_time" field.
-func (m *AccountNotifMutation) ResetNotifTime() {
+func (m *AccountNotifsMutation) ResetNotifTime() {
 	m.notif_time = nil
-	delete(m.clearedFields, accountnotif.FieldNotifTime)
+	delete(m.clearedFields, accountnotifs.FieldNotifTime)
+}
+
+// SetUsername sets the "username" field.
+func (m *AccountNotifsMutation) SetUsername(s string) {
+	m.username = &s
+}
+
+// Username returns the value of the "username" field in the mutation.
+func (m *AccountNotifsMutation) Username() (r string, exists bool) {
+	v := m.username
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsername returns the old "username" field's value of the AccountNotifs entity.
+// If the AccountNotifs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountNotifsMutation) OldUsername(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsername: %w", err)
+	}
+	return oldValue.Username, nil
+}
+
+// ClearUsername clears the value of the "username" field.
+func (m *AccountNotifsMutation) ClearUsername() {
+	m.username = nil
+	m.clearedFields[accountnotifs.FieldUsername] = struct{}{}
+}
+
+// UsernameCleared returns if the "username" field was cleared in this mutation.
+func (m *AccountNotifsMutation) UsernameCleared() bool {
+	_, ok := m.clearedFields[accountnotifs.FieldUsername]
+	return ok
+}
+
+// ResetUsername resets all changes to the "username" field.
+func (m *AccountNotifsMutation) ResetUsername() {
+	m.username = nil
+	delete(m.clearedFields, accountnotifs.FieldUsername)
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (m *AccountNotifMutation) SetCreatedAt(t time.Time) {
+func (m *AccountNotifsMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
 }
 
 // CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *AccountNotifMutation) CreatedAt() (r time.Time, exists bool) {
+func (m *AccountNotifsMutation) CreatedAt() (r time.Time, exists bool) {
 	v := m.created_at
 	if v == nil {
 		return
@@ -410,10 +474,10 @@ func (m *AccountNotifMutation) CreatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the AccountNotif entity.
-// If the AccountNotif object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the AccountNotifs entity.
+// If the AccountNotifs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountNotifMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *AccountNotifsMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -428,47 +492,50 @@ func (m *AccountNotifMutation) OldCreatedAt(ctx context.Context) (v time.Time, e
 }
 
 // ResetCreatedAt resets all changes to the "created_at" field.
-func (m *AccountNotifMutation) ResetCreatedAt() {
+func (m *AccountNotifsMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
-// Where appends a list predicates to the AccountNotifMutation builder.
-func (m *AccountNotifMutation) Where(ps ...predicate.AccountNotif) {
+// Where appends a list predicates to the AccountNotifsMutation builder.
+func (m *AccountNotifsMutation) Where(ps ...predicate.AccountNotifs) {
 	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
-func (m *AccountNotifMutation) Op() Op {
+func (m *AccountNotifsMutation) Op() Op {
 	return m.op
 }
 
-// Type returns the node type of this mutation (AccountNotif).
-func (m *AccountNotifMutation) Type() string {
+// Type returns the node type of this mutation (AccountNotifs).
+func (m *AccountNotifsMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *AccountNotifMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+func (m *AccountNotifsMutation) Fields() []string {
+	fields := make([]string, 0, 7)
 	if m.account_id != nil {
-		fields = append(fields, accountnotif.FieldAccountID)
+		fields = append(fields, accountnotifs.FieldAccountID)
 	}
 	if m.notif_type != nil {
-		fields = append(fields, accountnotif.FieldNotifType)
+		fields = append(fields, accountnotifs.FieldNotifType)
 	}
 	if m.notif_title != nil {
-		fields = append(fields, accountnotif.FieldNotifTitle)
+		fields = append(fields, accountnotifs.FieldNotifTitle)
 	}
 	if m.notif_content != nil {
-		fields = append(fields, accountnotif.FieldNotifContent)
+		fields = append(fields, accountnotifs.FieldNotifContent)
 	}
 	if m.notif_time != nil {
-		fields = append(fields, accountnotif.FieldNotifTime)
+		fields = append(fields, accountnotifs.FieldNotifTime)
+	}
+	if m.username != nil {
+		fields = append(fields, accountnotifs.FieldUsername)
 	}
 	if m.created_at != nil {
-		fields = append(fields, accountnotif.FieldCreatedAt)
+		fields = append(fields, accountnotifs.FieldCreatedAt)
 	}
 	return fields
 }
@@ -476,19 +543,21 @@ func (m *AccountNotifMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *AccountNotifMutation) Field(name string) (ent.Value, bool) {
+func (m *AccountNotifsMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case accountnotif.FieldAccountID:
+	case accountnotifs.FieldAccountID:
 		return m.AccountID()
-	case accountnotif.FieldNotifType:
+	case accountnotifs.FieldNotifType:
 		return m.NotifType()
-	case accountnotif.FieldNotifTitle:
+	case accountnotifs.FieldNotifTitle:
 		return m.NotifTitle()
-	case accountnotif.FieldNotifContent:
+	case accountnotifs.FieldNotifContent:
 		return m.NotifContent()
-	case accountnotif.FieldNotifTime:
+	case accountnotifs.FieldNotifTime:
 		return m.NotifTime()
-	case accountnotif.FieldCreatedAt:
+	case accountnotifs.FieldUsername:
+		return m.Username()
+	case accountnotifs.FieldCreatedAt:
 		return m.CreatedAt()
 	}
 	return nil, false
@@ -497,65 +566,74 @@ func (m *AccountNotifMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *AccountNotifMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *AccountNotifsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case accountnotif.FieldAccountID:
+	case accountnotifs.FieldAccountID:
 		return m.OldAccountID(ctx)
-	case accountnotif.FieldNotifType:
+	case accountnotifs.FieldNotifType:
 		return m.OldNotifType(ctx)
-	case accountnotif.FieldNotifTitle:
+	case accountnotifs.FieldNotifTitle:
 		return m.OldNotifTitle(ctx)
-	case accountnotif.FieldNotifContent:
+	case accountnotifs.FieldNotifContent:
 		return m.OldNotifContent(ctx)
-	case accountnotif.FieldNotifTime:
+	case accountnotifs.FieldNotifTime:
 		return m.OldNotifTime(ctx)
-	case accountnotif.FieldCreatedAt:
+	case accountnotifs.FieldUsername:
+		return m.OldUsername(ctx)
+	case accountnotifs.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	}
-	return nil, fmt.Errorf("unknown AccountNotif field %s", name)
+	return nil, fmt.Errorf("unknown AccountNotifs field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *AccountNotifMutation) SetField(name string, value ent.Value) error {
+func (m *AccountNotifsMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case accountnotif.FieldAccountID:
+	case accountnotifs.FieldAccountID:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAccountID(v)
 		return nil
-	case accountnotif.FieldNotifType:
+	case accountnotifs.FieldNotifType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNotifType(v)
 		return nil
-	case accountnotif.FieldNotifTitle:
+	case accountnotifs.FieldNotifTitle:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNotifTitle(v)
 		return nil
-	case accountnotif.FieldNotifContent:
+	case accountnotifs.FieldNotifContent:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNotifContent(v)
 		return nil
-	case accountnotif.FieldNotifTime:
+	case accountnotifs.FieldNotifTime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNotifTime(v)
 		return nil
-	case accountnotif.FieldCreatedAt:
+	case accountnotifs.FieldUsername:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsername(v)
+		return nil
+	case accountnotifs.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -563,15 +641,15 @@ func (m *AccountNotifMutation) SetField(name string, value ent.Value) error {
 		m.SetCreatedAt(v)
 		return nil
 	}
-	return fmt.Errorf("unknown AccountNotif field %s", name)
+	return fmt.Errorf("unknown AccountNotifs field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *AccountNotifMutation) AddedFields() []string {
+func (m *AccountNotifsMutation) AddedFields() []string {
 	var fields []string
 	if m.addaccount_id != nil {
-		fields = append(fields, accountnotif.FieldAccountID)
+		fields = append(fields, accountnotifs.FieldAccountID)
 	}
 	return fields
 }
@@ -579,9 +657,9 @@ func (m *AccountNotifMutation) AddedFields() []string {
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *AccountNotifMutation) AddedField(name string) (ent.Value, bool) {
+func (m *AccountNotifsMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case accountnotif.FieldAccountID:
+	case accountnotifs.FieldAccountID:
 		return m.AddedAccountID()
 	}
 	return nil, false
@@ -590,9 +668,9 @@ func (m *AccountNotifMutation) AddedField(name string) (ent.Value, bool) {
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *AccountNotifMutation) AddField(name string, value ent.Value) error {
+func (m *AccountNotifsMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case accountnotif.FieldAccountID:
+	case accountnotifs.FieldAccountID:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -600,121 +678,136 @@ func (m *AccountNotifMutation) AddField(name string, value ent.Value) error {
 		m.AddAccountID(v)
 		return nil
 	}
-	return fmt.Errorf("unknown AccountNotif numeric field %s", name)
+	return fmt.Errorf("unknown AccountNotifs numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *AccountNotifMutation) ClearedFields() []string {
+func (m *AccountNotifsMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(accountnotif.FieldNotifTitle) {
-		fields = append(fields, accountnotif.FieldNotifTitle)
+	if m.FieldCleared(accountnotifs.FieldAccountID) {
+		fields = append(fields, accountnotifs.FieldAccountID)
 	}
-	if m.FieldCleared(accountnotif.FieldNotifContent) {
-		fields = append(fields, accountnotif.FieldNotifContent)
+	if m.FieldCleared(accountnotifs.FieldNotifTitle) {
+		fields = append(fields, accountnotifs.FieldNotifTitle)
 	}
-	if m.FieldCleared(accountnotif.FieldNotifTime) {
-		fields = append(fields, accountnotif.FieldNotifTime)
+	if m.FieldCleared(accountnotifs.FieldNotifContent) {
+		fields = append(fields, accountnotifs.FieldNotifContent)
+	}
+	if m.FieldCleared(accountnotifs.FieldNotifTime) {
+		fields = append(fields, accountnotifs.FieldNotifTime)
+	}
+	if m.FieldCleared(accountnotifs.FieldUsername) {
+		fields = append(fields, accountnotifs.FieldUsername)
 	}
 	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *AccountNotifMutation) FieldCleared(name string) bool {
+func (m *AccountNotifsMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *AccountNotifMutation) ClearField(name string) error {
+func (m *AccountNotifsMutation) ClearField(name string) error {
 	switch name {
-	case accountnotif.FieldNotifTitle:
+	case accountnotifs.FieldAccountID:
+		m.ClearAccountID()
+		return nil
+	case accountnotifs.FieldNotifTitle:
 		m.ClearNotifTitle()
 		return nil
-	case accountnotif.FieldNotifContent:
+	case accountnotifs.FieldNotifContent:
 		m.ClearNotifContent()
 		return nil
-	case accountnotif.FieldNotifTime:
+	case accountnotifs.FieldNotifTime:
 		m.ClearNotifTime()
 		return nil
+	case accountnotifs.FieldUsername:
+		m.ClearUsername()
+		return nil
 	}
-	return fmt.Errorf("unknown AccountNotif nullable field %s", name)
+	return fmt.Errorf("unknown AccountNotifs nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *AccountNotifMutation) ResetField(name string) error {
+func (m *AccountNotifsMutation) ResetField(name string) error {
 	switch name {
-	case accountnotif.FieldAccountID:
+	case accountnotifs.FieldAccountID:
 		m.ResetAccountID()
 		return nil
-	case accountnotif.FieldNotifType:
+	case accountnotifs.FieldNotifType:
 		m.ResetNotifType()
 		return nil
-	case accountnotif.FieldNotifTitle:
+	case accountnotifs.FieldNotifTitle:
 		m.ResetNotifTitle()
 		return nil
-	case accountnotif.FieldNotifContent:
+	case accountnotifs.FieldNotifContent:
 		m.ResetNotifContent()
 		return nil
-	case accountnotif.FieldNotifTime:
+	case accountnotifs.FieldNotifTime:
 		m.ResetNotifTime()
 		return nil
-	case accountnotif.FieldCreatedAt:
+	case accountnotifs.FieldUsername:
+		m.ResetUsername()
+		return nil
+	case accountnotifs.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
 	}
-	return fmt.Errorf("unknown AccountNotif field %s", name)
+	return fmt.Errorf("unknown AccountNotifs field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *AccountNotifMutation) AddedEdges() []string {
+func (m *AccountNotifsMutation) AddedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *AccountNotifMutation) AddedIDs(name string) []ent.Value {
+func (m *AccountNotifsMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *AccountNotifMutation) RemovedEdges() []string {
+func (m *AccountNotifsMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *AccountNotifMutation) RemovedIDs(name string) []ent.Value {
+func (m *AccountNotifsMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *AccountNotifMutation) ClearedEdges() []string {
+func (m *AccountNotifsMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *AccountNotifMutation) EdgeCleared(name string) bool {
+func (m *AccountNotifsMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *AccountNotifMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown AccountNotif unique edge %s", name)
+func (m *AccountNotifsMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AccountNotifs unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *AccountNotifMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown AccountNotif edge %s", name)
+func (m *AccountNotifsMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AccountNotifs edge %s", name)
 }
 
 // NotifReadMutation represents an operation that mutates the NotifRead nodes in the graph.
@@ -1948,9 +2041,22 @@ func (m *UsersMutation) OldHashedPassword(ctx context.Context) (v string, err er
 	return oldValue.HashedPassword, nil
 }
 
+// ClearHashedPassword clears the value of the "hashed_password" field.
+func (m *UsersMutation) ClearHashedPassword() {
+	m.hashed_password = nil
+	m.clearedFields[users.FieldHashedPassword] = struct{}{}
+}
+
+// HashedPasswordCleared returns if the "hashed_password" field was cleared in this mutation.
+func (m *UsersMutation) HashedPasswordCleared() bool {
+	_, ok := m.clearedFields[users.FieldHashedPassword]
+	return ok
+}
+
 // ResetHashedPassword resets all changes to the "hashed_password" field.
 func (m *UsersMutation) ResetHashedPassword() {
 	m.hashed_password = nil
+	delete(m.clearedFields, users.FieldHashedPassword)
 }
 
 // SetEmail sets the "email" field.
@@ -2256,7 +2362,11 @@ func (m *UsersMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UsersMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(users.FieldHashedPassword) {
+		fields = append(fields, users.FieldHashedPassword)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2269,6 +2379,11 @@ func (m *UsersMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UsersMutation) ClearField(name string) error {
+	switch name {
+	case users.FieldHashedPassword:
+		m.ClearHashedPassword()
+		return nil
+	}
 	return fmt.Errorf("unknown Users nullable field %s", name)
 }
 

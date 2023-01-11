@@ -83,3 +83,8 @@ offset $2;
 UPDATE accounts
 SET photo_dir = @FileDirectory
 WHERE owner = @username or accounts_id = @AccountID;
+
+-- name: GetAccountByEmail :one
+SELECT accounts_id,owner,is_private,follower,following,photo_dir from accounts a
+left join users u on a.owner = u.username
+where u.email = @Email LIMIT 1;

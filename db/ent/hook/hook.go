@@ -9,15 +9,15 @@ import (
 	"github.com/peacewalker122/project/db/ent"
 )
 
-// The AccountNotifFunc type is an adapter to allow the use of ordinary
-// function as AccountNotif mutator.
-type AccountNotifFunc func(context.Context, *ent.AccountNotifMutation) (ent.Value, error)
+// The AccountNotifsFunc type is an adapter to allow the use of ordinary
+// function as AccountNotifs mutator.
+type AccountNotifsFunc func(context.Context, *ent.AccountNotifsMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f AccountNotifFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.AccountNotifMutation)
+func (f AccountNotifsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AccountNotifsMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountNotifMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountNotifsMutation", m)
 	}
 	return f(ctx, mv)
 }

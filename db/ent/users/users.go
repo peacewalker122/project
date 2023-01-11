@@ -2,10 +2,6 @@
 
 package users
 
-import (
-	"github.com/google/uuid"
-)
-
 const (
 	// Label holds the string label denoting the users type in the database.
 	Label = "users"
@@ -65,6 +61,4 @@ var (
 	DefaultCreatedAt string
 	// CreatedAtValidator is a validator for the "created_at" field. It is called by the builders before save.
 	CreatedAtValidator func(string) error
-	// DefaultID holds the default value on creation for the "id" field.
-	DefaultID func() uuid.UUID
 )

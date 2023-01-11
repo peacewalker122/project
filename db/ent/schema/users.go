@@ -13,12 +13,9 @@ type Users struct {
 
 // Fields of the Users.
 func (Users) Fields() []ent.Field {
-	hash := uuid.New().String()
-	uid := uuid.NewSHA1(uuid.New(), []byte(hash))
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).
-			Default(uid).
-			Unique(),
+		field.UUID("id", uuid.UUID{}),
+
 		field.String("username").
 			Unique().
 			NotEmpty(),

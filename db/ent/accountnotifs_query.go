@@ -11,70 +11,70 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/peacewalker122/project/db/ent/accountnotif"
+	"github.com/peacewalker122/project/db/ent/accountnotifs"
 	"github.com/peacewalker122/project/db/ent/predicate"
 )
 
-// AccountNotifQuery is the builder for querying AccountNotif entities.
-type AccountNotifQuery struct {
+// AccountNotifsQuery is the builder for querying AccountNotifs entities.
+type AccountNotifsQuery struct {
 	config
 	limit      *int
 	offset     *int
 	unique     *bool
 	order      []OrderFunc
 	fields     []string
-	predicates []predicate.AccountNotif
+	predicates []predicate.AccountNotifs
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the AccountNotifQuery builder.
-func (anq *AccountNotifQuery) Where(ps ...predicate.AccountNotif) *AccountNotifQuery {
+// Where adds a new predicate for the AccountNotifsQuery builder.
+func (anq *AccountNotifsQuery) Where(ps ...predicate.AccountNotifs) *AccountNotifsQuery {
 	anq.predicates = append(anq.predicates, ps...)
 	return anq
 }
 
 // Limit adds a limit step to the query.
-func (anq *AccountNotifQuery) Limit(limit int) *AccountNotifQuery {
+func (anq *AccountNotifsQuery) Limit(limit int) *AccountNotifsQuery {
 	anq.limit = &limit
 	return anq
 }
 
 // Offset adds an offset step to the query.
-func (anq *AccountNotifQuery) Offset(offset int) *AccountNotifQuery {
+func (anq *AccountNotifsQuery) Offset(offset int) *AccountNotifsQuery {
 	anq.offset = &offset
 	return anq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (anq *AccountNotifQuery) Unique(unique bool) *AccountNotifQuery {
+func (anq *AccountNotifsQuery) Unique(unique bool) *AccountNotifsQuery {
 	anq.unique = &unique
 	return anq
 }
 
 // Order adds an order step to the query.
-func (anq *AccountNotifQuery) Order(o ...OrderFunc) *AccountNotifQuery {
+func (anq *AccountNotifsQuery) Order(o ...OrderFunc) *AccountNotifsQuery {
 	anq.order = append(anq.order, o...)
 	return anq
 }
 
-// First returns the first AccountNotif entity from the query.
-// Returns a *NotFoundError when no AccountNotif was found.
-func (anq *AccountNotifQuery) First(ctx context.Context) (*AccountNotif, error) {
+// First returns the first AccountNotifs entity from the query.
+// Returns a *NotFoundError when no AccountNotifs was found.
+func (anq *AccountNotifsQuery) First(ctx context.Context) (*AccountNotifs, error) {
 	nodes, err := anq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{accountnotif.Label}
+		return nil, &NotFoundError{accountnotifs.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (anq *AccountNotifQuery) FirstX(ctx context.Context) *AccountNotif {
+func (anq *AccountNotifsQuery) FirstX(ctx context.Context) *AccountNotifs {
 	node, err := anq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -82,22 +82,22 @@ func (anq *AccountNotifQuery) FirstX(ctx context.Context) *AccountNotif {
 	return node
 }
 
-// FirstID returns the first AccountNotif ID from the query.
-// Returns a *NotFoundError when no AccountNotif ID was found.
-func (anq *AccountNotifQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+// FirstID returns the first AccountNotifs ID from the query.
+// Returns a *NotFoundError when no AccountNotifs ID was found.
+func (anq *AccountNotifsQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = anq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{accountnotif.Label}
+		err = &NotFoundError{accountnotifs.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (anq *AccountNotifQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (anq *AccountNotifsQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := anq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -105,10 +105,10 @@ func (anq *AccountNotifQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// Only returns a single AccountNotif entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one AccountNotif entity is found.
-// Returns a *NotFoundError when no AccountNotif entities are found.
-func (anq *AccountNotifQuery) Only(ctx context.Context) (*AccountNotif, error) {
+// Only returns a single AccountNotifs entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one AccountNotifs entity is found.
+// Returns a *NotFoundError when no AccountNotifs entities are found.
+func (anq *AccountNotifsQuery) Only(ctx context.Context) (*AccountNotifs, error) {
 	nodes, err := anq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
@@ -117,14 +117,14 @@ func (anq *AccountNotifQuery) Only(ctx context.Context) (*AccountNotif, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{accountnotif.Label}
+		return nil, &NotFoundError{accountnotifs.Label}
 	default:
-		return nil, &NotSingularError{accountnotif.Label}
+		return nil, &NotSingularError{accountnotifs.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (anq *AccountNotifQuery) OnlyX(ctx context.Context) *AccountNotif {
+func (anq *AccountNotifsQuery) OnlyX(ctx context.Context) *AccountNotifs {
 	node, err := anq.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -132,10 +132,10 @@ func (anq *AccountNotifQuery) OnlyX(ctx context.Context) *AccountNotif {
 	return node
 }
 
-// OnlyID is like Only, but returns the only AccountNotif ID in the query.
-// Returns a *NotSingularError when more than one AccountNotif ID is found.
+// OnlyID is like Only, but returns the only AccountNotifs ID in the query.
+// Returns a *NotSingularError when more than one AccountNotifs ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (anq *AccountNotifQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+func (anq *AccountNotifsQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
 	if ids, err = anq.Limit(2).IDs(ctx); err != nil {
 		return
@@ -144,15 +144,15 @@ func (anq *AccountNotifQuery) OnlyID(ctx context.Context) (id uuid.UUID, err err
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{accountnotif.Label}
+		err = &NotFoundError{accountnotifs.Label}
 	default:
-		err = &NotSingularError{accountnotif.Label}
+		err = &NotSingularError{accountnotifs.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (anq *AccountNotifQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (anq *AccountNotifsQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := anq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -160,8 +160,8 @@ func (anq *AccountNotifQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	return id
 }
 
-// All executes the query and returns a list of AccountNotifs.
-func (anq *AccountNotifQuery) All(ctx context.Context) ([]*AccountNotif, error) {
+// All executes the query and returns a list of AccountNotifsSlice.
+func (anq *AccountNotifsQuery) All(ctx context.Context) ([]*AccountNotifs, error) {
 	if err := anq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (anq *AccountNotifQuery) All(ctx context.Context) ([]*AccountNotif, error) 
 }
 
 // AllX is like All, but panics if an error occurs.
-func (anq *AccountNotifQuery) AllX(ctx context.Context) []*AccountNotif {
+func (anq *AccountNotifsQuery) AllX(ctx context.Context) []*AccountNotifs {
 	nodes, err := anq.All(ctx)
 	if err != nil {
 		panic(err)
@@ -177,17 +177,17 @@ func (anq *AccountNotifQuery) AllX(ctx context.Context) []*AccountNotif {
 	return nodes
 }
 
-// IDs executes the query and returns a list of AccountNotif IDs.
-func (anq *AccountNotifQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+// IDs executes the query and returns a list of AccountNotifs IDs.
+func (anq *AccountNotifsQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	if err := anq.Select(accountnotif.FieldID).Scan(ctx, &ids); err != nil {
+	if err := anq.Select(accountnotifs.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (anq *AccountNotifQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (anq *AccountNotifsQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := anq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -196,7 +196,7 @@ func (anq *AccountNotifQuery) IDsX(ctx context.Context) []uuid.UUID {
 }
 
 // Count returns the count of the given query.
-func (anq *AccountNotifQuery) Count(ctx context.Context) (int, error) {
+func (anq *AccountNotifsQuery) Count(ctx context.Context) (int, error) {
 	if err := anq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -204,7 +204,7 @@ func (anq *AccountNotifQuery) Count(ctx context.Context) (int, error) {
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (anq *AccountNotifQuery) CountX(ctx context.Context) int {
+func (anq *AccountNotifsQuery) CountX(ctx context.Context) int {
 	count, err := anq.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -213,7 +213,7 @@ func (anq *AccountNotifQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (anq *AccountNotifQuery) Exist(ctx context.Context) (bool, error) {
+func (anq *AccountNotifsQuery) Exist(ctx context.Context) (bool, error) {
 	if err := anq.prepareQuery(ctx); err != nil {
 		return false, err
 	}
@@ -221,7 +221,7 @@ func (anq *AccountNotifQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (anq *AccountNotifQuery) ExistX(ctx context.Context) bool {
+func (anq *AccountNotifsQuery) ExistX(ctx context.Context) bool {
 	exist, err := anq.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -229,18 +229,18 @@ func (anq *AccountNotifQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the AccountNotifQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the AccountNotifsQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (anq *AccountNotifQuery) Clone() *AccountNotifQuery {
+func (anq *AccountNotifsQuery) Clone() *AccountNotifsQuery {
 	if anq == nil {
 		return nil
 	}
-	return &AccountNotifQuery{
+	return &AccountNotifsQuery{
 		config:     anq.config,
 		limit:      anq.limit,
 		offset:     anq.offset,
 		order:      append([]OrderFunc{}, anq.order...),
-		predicates: append([]predicate.AccountNotif{}, anq.predicates...),
+		predicates: append([]predicate.AccountNotifs{}, anq.predicates...),
 		// clone intermediate query.
 		sql:    anq.sql.Clone(),
 		path:   anq.path,
@@ -258,12 +258,12 @@ func (anq *AccountNotifQuery) Clone() *AccountNotifQuery {
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.AccountNotif.Query().
-//		GroupBy(accountnotif.FieldAccountID).
+//	client.AccountNotifs.Query().
+//		GroupBy(accountnotifs.FieldAccountID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (anq *AccountNotifQuery) GroupBy(field string, fields ...string) *AccountNotifGroupBy {
-	grbuild := &AccountNotifGroupBy{config: anq.config}
+func (anq *AccountNotifsQuery) GroupBy(field string, fields ...string) *AccountNotifsGroupBy {
+	grbuild := &AccountNotifsGroupBy{config: anq.config}
 	grbuild.fields = append([]string{field}, fields...)
 	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := anq.prepareQuery(ctx); err != nil {
@@ -271,7 +271,7 @@ func (anq *AccountNotifQuery) GroupBy(field string, fields ...string) *AccountNo
 		}
 		return anq.sqlQuery(ctx), nil
 	}
-	grbuild.label = accountnotif.Label
+	grbuild.label = accountnotifs.Label
 	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
 	return grbuild
 }
@@ -285,25 +285,25 @@ func (anq *AccountNotifQuery) GroupBy(field string, fields ...string) *AccountNo
 //		AccountID int64 `json:"account_id,omitempty"`
 //	}
 //
-//	client.AccountNotif.Query().
-//		Select(accountnotif.FieldAccountID).
+//	client.AccountNotifs.Query().
+//		Select(accountnotifs.FieldAccountID).
 //		Scan(ctx, &v)
-func (anq *AccountNotifQuery) Select(fields ...string) *AccountNotifSelect {
+func (anq *AccountNotifsQuery) Select(fields ...string) *AccountNotifsSelect {
 	anq.fields = append(anq.fields, fields...)
-	selbuild := &AccountNotifSelect{AccountNotifQuery: anq}
-	selbuild.label = accountnotif.Label
+	selbuild := &AccountNotifsSelect{AccountNotifsQuery: anq}
+	selbuild.label = accountnotifs.Label
 	selbuild.flds, selbuild.scan = &anq.fields, selbuild.Scan
 	return selbuild
 }
 
-// Aggregate returns a AccountNotifSelect configured with the given aggregations.
-func (anq *AccountNotifQuery) Aggregate(fns ...AggregateFunc) *AccountNotifSelect {
+// Aggregate returns a AccountNotifsSelect configured with the given aggregations.
+func (anq *AccountNotifsQuery) Aggregate(fns ...AggregateFunc) *AccountNotifsSelect {
 	return anq.Select().Aggregate(fns...)
 }
 
-func (anq *AccountNotifQuery) prepareQuery(ctx context.Context) error {
+func (anq *AccountNotifsQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range anq.fields {
-		if !accountnotif.ValidColumn(f) {
+		if !accountnotifs.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -317,16 +317,16 @@ func (anq *AccountNotifQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (anq *AccountNotifQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*AccountNotif, error) {
+func (anq *AccountNotifsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*AccountNotifs, error) {
 	var (
-		nodes = []*AccountNotif{}
+		nodes = []*AccountNotifs{}
 		_spec = anq.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*AccountNotif).scanValues(nil, columns)
+		return (*AccountNotifs).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &AccountNotif{config: anq.config}
+		node := &AccountNotifs{config: anq.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
@@ -342,7 +342,7 @@ func (anq *AccountNotifQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	return nodes, nil
 }
 
-func (anq *AccountNotifQuery) sqlCount(ctx context.Context) (int, error) {
+func (anq *AccountNotifsQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := anq.querySpec()
 	_spec.Node.Columns = anq.fields
 	if len(anq.fields) > 0 {
@@ -351,7 +351,7 @@ func (anq *AccountNotifQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, anq.driver, _spec)
 }
 
-func (anq *AccountNotifQuery) sqlExist(ctx context.Context) (bool, error) {
+func (anq *AccountNotifsQuery) sqlExist(ctx context.Context) (bool, error) {
 	switch _, err := anq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -362,14 +362,14 @@ func (anq *AccountNotifQuery) sqlExist(ctx context.Context) (bool, error) {
 	}
 }
 
-func (anq *AccountNotifQuery) querySpec() *sqlgraph.QuerySpec {
+func (anq *AccountNotifsQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
-			Table:   accountnotif.Table,
-			Columns: accountnotif.Columns,
+			Table:   accountnotifs.Table,
+			Columns: accountnotifs.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeUUID,
-				Column: accountnotif.FieldID,
+				Column: accountnotifs.FieldID,
 			},
 		},
 		From:   anq.sql,
@@ -380,9 +380,9 @@ func (anq *AccountNotifQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := anq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, accountnotif.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, accountnotifs.FieldID)
 		for i := range fields {
-			if fields[i] != accountnotif.FieldID {
+			if fields[i] != accountnotifs.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -410,12 +410,12 @@ func (anq *AccountNotifQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (anq *AccountNotifQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (anq *AccountNotifsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(anq.driver.Dialect())
-	t1 := builder.Table(accountnotif.Table)
+	t1 := builder.Table(accountnotifs.Table)
 	columns := anq.fields
 	if len(columns) == 0 {
-		columns = accountnotif.Columns
+		columns = accountnotifs.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if anq.sql != nil {
@@ -442,8 +442,8 @@ func (anq *AccountNotifQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// AccountNotifGroupBy is the group-by builder for AccountNotif entities.
-type AccountNotifGroupBy struct {
+// AccountNotifsGroupBy is the group-by builder for AccountNotifs entities.
+type AccountNotifsGroupBy struct {
 	config
 	selector
 	fields []string
@@ -454,13 +454,13 @@ type AccountNotifGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (angb *AccountNotifGroupBy) Aggregate(fns ...AggregateFunc) *AccountNotifGroupBy {
+func (angb *AccountNotifsGroupBy) Aggregate(fns ...AggregateFunc) *AccountNotifsGroupBy {
 	angb.fns = append(angb.fns, fns...)
 	return angb
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (angb *AccountNotifGroupBy) Scan(ctx context.Context, v any) error {
+func (angb *AccountNotifsGroupBy) Scan(ctx context.Context, v any) error {
 	query, err := angb.path(ctx)
 	if err != nil {
 		return err
@@ -469,9 +469,9 @@ func (angb *AccountNotifGroupBy) Scan(ctx context.Context, v any) error {
 	return angb.sqlScan(ctx, v)
 }
 
-func (angb *AccountNotifGroupBy) sqlScan(ctx context.Context, v any) error {
+func (angb *AccountNotifsGroupBy) sqlScan(ctx context.Context, v any) error {
 	for _, f := range angb.fields {
-		if !accountnotif.ValidColumn(f) {
+		if !accountnotifs.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
 		}
 	}
@@ -488,7 +488,7 @@ func (angb *AccountNotifGroupBy) sqlScan(ctx context.Context, v any) error {
 	return sql.ScanSlice(rows, v)
 }
 
-func (angb *AccountNotifGroupBy) sqlQuery() *sql.Selector {
+func (angb *AccountNotifsGroupBy) sqlQuery() *sql.Selector {
 	selector := angb.sql.Select()
 	aggregation := make([]string, 0, len(angb.fns))
 	for _, fn := range angb.fns {
@@ -505,30 +505,30 @@ func (angb *AccountNotifGroupBy) sqlQuery() *sql.Selector {
 	return selector.GroupBy(selector.Columns(angb.fields...)...)
 }
 
-// AccountNotifSelect is the builder for selecting fields of AccountNotif entities.
-type AccountNotifSelect struct {
-	*AccountNotifQuery
+// AccountNotifsSelect is the builder for selecting fields of AccountNotifs entities.
+type AccountNotifsSelect struct {
+	*AccountNotifsQuery
 	selector
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (ans *AccountNotifSelect) Aggregate(fns ...AggregateFunc) *AccountNotifSelect {
+func (ans *AccountNotifsSelect) Aggregate(fns ...AggregateFunc) *AccountNotifsSelect {
 	ans.fns = append(ans.fns, fns...)
 	return ans
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ans *AccountNotifSelect) Scan(ctx context.Context, v any) error {
+func (ans *AccountNotifsSelect) Scan(ctx context.Context, v any) error {
 	if err := ans.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ans.sql = ans.AccountNotifQuery.sqlQuery(ctx)
+	ans.sql = ans.AccountNotifsQuery.sqlQuery(ctx)
 	return ans.sqlScan(ctx, v)
 }
 
-func (ans *AccountNotifSelect) sqlScan(ctx context.Context, v any) error {
+func (ans *AccountNotifsSelect) sqlScan(ctx context.Context, v any) error {
 	aggregation := make([]string, 0, len(ans.fns))
 	for _, fn := range ans.fns {
 		aggregation = append(aggregation, fn(ans.sql))

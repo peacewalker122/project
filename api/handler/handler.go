@@ -31,6 +31,7 @@ type HandlerService interface {
 	tokenService
 	userService
 	accountService
+	AuthHandler
 }
 
 const (

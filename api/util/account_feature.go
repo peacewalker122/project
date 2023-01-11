@@ -84,11 +84,11 @@ func (s *utilTools) SaveFile(c echo.Context, PhotoType string, AccountID int64) 
 
 	var wg sync.WaitGroup
 	var fileName string
-	folderPath := fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/", AccountID)
+	folderPath := fmt.Sprintf("/home/danielputra/Pictures/Project/%v/", AccountID)
 
 	// here we invoke if it's a profile photo then create a new folder if it's doesn't exist.
 	if PhotoType == profilephoto {
-		folderPath = fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/%v/", AccountID, "profile")
+		folderPath = fmt.Sprintf("/home/danielputra/Pictures/Project/%v/%v/", AccountID, "profile")
 	}
 
 	file, err := c.FormFile("photo")
@@ -122,13 +122,19 @@ func (s *utilTools) SaveFile(c echo.Context, PhotoType string, AccountID int64) 
 		return "", err, false
 	}
 
-	wg.Add(1)
+	done := make(chan bool)
+	errchan := make(chan error)
 	go func() {
-		defer wg.Done()
 		err = ValidateFileType(src)
+		if err != nil {
+			errchan <- err
+			return
+		}
+		done <- true
 	}()
-	wg.Wait()
-	if err != nil {
+	select {
+	case <-done:
+	case err = <-errchan:
 		return "", err, true
 	}
 
@@ -160,12 +166,12 @@ func (s *utilTools) SaveFile(c echo.Context, PhotoType string, AccountID int64) 
 		defer wg.Done()
 		_, err = io.Copy(dst, src)
 	}()
-	wg.Wait()
 
 	if err != nil {
 		os.Remove(filePath)
 		return "", err, false
 	}
+	wg.Wait()
 
 	return filePath, nil, false
 }

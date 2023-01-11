@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	api "github.com/peacewalker122/project/api/util"
 	db "github.com/peacewalker122/project/db/sqlc"
+	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 )
 
@@ -62,6 +63,7 @@ func (s *Handler) CreateRequestUser(c echo.Context) error {
 	}
 
 	var wg sync.WaitGroup
+	var uid uuid.UUID
 	uuidchan := make(chan uuid.UUID, 1)
 	errchan := make(chan error, 2)
 
@@ -69,24 +71,28 @@ func (s *Handler) CreateRequestUser(c echo.Context) error {
 	go func(errchan chan error, uuidchan chan uuid.UUID) {
 		defer wg.Done()
 		uid, err := s.util.CreateEmailAuth(c.Request().Context(), req.Email)
-		errchan <- err
-		uuidchan <- uid
+		if err != nil {
+			errchan <- errors.New("failed to create email auth: " + err.Error())
+		}
 		// here we set the key to redis
 		// to get the key we use the uuid
 		err = s.redis.Set(c.Request().Context(), uid.String()+"h", req, 3*time.Minute)
-		errchan <- err
-	}(errchan, uuidchan)
-
-	uid := <-uuidchan
-
-	for v := range errchan {
-		if v != nil {
-			return c.JSON(http.StatusBadRequest, v.Error())
+		if err != nil {
+			errchan <- err
 		}
+		uuidchan <- uid
+	}(errchan, uuidchan)
+	select {
+	case err := <-errchan:
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+	case uid = <-uuidchan:
 	}
+
 	// here we send the email
-	c.Response().Header().Add("uuid", uid.String())
 	wg.Wait()
+	c.Response().Header().Add("uuid", uid.String())
 	return c.JSON(http.StatusOK, "success")
 }
 
@@ -185,12 +191,20 @@ func (s *Handler) Login(c echo.Context) error {
 		log.Panic(err.Error())
 	}
 
-	token, Accespayload, err := s.token.CreateToken(req.Username, s.config.TokenDuration)
+	accesstoken, Accespayload, err := s.token.CreateToken(&token.PayloadRequest{
+		Username:  req.Username,
+		AccountID: account.AccountsID,
+		Duration:  s.config.TokenDuration,
+	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	refreshToken, refreshPayload, err := s.token.CreateToken(req.Username, s.config.RefreshToken)
+	refreshToken, refreshPayload, err := s.token.CreateToken(&token.PayloadRequest{
+		Username:  req.Username,
+		AccountID: account.AccountsID,
+		Duration:  s.config.RefreshToken,
+	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -214,7 +228,7 @@ func (s *Handler) Login(c echo.Context) error {
 		RefreshToken:          refreshToken,
 		RefreshTokenExpiresAt: refreshPayload.ExpiredAt.UTC().Local(),
 		User:                  UserResponse(username, account),
-		AccesToken:            token,
+		AccesToken:            accesstoken,
 		AccesTokenExpiresAt:   Accespayload.ExpiredAt.UTC().Local(),
 	}
 	return c.JSON(http.StatusOK, resp)

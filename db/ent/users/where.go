@@ -305,6 +305,20 @@ func HashedPasswordHasSuffix(v string) predicate.Users {
 	})
 }
 
+// HashedPasswordIsNil applies the IsNil predicate on the "hashed_password" field.
+func HashedPasswordIsNil() predicate.Users {
+	return predicate.Users(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldHashedPassword)))
+	})
+}
+
+// HashedPasswordNotNil applies the NotNil predicate on the "hashed_password" field.
+func HashedPasswordNotNil() predicate.Users {
+	return predicate.Users(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldHashedPassword)))
+	})
+}
+
 // HashedPasswordEqualFold applies the EqualFold predicate on the "hashed_password" field.
 func HashedPasswordEqualFold(v string) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {

@@ -62,6 +62,9 @@ func (s *Server) routerhandle() {
 	router.POST("/token/renew", s.handler.RenewToken)
 	router.POST("/user/login", s.handler.Login)
 
+	router.POST("/user/forget", s.handler.AuthUser)
+	router.POST("/user/request/forget/:uid", s.handler.ChangePassword)
+
 	OauthRouter := router.Group("/oauth")
 	OauthRouter.GET("/google", s.Oauth.GoogleVerif)
 	OauthRouter.GET("/google/callback", s.Oauth.GoogleToken)

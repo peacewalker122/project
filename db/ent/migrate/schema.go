@@ -11,11 +11,12 @@ var (
 	// AccountNotifsColumns holds the columns for the "account_notifs" table.
 	AccountNotifsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "account_id", Type: field.TypeInt64},
+		{Name: "account_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "notif_type", Type: field.TypeString, Size: 255},
 		{Name: "notif_title", Type: field.TypeString, Nullable: true, Size: 50},
 		{Name: "notif_content", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "notif_time", Type: field.TypeTime, Nullable: true},
+		{Name: "username", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "created_at", Type: field.TypeTime},
 	}
 	// AccountNotifsTable holds the schema information for the "account_notifs" table.
@@ -25,9 +26,9 @@ var (
 		PrimaryKey: []*schema.Column{AccountNotifsColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "accountnotif_created_at",
+				Name:    "accountnotifs_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{AccountNotifsColumns[6]},
+				Columns: []*schema.Column{AccountNotifsColumns[7]},
 			},
 		},
 	}
@@ -64,7 +65,7 @@ var (
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "username", Type: field.TypeString, Unique: true},
-		{Name: "hashed_password", Type: field.TypeString},
+		{Name: "hashed_password", Type: field.TypeString, Nullable: true},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "full_name", Type: field.TypeString},
 		{Name: "password_changed_at", Type: field.TypeString, Default: "0001-01-01 00:00:00Z"},

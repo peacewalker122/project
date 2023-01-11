@@ -12,7 +12,7 @@
   
 version: "2"
 sql:
-- schema: "./db/migration"
+- schema: "./db/migration/project"
   queries: "./db/query"
   engine: "postgresql"
   gen:

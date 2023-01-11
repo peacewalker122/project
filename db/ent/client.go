@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/peacewalker122/project/db/ent/migrate"
 
-	"github.com/peacewalker122/project/db/ent/accountnotif"
+	"github.com/peacewalker122/project/db/ent/accountnotifs"
 	"github.com/peacewalker122/project/db/ent/notifread"
 	"github.com/peacewalker122/project/db/ent/tokens"
 	"github.com/peacewalker122/project/db/ent/users"
@@ -25,8 +25,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// AccountNotif is the client for interacting with the AccountNotif builders.
-	AccountNotif *AccountNotifClient
+	// AccountNotifs is the client for interacting with the AccountNotifs builders.
+	AccountNotifs *AccountNotifsClient
 	// NotifRead is the client for interacting with the NotifRead builders.
 	NotifRead *NotifReadClient
 	// Tokens is the client for interacting with the Tokens builders.
@@ -46,7 +46,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.AccountNotif = NewAccountNotifClient(c.config)
+	c.AccountNotifs = NewAccountNotifsClient(c.config)
 	c.NotifRead = NewNotifReadClient(c.config)
 	c.Tokens = NewTokensClient(c.config)
 	c.Users = NewUsersClient(c.config)
@@ -81,12 +81,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		AccountNotif: NewAccountNotifClient(cfg),
-		NotifRead:    NewNotifReadClient(cfg),
-		Tokens:       NewTokensClient(cfg),
-		Users:        NewUsersClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		AccountNotifs: NewAccountNotifsClient(cfg),
+		NotifRead:     NewNotifReadClient(cfg),
+		Tokens:        NewTokensClient(cfg),
+		Users:         NewUsersClient(cfg),
 	}, nil
 }
 
@@ -104,19 +104,19 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		AccountNotif: NewAccountNotifClient(cfg),
-		NotifRead:    NewNotifReadClient(cfg),
-		Tokens:       NewTokensClient(cfg),
-		Users:        NewUsersClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		AccountNotifs: NewAccountNotifsClient(cfg),
+		NotifRead:     NewNotifReadClient(cfg),
+		Tokens:        NewTokensClient(cfg),
+		Users:         NewUsersClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		AccountNotif.
+//		AccountNotifs.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -138,90 +138,90 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.AccountNotif.Use(hooks...)
+	c.AccountNotifs.Use(hooks...)
 	c.NotifRead.Use(hooks...)
 	c.Tokens.Use(hooks...)
 	c.Users.Use(hooks...)
 }
 
-// AccountNotifClient is a client for the AccountNotif schema.
-type AccountNotifClient struct {
+// AccountNotifsClient is a client for the AccountNotifs schema.
+type AccountNotifsClient struct {
 	config
 }
 
-// NewAccountNotifClient returns a client for the AccountNotif from the given config.
-func NewAccountNotifClient(c config) *AccountNotifClient {
-	return &AccountNotifClient{config: c}
+// NewAccountNotifsClient returns a client for the AccountNotifs from the given config.
+func NewAccountNotifsClient(c config) *AccountNotifsClient {
+	return &AccountNotifsClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `accountnotif.Hooks(f(g(h())))`.
-func (c *AccountNotifClient) Use(hooks ...Hook) {
-	c.hooks.AccountNotif = append(c.hooks.AccountNotif, hooks...)
+// A call to `Use(f, g, h)` equals to `accountnotifs.Hooks(f(g(h())))`.
+func (c *AccountNotifsClient) Use(hooks ...Hook) {
+	c.hooks.AccountNotifs = append(c.hooks.AccountNotifs, hooks...)
 }
 
-// Create returns a builder for creating a AccountNotif entity.
-func (c *AccountNotifClient) Create() *AccountNotifCreate {
-	mutation := newAccountNotifMutation(c.config, OpCreate)
-	return &AccountNotifCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a AccountNotifs entity.
+func (c *AccountNotifsClient) Create() *AccountNotifsCreate {
+	mutation := newAccountNotifsMutation(c.config, OpCreate)
+	return &AccountNotifsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of AccountNotif entities.
-func (c *AccountNotifClient) CreateBulk(builders ...*AccountNotifCreate) *AccountNotifCreateBulk {
-	return &AccountNotifCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of AccountNotifs entities.
+func (c *AccountNotifsClient) CreateBulk(builders ...*AccountNotifsCreate) *AccountNotifsCreateBulk {
+	return &AccountNotifsCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for AccountNotif.
-func (c *AccountNotifClient) Update() *AccountNotifUpdate {
-	mutation := newAccountNotifMutation(c.config, OpUpdate)
-	return &AccountNotifUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for AccountNotifs.
+func (c *AccountNotifsClient) Update() *AccountNotifsUpdate {
+	mutation := newAccountNotifsMutation(c.config, OpUpdate)
+	return &AccountNotifsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *AccountNotifClient) UpdateOne(an *AccountNotif) *AccountNotifUpdateOne {
-	mutation := newAccountNotifMutation(c.config, OpUpdateOne, withAccountNotif(an))
-	return &AccountNotifUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *AccountNotifsClient) UpdateOne(an *AccountNotifs) *AccountNotifsUpdateOne {
+	mutation := newAccountNotifsMutation(c.config, OpUpdateOne, withAccountNotifs(an))
+	return &AccountNotifsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *AccountNotifClient) UpdateOneID(id uuid.UUID) *AccountNotifUpdateOne {
-	mutation := newAccountNotifMutation(c.config, OpUpdateOne, withAccountNotifID(id))
-	return &AccountNotifUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *AccountNotifsClient) UpdateOneID(id uuid.UUID) *AccountNotifsUpdateOne {
+	mutation := newAccountNotifsMutation(c.config, OpUpdateOne, withAccountNotifsID(id))
+	return &AccountNotifsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for AccountNotif.
-func (c *AccountNotifClient) Delete() *AccountNotifDelete {
-	mutation := newAccountNotifMutation(c.config, OpDelete)
-	return &AccountNotifDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for AccountNotifs.
+func (c *AccountNotifsClient) Delete() *AccountNotifsDelete {
+	mutation := newAccountNotifsMutation(c.config, OpDelete)
+	return &AccountNotifsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *AccountNotifClient) DeleteOne(an *AccountNotif) *AccountNotifDeleteOne {
+func (c *AccountNotifsClient) DeleteOne(an *AccountNotifs) *AccountNotifsDeleteOne {
 	return c.DeleteOneID(an.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *AccountNotifClient) DeleteOneID(id uuid.UUID) *AccountNotifDeleteOne {
-	builder := c.Delete().Where(accountnotif.ID(id))
+func (c *AccountNotifsClient) DeleteOneID(id uuid.UUID) *AccountNotifsDeleteOne {
+	builder := c.Delete().Where(accountnotifs.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &AccountNotifDeleteOne{builder}
+	return &AccountNotifsDeleteOne{builder}
 }
 
-// Query returns a query builder for AccountNotif.
-func (c *AccountNotifClient) Query() *AccountNotifQuery {
-	return &AccountNotifQuery{
+// Query returns a query builder for AccountNotifs.
+func (c *AccountNotifsClient) Query() *AccountNotifsQuery {
+	return &AccountNotifsQuery{
 		config: c.config,
 	}
 }
 
-// Get returns a AccountNotif entity by its id.
-func (c *AccountNotifClient) Get(ctx context.Context, id uuid.UUID) (*AccountNotif, error) {
-	return c.Query().Where(accountnotif.ID(id)).Only(ctx)
+// Get returns a AccountNotifs entity by its id.
+func (c *AccountNotifsClient) Get(ctx context.Context, id uuid.UUID) (*AccountNotifs, error) {
+	return c.Query().Where(accountnotifs.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *AccountNotifClient) GetX(ctx context.Context, id uuid.UUID) *AccountNotif {
+func (c *AccountNotifsClient) GetX(ctx context.Context, id uuid.UUID) *AccountNotifs {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -230,8 +230,8 @@ func (c *AccountNotifClient) GetX(ctx context.Context, id uuid.UUID) *AccountNot
 }
 
 // Hooks returns the client hooks.
-func (c *AccountNotifClient) Hooks() []Hook {
-	return c.hooks.AccountNotif
+func (c *AccountNotifsClient) Hooks() []Hook {
+	return c.hooks.AccountNotifs
 }
 
 // NotifReadClient is a client for the NotifRead schema.

@@ -40,11 +40,11 @@ func newTeststore(db *sql.DB) Store {
 	}
 }
 
-func Newstore(db *sql.DB, Notif, RedisURL string) (Store, redis.Store) {
+func Newstore(Notif, RedisURL string, db ...*sql.DB) (Store, redis.Store) {
 	return &SQLStore{
-		Queries: New(db),
-		db:      db,
-		Payload:   payload.NewPayload(db),
+		Queries: New(db[0]),
+		db:      db[0],
+		Payload: payload.NewPayload(db[1], db[0]), // the first db is for notif and the second is for the main db
 	}, &NoSQLStore{Store: redis.NewRedis(RedisURL)}
 }
 

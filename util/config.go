@@ -23,6 +23,7 @@ type Config struct {
 	ClientOption       string        `mapstructure:"GOOGLE_APPLICATION_CREDENTIALS"`
 	GoogleClientID     string        `mapstructure:"GOOGLE_OAUTH_CLIENT_ID"`
 	GoogleClientSecret string        `mapstructure:"GOOGLE_OAUTH_SECRET"`
+	UserDir            string        `mapstructure:"USER_DIR"`
 	TokenDuration      time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 	RefreshToken       time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 }
