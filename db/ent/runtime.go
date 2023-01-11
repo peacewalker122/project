@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/db/ent/account"
 	"github.com/peacewalker122/project/db/ent/accountnotifs"
 	"github.com/peacewalker122/project/db/ent/notifread"
 	"github.com/peacewalker122/project/db/ent/schema"
@@ -17,6 +18,32 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	accountFields := schema.Account{}.Fields()
+	_ = accountFields
+	// accountDescOwner is the schema descriptor for owner field.
+	accountDescOwner := accountFields[0].Descriptor()
+	// account.OwnerValidator is a validator for the "owner" field. It is called by the builders before save.
+	account.OwnerValidator = accountDescOwner.Validators[0].(func(string) error)
+	// accountDescIsPrivate is the schema descriptor for is_private field.
+	accountDescIsPrivate := accountFields[1].Descriptor()
+	// account.DefaultIsPrivate holds the default value on creation for the is_private field.
+	account.DefaultIsPrivate = accountDescIsPrivate.Default.(bool)
+	// accountDescCreatedAt is the schema descriptor for created_at field.
+	accountDescCreatedAt := accountFields[2].Descriptor()
+	// account.DefaultCreatedAt holds the default value on creation for the created_at field.
+	account.DefaultCreatedAt = accountDescCreatedAt.Default.(time.Time)
+	// accountDescFollower is the schema descriptor for follower field.
+	accountDescFollower := accountFields[3].Descriptor()
+	// account.DefaultFollower holds the default value on creation for the follower field.
+	account.DefaultFollower = accountDescFollower.Default.(int64)
+	// accountDescFollowing is the schema descriptor for following field.
+	accountDescFollowing := accountFields[4].Descriptor()
+	// account.DefaultFollowing holds the default value on creation for the following field.
+	account.DefaultFollowing = accountDescFollowing.Default.(int64)
+	// accountDescPhotoDir is the schema descriptor for photo_dir field.
+	accountDescPhotoDir := accountFields[5].Descriptor()
+	// account.PhotoDirValidator is a validator for the "photo_dir" field. It is called by the builders before save.
+	account.PhotoDirValidator = accountDescPhotoDir.Validators[0].(func(string) error)
 	accountnotifsFields := schema.AccountNotifs{}.Fields()
 	_ = accountnotifsFields
 	// accountnotifsDescNotifType is the schema descriptor for notif_type field.

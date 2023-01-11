@@ -12,6 +12,7 @@ import (
 	uuid "github.com/google/uuid"
 	ent "github.com/peacewalker122/project/db/ent"
 	model "github.com/peacewalker122/project/db/payload/model"
+	account "github.com/peacewalker122/project/db/payload/model/account"
 	notifquery "github.com/peacewalker122/project/db/payload/model/notif_query"
 	tokens "github.com/peacewalker122/project/db/payload/model/tokens"
 	users "github.com/peacewalker122/project/db/payload/model/users"
@@ -568,6 +569,21 @@ func (m *MockStore) Followtx(arg0 context.Context, arg1 db.FollowTXParam) (db.Fo
 func (mr *MockStoreMockRecorder) Followtx(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Followtx", reflect.TypeOf((*MockStore)(nil).Followtx), arg0, arg1)
+}
+
+// GetAccount mocks base method.
+func (m *MockStore) GetAccount(arg0 context.Context, arg1 string) (*ent.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccount", arg0, arg1)
+	ret0, _ := ret[0].(*ent.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccount indicates an expected call of GetAccount.
+func (mr *MockStoreMockRecorder) GetAccount(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockStore)(nil).GetAccount), arg0, arg1)
 }
 
 // GetAccountByEmail mocks base method.
@@ -1213,6 +1229,21 @@ func (mr *MockStoreMockRecorder) PrivateAccount(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrivateAccount", reflect.TypeOf((*MockStore)(nil).PrivateAccount), arg0, arg1)
 }
 
+// SetAccount mocks base method.
+func (m *MockStore) SetAccount(arg0 context.Context, arg1 *account.AccountParam) (*ent.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetAccount", arg0, arg1)
+	ret0, _ := ret[0].(*ent.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetAccount indicates an expected call of SetAccount.
+func (mr *MockStoreMockRecorder) SetAccount(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAccount", reflect.TypeOf((*MockStore)(nil).SetAccount), arg0, arg1)
+}
+
 // SetPassword mocks base method.
 func (m *MockStore) SetPassword(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
@@ -1300,6 +1331,20 @@ func (m *MockStore) UnlikeTX(arg0 context.Context, arg1 db.CreateLikeParams) (db
 func (mr *MockStoreMockRecorder) UnlikeTX(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlikeTX", reflect.TypeOf((*MockStore)(nil).UnlikeTX), arg0, arg1)
+}
+
+// UpdateAccount mocks base method.
+func (m *MockStore) UpdateAccount(arg0 context.Context, arg1 *account.AccountParam) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAccount", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAccount indicates an expected call of UpdateAccount.
+func (mr *MockStoreMockRecorder) UpdateAccount(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockStore)(nil).UpdateAccount), arg0, arg1)
 }
 
 // UpdateAccountFollower mocks base method.

@@ -5,6 +5,7 @@ import (
 )
 
 type OauthUserResponse struct {
-	User  *ent.Users
-	Token *ent.Tokens
+	User    *ent.Users
+	Token   *ent.Tokens
+	Account *ent.Account
 }

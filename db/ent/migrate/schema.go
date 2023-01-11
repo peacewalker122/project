@@ -8,6 +8,22 @@ import (
 )
 
 var (
+	// AccountsColumns holds the columns for the "accounts" table.
+	AccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "owner", Type: field.TypeString, Unique: true},
+		{Name: "is_private", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "follower", Type: field.TypeInt64, Default: 0},
+		{Name: "following", Type: field.TypeInt64, Default: 0},
+		{Name: "photo_dir", Type: field.TypeString, Nullable: true, Size: 70},
+	}
+	// AccountsTable holds the schema information for the "accounts" table.
+	AccountsTable = &schema.Table{
+		Name:       "accounts",
+		Columns:    AccountsColumns,
+		PrimaryKey: []*schema.Column{AccountsColumns[0]},
+	}
 	// AccountNotifsColumns holds the columns for the "account_notifs" table.
 	AccountNotifsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -79,6 +95,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AccountsTable,
 		AccountNotifsTable,
 		NotifReadsTable,
 		TokensTable,

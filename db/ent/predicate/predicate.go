@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Account is the predicate function for account builders.
+type Account func(*sql.Selector)
+
 // AccountNotifs is the predicate function for accountnotifs builders.
 type AccountNotifs func(*sql.Selector)
 
