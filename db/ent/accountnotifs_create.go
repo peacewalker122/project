@@ -11,36 +11,44 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/peacewalker122/project/db/ent/accountnotif"
+	"github.com/peacewalker122/project/db/ent/accountnotifs"
 )
 
-// AccountNotifCreate is the builder for creating a AccountNotif entity.
-type AccountNotifCreate struct {
+// AccountNotifsCreate is the builder for creating a AccountNotifs entity.
+type AccountNotifsCreate struct {
 	config
-	mutation *AccountNotifMutation
+	mutation *AccountNotifsMutation
 	hooks    []Hook
 }
 
 // SetAccountID sets the "account_id" field.
-func (anc *AccountNotifCreate) SetAccountID(i int64) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetAccountID(i int64) *AccountNotifsCreate {
 	anc.mutation.SetAccountID(i)
 	return anc
 }
 
+// SetNillableAccountID sets the "account_id" field if the given value is not nil.
+func (anc *AccountNotifsCreate) SetNillableAccountID(i *int64) *AccountNotifsCreate {
+	if i != nil {
+		anc.SetAccountID(*i)
+	}
+	return anc
+}
+
 // SetNotifType sets the "notif_type" field.
-func (anc *AccountNotifCreate) SetNotifType(s string) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetNotifType(s string) *AccountNotifsCreate {
 	anc.mutation.SetNotifType(s)
 	return anc
 }
 
 // SetNotifTitle sets the "notif_title" field.
-func (anc *AccountNotifCreate) SetNotifTitle(s string) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetNotifTitle(s string) *AccountNotifsCreate {
 	anc.mutation.SetNotifTitle(s)
 	return anc
 }
 
 // SetNillableNotifTitle sets the "notif_title" field if the given value is not nil.
-func (anc *AccountNotifCreate) SetNillableNotifTitle(s *string) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetNillableNotifTitle(s *string) *AccountNotifsCreate {
 	if s != nil {
 		anc.SetNotifTitle(*s)
 	}
@@ -48,13 +56,13 @@ func (anc *AccountNotifCreate) SetNillableNotifTitle(s *string) *AccountNotifCre
 }
 
 // SetNotifContent sets the "notif_content" field.
-func (anc *AccountNotifCreate) SetNotifContent(s string) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetNotifContent(s string) *AccountNotifsCreate {
 	anc.mutation.SetNotifContent(s)
 	return anc
 }
 
 // SetNillableNotifContent sets the "notif_content" field if the given value is not nil.
-func (anc *AccountNotifCreate) SetNillableNotifContent(s *string) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetNillableNotifContent(s *string) *AccountNotifsCreate {
 	if s != nil {
 		anc.SetNotifContent(*s)
 	}
@@ -62,27 +70,41 @@ func (anc *AccountNotifCreate) SetNillableNotifContent(s *string) *AccountNotifC
 }
 
 // SetNotifTime sets the "notif_time" field.
-func (anc *AccountNotifCreate) SetNotifTime(t time.Time) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetNotifTime(t time.Time) *AccountNotifsCreate {
 	anc.mutation.SetNotifTime(t)
 	return anc
 }
 
 // SetNillableNotifTime sets the "notif_time" field if the given value is not nil.
-func (anc *AccountNotifCreate) SetNillableNotifTime(t *time.Time) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetNillableNotifTime(t *time.Time) *AccountNotifsCreate {
 	if t != nil {
 		anc.SetNotifTime(*t)
 	}
 	return anc
 }
 
+// SetUsername sets the "username" field.
+func (anc *AccountNotifsCreate) SetUsername(s string) *AccountNotifsCreate {
+	anc.mutation.SetUsername(s)
+	return anc
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (anc *AccountNotifsCreate) SetNillableUsername(s *string) *AccountNotifsCreate {
+	if s != nil {
+		anc.SetUsername(*s)
+	}
+	return anc
+}
+
 // SetCreatedAt sets the "created_at" field.
-func (anc *AccountNotifCreate) SetCreatedAt(t time.Time) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetCreatedAt(t time.Time) *AccountNotifsCreate {
 	anc.mutation.SetCreatedAt(t)
 	return anc
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (anc *AccountNotifCreate) SetNillableCreatedAt(t *time.Time) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetNillableCreatedAt(t *time.Time) *AccountNotifsCreate {
 	if t != nil {
 		anc.SetCreatedAt(*t)
 	}
@@ -90,29 +112,29 @@ func (anc *AccountNotifCreate) SetNillableCreatedAt(t *time.Time) *AccountNotifC
 }
 
 // SetID sets the "id" field.
-func (anc *AccountNotifCreate) SetID(u uuid.UUID) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetID(u uuid.UUID) *AccountNotifsCreate {
 	anc.mutation.SetID(u)
 	return anc
 }
 
 // SetNillableID sets the "id" field if the given value is not nil.
-func (anc *AccountNotifCreate) SetNillableID(u *uuid.UUID) *AccountNotifCreate {
+func (anc *AccountNotifsCreate) SetNillableID(u *uuid.UUID) *AccountNotifsCreate {
 	if u != nil {
 		anc.SetID(*u)
 	}
 	return anc
 }
 
-// Mutation returns the AccountNotifMutation object of the builder.
-func (anc *AccountNotifCreate) Mutation() *AccountNotifMutation {
+// Mutation returns the AccountNotifsMutation object of the builder.
+func (anc *AccountNotifsCreate) Mutation() *AccountNotifsMutation {
 	return anc.mutation
 }
 
-// Save creates the AccountNotif in the database.
-func (anc *AccountNotifCreate) Save(ctx context.Context) (*AccountNotif, error) {
+// Save creates the AccountNotifs in the database.
+func (anc *AccountNotifsCreate) Save(ctx context.Context) (*AccountNotifs, error) {
 	var (
 		err  error
-		node *AccountNotif
+		node *AccountNotifs
 	)
 	anc.defaults()
 	if len(anc.hooks) == 0 {
@@ -122,7 +144,7 @@ func (anc *AccountNotifCreate) Save(ctx context.Context) (*AccountNotif, error) 
 		node, err = anc.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AccountNotifMutation)
+			mutation, ok := m.(*AccountNotifsMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
 			}
@@ -147,9 +169,9 @@ func (anc *AccountNotifCreate) Save(ctx context.Context) (*AccountNotif, error) 
 		if err != nil {
 			return nil, err
 		}
-		nv, ok := v.(*AccountNotif)
+		nv, ok := v.(*AccountNotifs)
 		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from AccountNotifMutation", v)
+			return nil, fmt.Errorf("unexpected node type %T returned from AccountNotifsMutation", v)
 		}
 		node = nv
 	}
@@ -157,7 +179,7 @@ func (anc *AccountNotifCreate) Save(ctx context.Context) (*AccountNotif, error) 
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (anc *AccountNotifCreate) SaveX(ctx context.Context) *AccountNotif {
+func (anc *AccountNotifsCreate) SaveX(ctx context.Context) *AccountNotifs {
 	v, err := anc.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -166,64 +188,66 @@ func (anc *AccountNotifCreate) SaveX(ctx context.Context) *AccountNotif {
 }
 
 // Exec executes the query.
-func (anc *AccountNotifCreate) Exec(ctx context.Context) error {
+func (anc *AccountNotifsCreate) Exec(ctx context.Context) error {
 	_, err := anc.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (anc *AccountNotifCreate) ExecX(ctx context.Context) {
+func (anc *AccountNotifsCreate) ExecX(ctx context.Context) {
 	if err := anc.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (anc *AccountNotifCreate) defaults() {
+func (anc *AccountNotifsCreate) defaults() {
 	if _, ok := anc.mutation.NotifTime(); !ok {
-		v := accountnotif.DefaultNotifTime()
+		v := accountnotifs.DefaultNotifTime()
 		anc.mutation.SetNotifTime(v)
 	}
 	if _, ok := anc.mutation.CreatedAt(); !ok {
-		v := accountnotif.DefaultCreatedAt()
+		v := accountnotifs.DefaultCreatedAt()
 		anc.mutation.SetCreatedAt(v)
 	}
 	if _, ok := anc.mutation.ID(); !ok {
-		v := accountnotif.DefaultID()
+		v := accountnotifs.DefaultID()
 		anc.mutation.SetID(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (anc *AccountNotifCreate) check() error {
-	if _, ok := anc.mutation.AccountID(); !ok {
-		return &ValidationError{Name: "account_id", err: errors.New(`ent: missing required field "AccountNotif.account_id"`)}
-	}
+func (anc *AccountNotifsCreate) check() error {
 	if _, ok := anc.mutation.NotifType(); !ok {
-		return &ValidationError{Name: "notif_type", err: errors.New(`ent: missing required field "AccountNotif.notif_type"`)}
+		return &ValidationError{Name: "notif_type", err: errors.New(`ent: missing required field "AccountNotifs.notif_type"`)}
 	}
 	if v, ok := anc.mutation.NotifType(); ok {
-		if err := accountnotif.NotifTypeValidator(v); err != nil {
-			return &ValidationError{Name: "notif_type", err: fmt.Errorf(`ent: validator failed for field "AccountNotif.notif_type": %w`, err)}
+		if err := accountnotifs.NotifTypeValidator(v); err != nil {
+			return &ValidationError{Name: "notif_type", err: fmt.Errorf(`ent: validator failed for field "AccountNotifs.notif_type": %w`, err)}
 		}
 	}
 	if v, ok := anc.mutation.NotifTitle(); ok {
-		if err := accountnotif.NotifTitleValidator(v); err != nil {
-			return &ValidationError{Name: "notif_title", err: fmt.Errorf(`ent: validator failed for field "AccountNotif.notif_title": %w`, err)}
+		if err := accountnotifs.NotifTitleValidator(v); err != nil {
+			return &ValidationError{Name: "notif_title", err: fmt.Errorf(`ent: validator failed for field "AccountNotifs.notif_title": %w`, err)}
 		}
 	}
 	if v, ok := anc.mutation.NotifContent(); ok {
-		if err := accountnotif.NotifContentValidator(v); err != nil {
-			return &ValidationError{Name: "notif_content", err: fmt.Errorf(`ent: validator failed for field "AccountNotif.notif_content": %w`, err)}
+		if err := accountnotifs.NotifContentValidator(v); err != nil {
+			return &ValidationError{Name: "notif_content", err: fmt.Errorf(`ent: validator failed for field "AccountNotifs.notif_content": %w`, err)}
+		}
+	}
+	if v, ok := anc.mutation.Username(); ok {
+		if err := accountnotifs.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "AccountNotifs.username": %w`, err)}
 		}
 	}
 	if _, ok := anc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "AccountNotif.created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "AccountNotifs.created_at"`)}
 	}
 	return nil
 }
 
-func (anc *AccountNotifCreate) sqlSave(ctx context.Context) (*AccountNotif, error) {
+func (anc *AccountNotifsCreate) sqlSave(ctx context.Context) (*AccountNotifs, error) {
 	_node, _spec := anc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, anc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -241,14 +265,14 @@ func (anc *AccountNotifCreate) sqlSave(ctx context.Context) (*AccountNotif, erro
 	return _node, nil
 }
 
-func (anc *AccountNotifCreate) createSpec() (*AccountNotif, *sqlgraph.CreateSpec) {
+func (anc *AccountNotifsCreate) createSpec() (*AccountNotifs, *sqlgraph.CreateSpec) {
 	var (
-		_node = &AccountNotif{config: anc.config}
+		_node = &AccountNotifs{config: anc.config}
 		_spec = &sqlgraph.CreateSpec{
-			Table: accountnotif.Table,
+			Table: accountnotifs.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeUUID,
-				Column: accountnotif.FieldID,
+				Column: accountnotifs.FieldID,
 			},
 		}
 	)
@@ -257,49 +281,53 @@ func (anc *AccountNotifCreate) createSpec() (*AccountNotif, *sqlgraph.CreateSpec
 		_spec.ID.Value = &id
 	}
 	if value, ok := anc.mutation.AccountID(); ok {
-		_spec.SetField(accountnotif.FieldAccountID, field.TypeInt64, value)
-		_node.AccountID = value
+		_spec.SetField(accountnotifs.FieldAccountID, field.TypeInt64, value)
+		_node.AccountID = &value
 	}
 	if value, ok := anc.mutation.NotifType(); ok {
-		_spec.SetField(accountnotif.FieldNotifType, field.TypeString, value)
+		_spec.SetField(accountnotifs.FieldNotifType, field.TypeString, value)
 		_node.NotifType = value
 	}
 	if value, ok := anc.mutation.NotifTitle(); ok {
-		_spec.SetField(accountnotif.FieldNotifTitle, field.TypeString, value)
+		_spec.SetField(accountnotifs.FieldNotifTitle, field.TypeString, value)
 		_node.NotifTitle = value
 	}
 	if value, ok := anc.mutation.NotifContent(); ok {
-		_spec.SetField(accountnotif.FieldNotifContent, field.TypeString, value)
+		_spec.SetField(accountnotifs.FieldNotifContent, field.TypeString, value)
 		_node.NotifContent = value
 	}
 	if value, ok := anc.mutation.NotifTime(); ok {
-		_spec.SetField(accountnotif.FieldNotifTime, field.TypeTime, value)
+		_spec.SetField(accountnotifs.FieldNotifTime, field.TypeTime, value)
 		_node.NotifTime = &value
 	}
+	if value, ok := anc.mutation.Username(); ok {
+		_spec.SetField(accountnotifs.FieldUsername, field.TypeString, value)
+		_node.Username = &value
+	}
 	if value, ok := anc.mutation.CreatedAt(); ok {
-		_spec.SetField(accountnotif.FieldCreatedAt, field.TypeTime, value)
+		_spec.SetField(accountnotifs.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	return _node, _spec
 }
 
-// AccountNotifCreateBulk is the builder for creating many AccountNotif entities in bulk.
-type AccountNotifCreateBulk struct {
+// AccountNotifsCreateBulk is the builder for creating many AccountNotifs entities in bulk.
+type AccountNotifsCreateBulk struct {
 	config
-	builders []*AccountNotifCreate
+	builders []*AccountNotifsCreate
 }
 
-// Save creates the AccountNotif entities in the database.
-func (ancb *AccountNotifCreateBulk) Save(ctx context.Context) ([]*AccountNotif, error) {
+// Save creates the AccountNotifs entities in the database.
+func (ancb *AccountNotifsCreateBulk) Save(ctx context.Context) ([]*AccountNotifs, error) {
 	specs := make([]*sqlgraph.CreateSpec, len(ancb.builders))
-	nodes := make([]*AccountNotif, len(ancb.builders))
+	nodes := make([]*AccountNotifs, len(ancb.builders))
 	mutators := make([]Mutator, len(ancb.builders))
 	for i := range ancb.builders {
 		func(i int, root context.Context) {
 			builder := ancb.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*AccountNotifMutation)
+				mutation, ok := m.(*AccountNotifsMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -342,7 +370,7 @@ func (ancb *AccountNotifCreateBulk) Save(ctx context.Context) ([]*AccountNotif, 
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (ancb *AccountNotifCreateBulk) SaveX(ctx context.Context) []*AccountNotif {
+func (ancb *AccountNotifsCreateBulk) SaveX(ctx context.Context) []*AccountNotifs {
 	v, err := ancb.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -351,13 +379,13 @@ func (ancb *AccountNotifCreateBulk) SaveX(ctx context.Context) []*AccountNotif {
 }
 
 // Exec executes the query.
-func (ancb *AccountNotifCreateBulk) Exec(ctx context.Context) error {
+func (ancb *AccountNotifsCreateBulk) Exec(ctx context.Context) error {
 	_, err := ancb.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (ancb *AccountNotifCreateBulk) ExecX(ctx context.Context) {
+func (ancb *AccountNotifsCreateBulk) ExecX(ctx context.Context) {
 	if err := ancb.Exec(ctx); err != nil {
 		panic(err)
 	}

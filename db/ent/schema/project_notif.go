@@ -10,17 +10,20 @@ import (
 )
 
 // Notif holds the schema definition for the Notif entity.
-type AccountNotif struct {
+type AccountNotifs struct {
 	ent.Schema
 }
 
 // Fields of the Notif.
-func (AccountNotif) Fields() []ent.Field {
+func (AccountNotifs) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
 
-		field.Int64("account_id"),
+		field.Int64("account_id").
+			Optional().
+			Nillable().
+			Comment("for deploy purpose"),
 
 		field.String("notif_type").
 			MaxLen(255),
@@ -39,18 +42,24 @@ func (AccountNotif) Fields() []ent.Field {
 			Default(time.Now).
 			Comment("for deploy purpose"),
 
+		field.String("username").
+			MaxLen(255).
+			Optional().
+			Nillable().
+			Comment("for deploy purpose"),
+
 		field.Time("created_at").
 			Default(time.Now),
 	}
 }
 
 // Edges of the AccountNotif.
-func (AccountNotif) Edges() []ent.Edge {
+func (AccountNotifs) Edges() []ent.Edge {
 	return nil
 }
 
 // Indexes of the AccountNotif.
-func (AccountNotif) Indexes() []ent.Index {
+func (AccountNotifs) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("created_at"),
 	}

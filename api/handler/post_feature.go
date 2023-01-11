@@ -16,6 +16,7 @@ import (
 	"github.com/labstack/gommon/log"
 
 	db "github.com/peacewalker122/project/db/sqlc"
+	apiutil "github.com/peacewalker122/project/api/util"
 	"github.com/peacewalker122/project/util"
 )
 
@@ -177,11 +178,11 @@ func (s *Handler) SaveFile(c echo.Context, PhotoType string, AccountID int64) (s
 
 	var wg sync.WaitGroup
 	var fileName string
-	folderPath := fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/", AccountID)
+	folderPath := fmt.Sprintf("%s/%v/", s.config.UserDir, AccountID)
 
 	// here we invoke if it's a profile photo then create a new folder if it's doesn't exist.
 	if PhotoType == profilephoto {
-		folderPath = fmt.Sprintf("/home/servumtopia/Pictures/Project/%v/%v/", "profile", AccountID)
+		folderPath = fmt.Sprintf("%s/%v/%v/", s.config.UserDir, "profile", AccountID)
 	}
 
 	file, err := c.FormFile("photo")
@@ -215,12 +216,24 @@ func (s *Handler) SaveFile(c echo.Context, PhotoType string, AccountID int64) (s
 		return "", err, false
 	}
 
-	wg.Add(1)
+	errchan := make(chan error)
+	done := make(chan bool)
 	go func() {
-		defer wg.Done()
-		err = ValidateFileType(src)
+		err = apiutil.ValidateFileType(src)
+		if err == nil {
+			done <- true
+			return
+		}
+		errchan <- err
 	}()
-	wg.Wait()
+	select {
+	case err = <-errchan:
+		return "", err, true
+	case <-time.After(5 * time.Second):
+		return "", errors.New("timeout"), true
+	case <-done:
+	}
+
 	if err != nil {
 		return "", err, true
 	}
@@ -253,13 +266,13 @@ func (s *Handler) SaveFile(c echo.Context, PhotoType string, AccountID int64) (s
 		defer wg.Done()
 		_, err = io.Copy(dst, src)
 	}()
-	wg.Wait()
 
 	if err != nil {
 		return "", err, false
 	}
 
 	FileName = filePath
+	wg.Wait()
 	return filePath, nil, false
 }
 

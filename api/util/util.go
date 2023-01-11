@@ -2,22 +2,29 @@ package util
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"mime/multipart"
-	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	notifquery "github.com/peacewalker122/project/db/payload/model/notif_query"
 	"github.com/peacewalker122/project/db/payload/model/tokens"
 	"github.com/peacewalker122/project/db/redis"
 	db "github.com/peacewalker122/project/db/sqlc"
+	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 	"golang.org/x/oauth2"
 	"gopkg.in/gomail.v2"
+)
+
+const (
+	AuthRefresh    = "RefreshToken"
+	AuthHeaderkey  = "authorization"
+	AuthTypeBearer = "bearer"
+	AuthPayload    = "authorization_payload"
 )
 
 type utilTools struct {
@@ -28,10 +35,13 @@ type utilTools struct {
 
 type UtilTools interface {
 	accountFeature
-	SendEmailWithNotif(ctx context.Context, params SendEmail) error // make sure params.params is in order: email, ipAdrress, type
+	SendEmailWithNotif(ctx context.Context, params SendEmail) error // make sure params.Params is in order: user-email, ipAdrress, type
 	CreateEmailAuth(ctx context.Context, email string) (uuid.UUID, error)
 	VerifyEmailAuth(ctx context.Context, uid string, token int) (bool, error)
+	ChangePasswordAuth(ctx context.Context, params SendEmail) error
+	GetRedisPayload(ctx context.Context, uid string, payload interface{}) error
 	TokenHelper(ctx context.Context, token oauth2.TokenSource) (*oauth2.Token, error)
+	AuthPayload(c echo.Context) (*token.Payload, error)
 }
 
 func NewApiUtil(store db.Store, redis redis.Store, cfg util.Config) UtilTools {
@@ -78,22 +88,6 @@ func (s *utilTools) RefreshToken(ctx context.Context, token oauth2.TokenSource) 
 	return newToken, nil
 }
 
-func ValidateFileType(input multipart.File) error {
-	byte := make([]byte, 512)
-	if _, err := input.Read(byte); err != nil {
-		return err
-	}
-	file := http.DetectContentType(byte)
-
-	s := log.Default()
-	s.Print(file)
-
-	if file == "image/jpg" || file == "image/jpeg" || file == "image/gif" || file == "image/png" || file == "image/webp" || file == "video/mp4" {
-		return nil
-	}
-	return errors.New("invalid type! must be jpeg/jpg/gif/png/mp4")
-}
-
 type SendEmail struct {
 	AccountID []int64
 	Params    []string
@@ -106,24 +100,31 @@ type SendEmail struct {
 // params[2] is required for signup only
 func (s *utilTools) SendEmail(types NotifType, params ...string) error {
 	var str string
-	mailer := gomail.NewMessage()
 	switch types {
 	case NotifTypeLogin:
 		str = string(NotifBodyLogin.Format(params[1]))
 	case NotifTypeSignUp:
 		str = string(NotifBodySignUp.Format(params[1], params[2]))
+	case NotifTypeChangePass:
+		str = string(NotifBodyChangePass.Format(params[1], params[2]))
+	case NotifTypePassChanging:
+		str = string(NotifBodyPassChanging.Format(params[1]))
 	}
 
+	mailer := gomail.NewMessage()
 	mailer.SetHeader("From", s.cfg.Email)
 	mailer.SetHeader("To", params[0])
 	mailer.SetAddressHeader("Cc", params[0], "Login")
 	mailer.SetHeader("Subject", string(NotifHeaderLogin))
 	mailer.SetBody("text/html", fmt.Sprintf("<p>%s</p>", str))
-	dialer := gomail.NewDialer("smtp-mail.outlook.com", 587, s.cfg.Email, s.cfg.EmailPass)
+
+	//log.Panic(fmt.Sprintf("email: %s, pass: %s", s.cfg.Email, s.cfg.EmailPass))
+
+	dialer := gomail.NewDialer("smtp.mailgun.org", 587, s.cfg.Email, s.cfg.EmailPass)
 
 	err := dialer.DialAndSend(mailer)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to send email: %w", err)
 	}
 	return nil
 }
@@ -143,6 +144,7 @@ func (s *utilTools) SendEmailWithNotif(ctx context.Context, params SendEmail) er
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -155,7 +157,7 @@ func (s *utilTools) CreateEmailAuth(ctx context.Context, email string) (uuid.UUI
 
 	err := s.redis.SetOne(ctx, uid.String(), token, 3*time.Minute)
 	if err != nil {
-		return uuid.UUID{}, err
+		return uuid.UUID{}, fmt.Errorf("failed to set token to redis: %w", err)
 	}
 
 	err = s.SendEmail(NotifTypeSignUp, email, fmt.Sprintf("%d", token), uid.String())
@@ -164,6 +166,32 @@ func (s *utilTools) CreateEmailAuth(ctx context.Context, email string) (uuid.UUI
 	}
 
 	return uid, nil
+}
+
+func (s *utilTools) ChangePasswordAuth(ctx context.Context, params SendEmail) error {
+	// uid indicate for the email auth session
+	//var err error
+
+	acc, err := s.store.GetAccountByEmail(ctx, params.Params[0])
+	if err != nil {
+		return err
+	}
+
+	_, err = s.store.CreateNotifUsername(ctx, &notifquery.NotifParams{
+		AccountID: []int64{acc.AccountsID},
+		NotifType: string(params.Type),
+		NotifTime: params.TimeSend,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = s.SendEmail(NotifTypeChangePass, params.Params[0], params.Params[1], params.Params[2])
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *utilTools) VerifyEmailAuth(ctx context.Context, uid string, token int) (bool, error) {
@@ -180,5 +208,37 @@ func (s *utilTools) VerifyEmailAuth(ctx context.Context, uid string, token int) 
 		return false, errors.New("token is not valid, make sure you enter the correct token")
 	}
 
+	// delete token from redis
+	s.redis.Del(ctx, uid)
+
 	return true, err
+}
+
+func (s *utilTools) AuthPayload(c echo.Context) (*token.Payload, error) {
+	authParam, ok := c.Get(AuthPayload).(*token.Payload)
+	if !ok {
+		err := errors.New("failed conversion")
+		return nil, err
+	}
+
+	return authParam, nil
+}
+
+func (s *utilTools) GetRedisPayload(ctx context.Context, uid string, payload interface{}) error {
+	tempVal, err := s.redis.Get(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	err = s.redis.Del(ctx, uid)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal([]byte(tempVal), &payload)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

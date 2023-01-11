@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/peacewalker122/project/db/ent/accountnotif"
+	"github.com/peacewalker122/project/db/ent/accountnotifs"
 	"github.com/peacewalker122/project/db/ent/notifread"
 	"github.com/peacewalker122/project/db/ent/tokens"
 	"github.com/peacewalker122/project/db/ent/users"
@@ -34,10 +34,10 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		accountnotif.Table: accountnotif.ValidColumn,
-		notifread.Table:    notifread.ValidColumn,
-		tokens.Table:       tokens.ValidColumn,
-		users.Table:        users.ValidColumn,
+		accountnotifs.Table: accountnotifs.ValidColumn,
+		notifread.Table:     notifread.ValidColumn,
+		tokens.Table:        tokens.ValidColumn,
+		users.Table:         users.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

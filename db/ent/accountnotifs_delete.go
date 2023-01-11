@@ -9,25 +9,25 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/peacewalker122/project/db/ent/accountnotif"
+	"github.com/peacewalker122/project/db/ent/accountnotifs"
 	"github.com/peacewalker122/project/db/ent/predicate"
 )
 
-// AccountNotifDelete is the builder for deleting a AccountNotif entity.
-type AccountNotifDelete struct {
+// AccountNotifsDelete is the builder for deleting a AccountNotifs entity.
+type AccountNotifsDelete struct {
 	config
 	hooks    []Hook
-	mutation *AccountNotifMutation
+	mutation *AccountNotifsMutation
 }
 
-// Where appends a list predicates to the AccountNotifDelete builder.
-func (and *AccountNotifDelete) Where(ps ...predicate.AccountNotif) *AccountNotifDelete {
+// Where appends a list predicates to the AccountNotifsDelete builder.
+func (and *AccountNotifsDelete) Where(ps ...predicate.AccountNotifs) *AccountNotifsDelete {
 	and.mutation.Where(ps...)
 	return and
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (and *AccountNotifDelete) Exec(ctx context.Context) (int, error) {
+func (and *AccountNotifsDelete) Exec(ctx context.Context) (int, error) {
 	var (
 		err      error
 		affected int
@@ -36,7 +36,7 @@ func (and *AccountNotifDelete) Exec(ctx context.Context) (int, error) {
 		affected, err = and.sqlExec(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AccountNotifMutation)
+			mutation, ok := m.(*AccountNotifsMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
 			}
@@ -59,7 +59,7 @@ func (and *AccountNotifDelete) Exec(ctx context.Context) (int, error) {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (and *AccountNotifDelete) ExecX(ctx context.Context) int {
+func (and *AccountNotifsDelete) ExecX(ctx context.Context) int {
 	n, err := and.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -67,13 +67,13 @@ func (and *AccountNotifDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (and *AccountNotifDelete) sqlExec(ctx context.Context) (int, error) {
+func (and *AccountNotifsDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
-			Table: accountnotif.Table,
+			Table: accountnotifs.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeUUID,
-				Column: accountnotif.FieldID,
+				Column: accountnotifs.FieldID,
 			},
 		},
 	}
@@ -91,25 +91,25 @@ func (and *AccountNotifDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// AccountNotifDeleteOne is the builder for deleting a single AccountNotif entity.
-type AccountNotifDeleteOne struct {
-	and *AccountNotifDelete
+// AccountNotifsDeleteOne is the builder for deleting a single AccountNotifs entity.
+type AccountNotifsDeleteOne struct {
+	and *AccountNotifsDelete
 }
 
 // Exec executes the deletion query.
-func (ando *AccountNotifDeleteOne) Exec(ctx context.Context) error {
+func (ando *AccountNotifsDeleteOne) Exec(ctx context.Context) error {
 	n, err := ando.and.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{accountnotif.Label}
+		return &NotFoundError{accountnotifs.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (ando *AccountNotifDeleteOne) ExecX(ctx context.Context) {
+func (ando *AccountNotifsDeleteOne) ExecX(ctx context.Context) {
 	ando.and.ExecX(ctx)
 }

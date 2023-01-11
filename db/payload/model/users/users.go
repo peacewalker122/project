@@ -11,6 +11,8 @@ type UsersQuery interface {
 	SetUser(ctx context.Context, Params *UsersParam) (*ent.Users, error)
 	//GetUser(ctx context.Context, email string) (*ent.Users, error)
 	UpdateUser(ctx context.Context, Params *UsersParam) error
+	SetPassword(ctx context.Context, username string, password string) error
+	GetAllWithEmail(ctx context.Context, email string) (*ent.Users, error)
 	IsUserExist(ctx context.Context, email string) (bool, error)
 }
 
@@ -47,6 +49,23 @@ func (s *UserQueries) UpdateUser(ctx context.Context, Params *UsersParam) error 
 		SetUsername(Params.Username).
 		Save(ctx)
 	return err
+}
+
+func (s *UserQueries) SetPassword(ctx context.Context, username string, password string) error {
+	_, err := s.client.Users.
+		Update().
+		Where(users.Username(username)).
+		SetHashedPassword(password).
+		Save(ctx)
+	return err
+}
+
+func (s *UserQueries) GetAllWithEmail(ctx context.Context, email string) (*ent.Users, error) {
+	res, err := s.client.Users.
+		Query().
+		Where(users.Email(email)).
+		Only(ctx)
+	return res, err
 }
 
 func (s *UserQueries) IsUserExist(ctx context.Context, email string) (bool, error) {

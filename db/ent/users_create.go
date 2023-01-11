@@ -32,6 +32,14 @@ func (uc *UsersCreate) SetHashedPassword(s string) *UsersCreate {
 	return uc
 }
 
+// SetNillableHashedPassword sets the "hashed_password" field if the given value is not nil.
+func (uc *UsersCreate) SetNillableHashedPassword(s *string) *UsersCreate {
+	if s != nil {
+		uc.SetHashedPassword(*s)
+	}
+	return uc
+}
+
 // SetEmail sets the "email" field.
 func (uc *UsersCreate) SetEmail(s string) *UsersCreate {
 	uc.mutation.SetEmail(s)
@@ -75,14 +83,6 @@ func (uc *UsersCreate) SetNillableCreatedAt(s *string) *UsersCreate {
 // SetID sets the "id" field.
 func (uc *UsersCreate) SetID(u uuid.UUID) *UsersCreate {
 	uc.mutation.SetID(u)
-	return uc
-}
-
-// SetNillableID sets the "id" field if the given value is not nil.
-func (uc *UsersCreate) SetNillableID(u *uuid.UUID) *UsersCreate {
-	if u != nil {
-		uc.SetID(*u)
-	}
 	return uc
 }
 
@@ -171,10 +171,6 @@ func (uc *UsersCreate) defaults() {
 		v := users.DefaultCreatedAt
 		uc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := uc.mutation.ID(); !ok {
-		v := users.DefaultID()
-		uc.mutation.SetID(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -186,9 +182,6 @@ func (uc *UsersCreate) check() error {
 		if err := users.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "Users.username": %w`, err)}
 		}
-	}
-	if _, ok := uc.mutation.HashedPassword(); !ok {
-		return &ValidationError{Name: "hashed_password", err: errors.New(`ent: missing required field "Users.hashed_password"`)}
 	}
 	if v, ok := uc.mutation.HashedPassword(); ok {
 		if err := users.HashedPasswordValidator(v); err != nil {

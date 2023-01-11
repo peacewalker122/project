@@ -10,17 +10,18 @@ import (
 	"github.com/peacewalker122/project/db/payload/model/users"
 )
 
-func NewModel(sql *sql.DB) Model {
-	drv := entsql.OpenDB("postgres", sql)
+func NewModel(sql ...*sql.DB) Model {
+	drv := entsql.OpenDB("postgres", sql[0])
+	notifdrv := entsql.OpenDB("postgres", sql[1])
 	//defer sql.Close()
 
 	res := ent.NewClient(ent.Driver(drv))
-
+	project := ent.NewClient(ent.Driver(notifdrv))
 	return &Models{
 		Client:        res,
 		NotifsQueries: not.NewNotifQuery(res),
 		TokenQueries:  tokens.NewTokenQuery(res),
-		UserQueries:   users.NewUserQuery(res),
+		UserQueries:   users.NewUserQuery(project),
 	}
 }
 

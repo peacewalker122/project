@@ -3,7 +3,6 @@ package token
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -21,8 +20,12 @@ func NewJwt(secretkey string) (Maker, error) {
 	return &Jwt{secretkey}, nil
 }
 
-func (j *Jwt) CreateToken(username string, duration time.Duration) (string, *Payload, error) {
-	payload, err := Newpayload(username, duration)
+func (j *Jwt) CreateToken(param *PayloadRequest) (string, *Payload, error) {
+	payload, err := Newpayload(&PayloadRequest{
+		Username:  param.Username,
+		AccountID: param.AccountID,
+		Duration:  param.Duration,
+	})
 	if err != nil {
 		return "", payload, err
 	}
