@@ -14,8 +14,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
-	mockdb "github.com/peacewalker122/project/db/mock"
-	db "github.com/peacewalker122/project/db/sqlc"
+	mockdb "github.com/peacewalker122/project/db/repository/postgres/mock"
+	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 	"github.com/stretchr/testify/require"
@@ -24,14 +24,14 @@ import (
 func TestCreatePost(t *testing.T) {
 	user, _ := NewUser(t)
 	acc := NewAcc(user.Username)
-	post := NewPost(int(acc.AccountsID))
+	post := NewPost(int(acc.ID))
 	postfeature := NewPostFeature(int(post.PostID))
 
 	TestCases := []struct {
 		name       string
 		Body       H
 		setupAuth  func(t *testing.T, request *http.Request, token token.Maker)
-		BuildStubs func(mock *mockdb.MockStore)
+		BuildStubs func(mock *mockdb.MockPostgresStore)
 		CodeRecord func(record *httptest.ResponseRecorder)
 	}{
 		{
@@ -43,10 +43,10 @@ func TestCreatePost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			BuildStubs: func(mock *mockdb.MockStore) {
+			BuildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
 				arg := db.CreatePostParams{
-					AccountID:          acc.AccountsID,
+					AccountID:          acc.ID,
 					PictureDescription: post.PictureDescription,
 				}
 
@@ -66,7 +66,7 @@ func TestCreatePost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			BuildStubs: func(mock *mockdb.MockStore) {
+			BuildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
 
 				mock.EXPECT().CreatePost(gomock.Any(), gomock.Any()).Times(1).Return(db.Post{}, sql.ErrConnDone)
@@ -85,7 +85,7 @@ func TestCreatePost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			BuildStubs: func(mock *mockdb.MockStore) {
+			BuildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(post.AccountID)).Times(1).Return(acc, nil)
 
 				mock.EXPECT().CreatePost(gomock.Any(), gomock.Any()).Times(1).Return(post, nil)
@@ -104,7 +104,7 @@ func TestCreatePost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			BuildStubs: func(mock *mockdb.MockStore) {
+			BuildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).Times(0)
 
 			},
@@ -120,7 +120,7 @@ func TestCreatePost(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			store := mockdb.NewMockStore(ctrl)
+			store := mockdb.NewMockPostgresStore(ctrl)
 			tc.BuildStubs(store)
 
 			server := NewTestServer(t, store)
@@ -145,13 +145,13 @@ func TestGetPost(t *testing.T) {
 	user2, _ := NewUser(t)
 	acc := NewAcc(user.Username)
 	acc2 := NewAcc(user2.Username)
-	post := NewPost(int(acc.AccountsID))
+	post := NewPost(int(acc.ID))
 	postfeature := NewPostFeature(int(post.PostID))
 	testCases := []struct {
 		name       string
 		id         int64
 		setupAuth  func(t *testing.T, request *http.Request, token token.Maker)
-		buildStubs func(mock *mockdb.MockStore)
+		buildStubs func(mock *mockdb.MockPostgresStore)
 		CodeRecord func(record *httptest.ResponseRecorder)
 	}{
 		{
@@ -160,7 +160,7 @@ func TestGetPost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			buildStubs: func(mock *mockdb.MockStore) {
+			buildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
 				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(postfeature, nil)
@@ -176,7 +176,7 @@ func TestGetPost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user2.Username, AuthTypeBearer, time.Minute)
 			},
-			buildStubs: func(mock *mockdb.MockStore) {
+			buildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user2.Username)).Times(1).Return(acc2, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
 				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(postfeature, nil)
@@ -191,7 +191,7 @@ func TestGetPost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			buildStubs: func(mock *mockdb.MockStore) {
+			buildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Any()).Times(1).Return(db.Account{}, sql.ErrNoRows)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Any()).Times(0)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Any()).Times(0)
@@ -206,7 +206,7 @@ func TestGetPost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			buildStubs: func(mock *mockdb.MockStore) {
+			buildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(db.Post{}, sql.ErrConnDone)
 				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(0)
@@ -221,7 +221,7 @@ func TestGetPost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			buildStubs: func(mock *mockdb.MockStore) {
+			buildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
 				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(1).Return(db.PostFeature{}, sql.ErrConnDone)
@@ -236,7 +236,7 @@ func TestGetPost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			buildStubs: func(mock *mockdb.MockStore) {
+			buildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(db.Account{}, sql.ErrNoRows)
 			},
 			CodeRecord: func(record *httptest.ResponseRecorder) {
@@ -249,7 +249,7 @@ func TestGetPost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			buildStubs: func(mock *mockdb.MockStore) {
+			buildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(db.Post{}, sql.ErrNoRows)
 				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(0)
@@ -264,7 +264,7 @@ func TestGetPost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			buildStubs: func(mock *mockdb.MockStore) {
+			buildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(acc, nil)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(1).Return(post, nil)
 				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(1).Return(db.PostFeature{}, sql.ErrNoRows)
@@ -279,7 +279,7 @@ func TestGetPost(t *testing.T) {
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
-			buildStubs: func(mock *mockdb.MockStore) {
+			buildStubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().GetAccountsOwner(gomock.Any(), gomock.Eq(user.Username)).Times(0)
 				mock.EXPECT().GetPost(gomock.Any(), gomock.Eq(post.PostID)).Times(0)
 				mock.EXPECT().GetPost_feature(gomock.Any(), gomock.Any()).Times(0)
@@ -296,7 +296,7 @@ func TestGetPost(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			store := mockdb.NewMockStore(ctrl)
+			store := mockdb.NewMockPostgresStore(ctrl)
 			tc.buildStubs(store)
 
 			server := NewTestServer(t, store)

@@ -15,7 +15,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 
-	db "github.com/peacewalker122/project/db/sqlc"
+	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	apiutil "github.com/peacewalker122/project/api/util"
 	"github.com/peacewalker122/project/util"
 )

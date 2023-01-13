@@ -14,8 +14,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
-	mockdb "github.com/peacewalker122/project/db/mock"
-	db "github.com/peacewalker122/project/db/sqlc"
+	mockdb "github.com/peacewalker122/project/db/repository/postgres/mock"
+	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/util"
 	"github.com/stretchr/testify/require"
 )
@@ -58,7 +58,7 @@ func TestCreateUser(t *testing.T) {
 	testCases := []struct {
 		name          string
 		Body          H
-		buildstubs    func(mockdb *mockdb.MockStore)
+		buildstubs    func(mockdb *mockdb.MockPostgresStore)
 		checkResponse func(recorder *httptest.ResponseRecorder)
 	}{
 		{
@@ -69,7 +69,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
-			buildstubs: func(mockdb *mockdb.MockStore) {
+			buildstubs: func(mockdb *mockdb.MockPostgresStore) {
 				arg := db.CreateUserParams{
 					Username:       user.Username,
 					FullName:       user.FullName,
@@ -92,7 +92,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
-			buildstubs: func(store *mockdb.MockStore) {
+			buildstubs: func(store *mockdb.MockPostgresStore) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -110,7 +110,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
-			buildstubs: func(mock *mockdb.MockStore) {
+			buildstubs: func(mock *mockdb.MockPostgresStore) {
 				//stubs
 				mock.EXPECT().
 					CreateUser(gomock.Any(), gomock.Any()).
@@ -128,7 +128,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
-			buildstubs: func(mockdb *mockdb.MockStore) {
+			buildstubs: func(mockdb *mockdb.MockPostgresStore) {
 				mockdb.EXPECT().CreateUser(gomock.Any(), gomock.Any()).
 					Times(1).Return(db.User{}, sql.ErrConnDone)
 			},
@@ -143,7 +143,7 @@ func TestCreateUser(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			store := mockdb.NewMockStore(ctrl)
+			store := mockdb.NewMockPostgresStore(ctrl)
 			tc.buildstubs(store)
 
 			server := NewTestServer(t, store)

@@ -33,7 +33,7 @@ startdb:
 server:
 	go run main.go
 mock:
-	mockgen -package mockdb -destination db/mock/store.go github.com/peacewalker122/project/db/sqlc Store
+	mockgen -package mockdb -destination db/repository/postgres/mock/store.go github.com/peacewalker122/project/db/repository/postgres PostgresStore
 psql:
 	docker exec -it postgres12 psql -U root project
 

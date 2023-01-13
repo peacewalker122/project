@@ -7,7 +7,8 @@ import (
 
 	_ "github.com/golang/mock/mockgen/model"
 	api "github.com/peacewalker122/project/api/router"
-	db "github.com/peacewalker122/project/db/sqlc"
+	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
+	"github.com/peacewalker122/project/db/repository/redis"
 	"github.com/peacewalker122/project/util"
 )
 
@@ -32,15 +33,14 @@ func main() {
 	}
 	defer notifConn.Close()
 
-	// log.Println("Connect into Google Cloud")
-	// client, err := storage.NewClient(ctx, option.WithCredentialsFile(config.ClientOption))
-	// if err != nil {
-	// 	log.Fatalf("Failed to create client: %v", err)
-	// }
-	// defer client.Close()
+	redis, err := redis.NewRedis(config.RedisSource)
+	if err != nil {
+		log.Fatal("can't establish the connection: ", err.Error())
+	}
 
 	log.Println("initialize store")
-	store, redis := db.Newstore(config.NotifDBSource, config.RedisSource, projectConn, notifConn)
+	store := db.Newstore(projectConn, notifConn)
+
 	server, err := api.Newserver(config, store, redis)
 	if err != nil {
 		log.Fatal("can't establish the connection")

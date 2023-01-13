@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/peacewalker122/project/api/util"
-	"github.com/peacewalker122/project/db/ent"
+	"github.com/peacewalker122/project/db/repository/postgres/ent"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -103,7 +103,7 @@ func (s *Handler) ChangePassword(c echo.Context) error {
 
 	go func() {
 		err = s.util.SendEmailWithNotif(ctx, util.SendEmail{
-			AccountID: []int64{accountID.AccountsID},
+			AccountID: []int64{accountID.ID},
 			Type:      "password-changing",
 			Params:    []string{payload.Email, payload.Username, c.RealIP()},
 		})

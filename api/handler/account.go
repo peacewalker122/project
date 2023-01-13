@@ -10,7 +10,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	api "github.com/peacewalker122/project/api/util"
-	db "github.com/peacewalker122/project/db/sqlc"
+	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/token"
 )
 

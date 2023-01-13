@@ -10,10 +10,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	notifquery "github.com/peacewalker122/project/db/payload/model/notif_query"
-	"github.com/peacewalker122/project/db/payload/model/tokens"
-	"github.com/peacewalker122/project/db/redis"
-	db "github.com/peacewalker122/project/db/sqlc"
+	notifquery "github.com/peacewalker122/project/db/repository/postgres/payload/model/notif_query"
+	"github.com/peacewalker122/project/db/repository/postgres/payload/model/tokens"
+	"github.com/peacewalker122/project/db/repository/redis"
+	db "github.com/peacewalker122/project/db/repository/postgres"
 	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 	"golang.org/x/oauth2"
@@ -28,7 +28,7 @@ const (
 )
 
 type utilTools struct {
-	store db.Store
+	store db.PostgresStore
 	redis redis.Store
 	cfg   util.Config
 }
@@ -44,7 +44,7 @@ type UtilTools interface {
 	AuthPayload(c echo.Context) (*token.Payload, error)
 }
 
-func NewApiUtil(store db.Store, redis redis.Store, cfg util.Config) UtilTools {
+func NewApiUtil(store db.PostgresStore, redis redis.Store, cfg util.Config) UtilTools {
 	return &utilTools{
 		store: store,
 		redis: redis,
@@ -178,7 +178,7 @@ func (s *utilTools) ChangePasswordAuth(ctx context.Context, params SendEmail) er
 	}
 
 	_, err = s.store.CreateNotifUsername(ctx, &notifquery.NotifParams{
-		AccountID: []int64{acc.AccountsID},
+		AccountID: []int64{acc.ID},
 		NotifType: string(params.Type),
 		NotifTime: params.TimeSend,
 	})

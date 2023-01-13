@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	api "github.com/peacewalker122/project/api/util"
-	db "github.com/peacewalker122/project/db/sqlc"
+	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 )
@@ -182,7 +182,7 @@ func (s *Handler) Login(c echo.Context) error {
 	}
 
 	err = s.util.SendEmailWithNotif(c.Request().Context(), api.SendEmail{
-		AccountID: []int64{account.AccountsID},
+		AccountID: []int64{account.ID},
 		Params:    []string{username.Email, c.RealIP()},
 		Type:      "login",
 		TimeSend:  time.Now().UTC().Local(),
@@ -193,7 +193,7 @@ func (s *Handler) Login(c echo.Context) error {
 
 	accesstoken, Accespayload, err := s.token.CreateToken(&token.PayloadRequest{
 		Username:  req.Username,
-		AccountID: account.AccountsID,
+		AccountID: account.ID,
 		Duration:  s.config.TokenDuration,
 	})
 	if err != nil {
@@ -202,7 +202,7 @@ func (s *Handler) Login(c echo.Context) error {
 
 	refreshToken, refreshPayload, err := s.token.CreateToken(&token.PayloadRequest{
 		Username:  req.Username,
-		AccountID: account.AccountsID,
+		AccountID: account.ID,
 		Duration:  s.config.RefreshToken,
 	})
 	if err != nil {

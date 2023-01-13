@@ -5,7 +5,7 @@ import (
 	"time"
 
 	router "github.com/peacewalker122/project/api/router"
-	db "github.com/peacewalker122/project/db/sqlc"
+	db "github.com/peacewalker122/project/db/repository/postgres"
 	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 	"github.com/stretchr/testify/require"
@@ -18,7 +18,7 @@ var (
 	AuthPayload    = "authorization_payload"
 )
 
-func NewTestServer(t *testing.T, store db.Store) *router.Server {
+func NewTestServer(t *testing.T, store db.PostgresStore) *router.Server {
 	config := util.Config{
 		TokenKey:      util.Randomstring(32),
 		TokenDuration: time.Minute,

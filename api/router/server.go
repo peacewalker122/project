@@ -12,14 +12,14 @@ import (
 	handler "github.com/peacewalker122/project/api/handler"
 	"github.com/peacewalker122/project/api/oauth"
 	apiutil "github.com/peacewalker122/project/api/util"
-	"github.com/peacewalker122/project/db/redis"
-	db "github.com/peacewalker122/project/db/sqlc"
+	"github.com/peacewalker122/project/db/repository/redis"
+	db "github.com/peacewalker122/project/db/repository/postgres"
 	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 )
 
 type Server struct {
-	Store   db.Store
+	Store   db.PostgresStore
 	Redis   redis.Store
 	Config  util.Config
 	handler handler.HandlerService
@@ -31,7 +31,7 @@ type Server struct {
 	FileString string
 }
 
-func Newserver(c util.Config, store db.Store, redisStore redis.Store) (*Server, error) {
+func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store) (*Server, error) {
 	newtoken, err := token.NewJwt(c.TokenKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token %v", err.Error())

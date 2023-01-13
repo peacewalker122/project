@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	db "github.com/peacewalker122/project/db/sqlc"
+	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 )
 
 type (
@@ -145,7 +145,7 @@ func OwnerAccountResponse(Account db.Account, Queue ...db.ListQueueRow) OwnerGet
 
 func AccountResponse(input db.Account) CreateAccountsResponse {
 	return CreateAccountsResponse{
-		ID:          input.AccountsID,
+		ID:          input.ID,
 		Owner:       input.Owner,
 		AccountType: input.IsPrivate,
 		Follower:    input.Follower,

@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
-	db "github.com/peacewalker122/project/db/sqlc"
+	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/util"
 )
 
