@@ -41,7 +41,7 @@ type AccountMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *int64
 	owner         *string
 	is_private    *bool
 	created_at    *time.Time
@@ -76,7 +76,7 @@ func newAccountMutation(c config, op Op, opts ...accountOption) *AccountMutation
 }
 
 // withAccountID sets the ID field of the mutation.
-func withAccountID(id int) accountOption {
+func withAccountID(id int64) accountOption {
 	return func(m *AccountMutation) {
 		var (
 			err   error
@@ -126,9 +126,15 @@ func (m AccountMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Account entities.
+func (m *AccountMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *AccountMutation) ID() (id int, exists bool) {
+func (m *AccountMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -139,12 +145,12 @@ func (m *AccountMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *AccountMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *AccountMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):

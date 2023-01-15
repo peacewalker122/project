@@ -1,4 +1,4 @@
-package user
+package auth
 
 import (
 	db "github.com/peacewalker122/project/db/repository/postgres"
@@ -8,7 +8,7 @@ import (
 	"github.com/peacewalker122/project/util/email"
 )
 
-type UserUsecase struct {
+type AuthUsecase struct {
 	postgre db.PostgresStore
 	redis   redis.Store
 	email   *email.EmailHelper
@@ -16,11 +16,11 @@ type UserUsecase struct {
 	config  util.Config
 }
 
-func NewUserUsecase(postgre db.PostgresStore, redis redis.Store, cfg util.Config) *UserUsecase {
+func NewAuthUsecase(postgre db.PostgresStore, redis redis.Store, cfg util.Config) *AuthUsecase {
 
 	token, _ := token.NewJwt(cfg.TokenKey)
 
-	return &UserUsecase{
+	return &AuthUsecase{
 		postgre: postgre,
 		redis:   redis,
 		email:   email.NewEmailHelper(postgre, redis, cfg),

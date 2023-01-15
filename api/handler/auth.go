@@ -2,13 +2,10 @@ package api
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/peacewalker122/project/api/util"
-	"github.com/peacewalker122/project/db/repository/postgres/ent"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/peacewalker122/project/usecase/auth"
 )
 
 type AuthHandler interface {
@@ -31,36 +28,11 @@ func (s *Handler) AuthUser(c echo.Context) error {
 
 	id := uuid.New()
 
-	errchan := make(chan error, 1)
-	done := make(chan struct{})
-
-	go func() {
-		err := s.util.ChangePasswordAuth(c.Request().Context(), util.SendEmail{
-			Params:   []string{req.Email, c.RealIP(), id.String()},
-			Type:     "change_password",
-			TimeSend: time.Now(),
-		})
-		if err != nil {
-			errchan <- err
-		}
-
-		tempVal, err := s.store.GetAllWithEmail(c.Request().Context(), req.Email)
-		if err != nil {
-			errchan <- err
-		}
-
-		err = s.redis.Set(c.Request().Context(), id.String(), tempVal, 5*time.Minute)
-		if err != nil {
-			errchan <- err
-		}
-
-		done <- struct{}{}
-	}()
-	select {
-	case <-done:
-	case err := <-errchan:
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
+	s.contract.CreateRequest(c.Request().Context(), auth.AuthParams{
+		Email:    req.Email,
+		UUID:     id,
+		ClientIp: c.RealIP(),
+	})
 
 	return c.JSON(http.StatusCreated, id.String())
 }
@@ -80,47 +52,14 @@ func (s *Handler) ChangePassword(c echo.Context) error {
 
 	uid := c.Param("uid")
 
+	s.contract.ChangePasswordAuth(ctx, auth.ChangePassParams{
+		Password: req.NewPassword,
+		UUID:     uid,
+		ClientIp: c.RealIP(),
+	})
+
 	if err = c.Validate(req); err != nil {
 		return err
-	}
-
-	var payload *ent.Users
-
-	err = s.util.GetRedisPayload(ctx, uid, &payload)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-
-	accountID, _ := s.store.GetAccountsOwner(ctx, payload.Username)
-
-	pass, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-
-	errchan := make(chan error, 1)
-	done := make(chan struct{})
-
-	go func() {
-		err = s.util.SendEmailWithNotif(ctx, util.SendEmail{
-			AccountID: []int64{accountID.ID},
-			Type:      "password-changing",
-			Params:    []string{payload.Email, payload.Username, c.RealIP()},
-		})
-		if err != nil {
-			errchan <- err
-		}
-		done <- struct{}{}
-	}()
-	select {
-	case <-done:
-	case err := <-errchan:
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	err = s.store.SetPassword(ctx, payload.Username, string(pass))
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusCreated, nil)

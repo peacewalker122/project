@@ -9,18 +9,6 @@ import (
 	"github.com/go-redis/redis/v9"
 )
 
-type Store interface {
-	// in set we marshal the value to json
-	Set(ctx context.Context, key string, value interface{}, duration time.Duration) error
-	// in setOne we don't marshal the value to json
-	SetOne(ctx context.Context, key string, value interface{}, duration time.Duration) error
-	// need to unmarshal the value from json
-	Get(ctx context.Context, key string) (string, error)
-	// append to the key
-	Append(ctx context.Context, key string, value interface{}) error
-	Del(ctx context.Context, key string) error
-}
-
 type RedisStore struct {
 	redis *redis.Client
 }
@@ -33,6 +21,25 @@ func NewRedis(URL string) (Store, error) {
 	rdb := redis.NewClient(opt)
 
 	return &RedisStore{rdb}, nil
+}
+
+func (r *RedisStore) GetRedisPayload(ctx context.Context, key string, payload interface{}) error {
+	tempVal, err := r.Get(ctx, key)
+	if err != nil {
+		return err
+	}
+
+	err = r.Del(ctx, key)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal([]byte(tempVal), &payload)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *RedisStore) Set(ctx context.Context, key string, value interface{}, duration time.Duration) error {

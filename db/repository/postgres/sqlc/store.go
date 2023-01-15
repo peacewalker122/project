@@ -84,10 +84,11 @@ type Model interface {
 
 type (
 	CreateUserParamsTx struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-		Email    string `json:"email"`
-		FullName string `json:"full_name"`
+		Username string                 `json:"username"`
+		Password string                 `json:"password"`
+		Email    string                 `json:"email"`
+		FullName string                 `json:"full_name"`
+		Payload  map[string]interface{} `json:"payload"`
 	}
 	CreateQRetweetParams struct {
 		FromAccountID int64  `json:"from_acc_id"`

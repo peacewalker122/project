@@ -2,18 +2,11 @@ package api
 
 import (
 	"database/sql"
-	"encoding/json"
-	"errors"
-	"log"
 	"net/http"
-	"sync"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	api "github.com/peacewalker122/project/api/util"
 	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
-	"github.com/peacewalker122/project/token"
+	"github.com/peacewalker122/project/usecase/user"
 	"github.com/peacewalker122/project/util"
 )
 
@@ -49,49 +42,16 @@ func (s *Handler) CreateRequestUser(c echo.Context) error {
 		return c.JSONPretty(http.StatusBadRequest, errors, "    ")
 	}
 
-	_, err := s.store.GetEmail(c.Request().Context(), db.GetEmailParams{Email: req.Email})
-	if err == nil {
-		Errors["email"] = errors.New("email already exist").Error()
-	}
-	_, err = s.store.GetEmail(c.Request().Context(), db.GetEmailParams{Username: req.Username})
-	if err == nil {
-		Errors["username"] = errors.New("username already exist").Error()
-	}
-
-	if len(Errors) > 0 {
-		return c.JSONPretty(http.StatusBadRequest, Errors, "    ")
+	uid, reqErr := s.contract.CreateNewUserRequest(c.Request().Context(), db.CreateUserParams{
+		Username:       req.Username,
+		HashedPassword: req.HashedPassword,
+		FullName:       req.FullName,
+		Email:          req.Email,
+	})
+	if reqErr != nil {
+		return c.JSON(http.StatusBadRequest, reqErr)
 	}
 
-	var wg sync.WaitGroup
-	var uid uuid.UUID
-	uuidchan := make(chan uuid.UUID, 1)
-	errchan := make(chan error, 2)
-
-	wg.Add(1)
-	go func(errchan chan error, uuidchan chan uuid.UUID) {
-		defer wg.Done()
-		uid, err := s.util.CreateEmailAuth(c.Request().Context(), req.Email)
-		if err != nil {
-			errchan <- errors.New("failed to create email auth: " + err.Error())
-		}
-		// here we set the key to redis
-		// to get the key we use the uuid
-		err = s.redis.Set(c.Request().Context(), uid.String()+"h", req, 3*time.Minute)
-		if err != nil {
-			errchan <- err
-		}
-		uuidchan <- uid
-	}(errchan, uuidchan)
-	select {
-	case err := <-errchan:
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err.Error())
-		}
-	case uid = <-uuidchan:
-	}
-
-	// here we send the email
-	wg.Wait()
 	c.Response().Header().Add("uuid", uid.String())
 	return c.JSON(http.StatusOK, "success")
 }
@@ -106,40 +66,14 @@ func (s *Handler) CreateUser(c echo.Context) error {
 	}
 	requid := c.Param("uuid")
 
-	var req CreateUserParam
-	_, err = s.util.VerifyEmailAuth(c.Request().Context(), requid, reqs.Token)
+	res, err := s.contract.CreateUser(c.Request().Context(), requid, reqs.Token)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, err.Error())
-	}
-
-	// here we get the key from redis
-	result, err := s.redis.Get(c.Request().Context(), requid+"h")
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-	if err := json.Unmarshal([]byte(result), &req); err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	hashpass, err := util.HashPassword(req.HashedPassword)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	arg := db.CreateUserParamsTx{
-		Username: req.Username,
-		Password: hashpass,
-		FullName: req.FullName,
-		Email:    req.Email,
-	}
-
-	res, err := s.store.CreateUserTx(c.Request().Context(), arg)
-	if err != nil {
-		return c.JSON(res.ErrCode, res.Error.Error())
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	output := AccountResponse(res.Account)
 	resp := CreateUserResponses(res.User, output)
-	return c.JSON(http.StatusOK, resp)
+	return c.JSON(http.StatusCreated, resp)
 }
 
 type LoginParams struct {
@@ -163,7 +97,7 @@ func (s *Handler) Login(c echo.Context) error {
 	username, err := s.store.GetUser(c.Request().Context(), req.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return c.JSON(http.StatusNotFound, err.Error())
+			return c.JSON(http.StatusNotFound, "user not found")
 		}
 		c.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -181,56 +115,29 @@ func (s *Handler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, ValidateError("password", err.Error()))
 	}
 
-	err = s.util.SendEmailWithNotif(c.Request().Context(), api.SendEmail{
-		AccountID: []int64{account.ID},
-		Params:    []string{username.Email, c.RealIP()},
-		Type:      "login",
-		TimeSend:  time.Now().UTC().Local(),
-	})
-	if err != nil {
-		log.Panic(err.Error())
+	loginparam := user.SessionParams{
+		ID:        &account.ID,
+		Username:  username.Username,
+		Email:     username.Email,
+		ClientIp:  c.RealIP(),
+		UserAgent: c.Request().UserAgent(),
+		IsBlocked: false,
 	}
 
-	accesstoken, Accespayload, err := s.token.CreateToken(&token.PayloadRequest{
-		Username:  req.Username,
-		AccountID: account.ID,
-		Duration:  s.config.TokenDuration,
-	})
+	result, loginErr := s.contract.Login(c.Request().Context(), loginparam)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, loginErr)
 	}
 
-	refreshToken, refreshPayload, err := s.token.CreateToken(&token.PayloadRequest{
-		Username:  req.Username,
-		AccountID: account.ID,
-		Duration:  s.config.RefreshToken,
-	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	arg := db.CreateSessionParams{
-		ID:           refreshPayload.ID,
-		Username:     req.Username,
-		RefreshToken: refreshToken,
-		UserAgent:    c.Request().UserAgent(),
-		ClientIp:     c.RealIP(),
-		IsBlocked:    false,
-		ExpiresAt:    refreshPayload.ExpiredAt,
-	}
-
-	session, err := s.store.CreateSession(c.Request().Context(), arg)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
 	resp := loginResp{
-		SessionID:             session.ID,
-		RefreshToken:          refreshToken,
-		RefreshTokenExpiresAt: refreshPayload.ExpiredAt.UTC().Local(),
+		SessionID:             result.Session.ID,
+		RefreshToken:          result.RefreshToken,
+		RefreshTokenExpiresAt: result.RefreshPayload.ExpiredAt.UTC().Local(),
 		User:                  UserResponse(username, account),
-		AccesToken:            accesstoken,
-		AccesTokenExpiresAt:   Accespayload.ExpiredAt.UTC().Local(),
+		AccesToken:            result.AccessToken,
+		AccesTokenExpiresAt:   result.AccessPayload.ExpiredAt.UTC().Local(),
 	}
+
 	return c.JSON(http.StatusOK, resp)
 }
 

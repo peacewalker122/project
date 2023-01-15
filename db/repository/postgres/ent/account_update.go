@@ -210,7 +210,7 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   account.Table,
 			Columns: account.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeInt64,
 				Column: account.FieldID,
 			},
 		},
@@ -463,7 +463,7 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err e
 			Table:   account.Table,
 			Columns: account.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeInt64,
 				Column: account.FieldID,
 			},
 		},

@@ -1,22 +1,6 @@
-package util
+package email
 
 import "fmt"
-
-type NotifType string
-
-const (
-	NotifTypeLike         NotifType = "like"
-	NotifTypeComment      NotifType = "comment"
-	NotifTypeFollow       NotifType = "follow"
-	NotifTypeMention      NotifType = "mention"
-	NotifTypeShare        NotifType = "share"
-	NotifTypeRetweet      NotifType = "retweet"
-	NotifTypeLogin        NotifType = "login"
-	NotifTypeAds          NotifType = "ads"
-	NotifTypeSignUp       NotifType = "signup"
-	NotifTypeChangePass   NotifType = "password change"
-	NotifTypePassChanging NotifType = "password-changing"
-)
 
 type NotifBody string
 
@@ -71,11 +55,3 @@ func (n NotifBody) Format(Format ...string) string {
 func (n NotifBody) String() string {
 	return string(n)
 }
-
-type NotifHeader string
-
-const (
-	NotifHeaderLogin      NotifHeader = "Login Notification"
-	NotifHeaderSignUp     NotifHeader = "Welcome to Project!"
-	NotifHeaderChangePass NotifHeader = "Password Changed"
-)

@@ -83,8 +83,8 @@ func (aq *AccountQuery) FirstX(ctx context.Context) *Account {
 
 // FirstID returns the first Account ID from the query.
 // Returns a *NotFoundError when no Account ID was found.
-func (aq *AccountQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (aq *AccountQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = aq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -96,7 +96,7 @@ func (aq *AccountQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (aq *AccountQuery) FirstIDX(ctx context.Context) int {
+func (aq *AccountQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := aq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -134,8 +134,8 @@ func (aq *AccountQuery) OnlyX(ctx context.Context) *Account {
 // OnlyID is like Only, but returns the only Account ID in the query.
 // Returns a *NotSingularError when more than one Account ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (aq *AccountQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (aq *AccountQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = aq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -151,7 +151,7 @@ func (aq *AccountQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (aq *AccountQuery) OnlyIDX(ctx context.Context) int {
+func (aq *AccountQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := aq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,8 +177,8 @@ func (aq *AccountQuery) AllX(ctx context.Context) []*Account {
 }
 
 // IDs executes the query and returns a list of Account IDs.
-func (aq *AccountQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (aq *AccountQuery) IDs(ctx context.Context) ([]int64, error) {
+	var ids []int64
 	if err := aq.Select(account.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (aq *AccountQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (aq *AccountQuery) IDsX(ctx context.Context) []int {
+func (aq *AccountQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := aq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -367,7 +367,7 @@ func (aq *AccountQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   account.Table,
 			Columns: account.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeInt64,
 				Column: account.FieldID,
 			},
 		},
