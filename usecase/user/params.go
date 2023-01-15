@@ -21,4 +21,10 @@ type (
 		RefreshPayload *token.Payload
 		Session        db.Session
 	}
+	PayloadCreateUser struct {
+		Username string `json:"username"`
+		Password string `json:"hashed_password"`
+		FullName string `json:"full_name"`
+		Email    string	`json:"email"`
+	}
 )

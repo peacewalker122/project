@@ -4,10 +4,9 @@ import (
 	"context"
 
 	"github.com/peacewalker122/project/usecase/auth"
-	"github.com/peacewalker122/project/util"
 )
 
 type AuthContract interface {
-	CreateRequest(ctx context.Context, params auth.AuthParams) *util.Error
-	ChangePasswordAuth(ctx context.Context, req auth.ChangePassParams) *util.Error
+	CreateRequest(ctx context.Context, params auth.AuthParams) error
+	ChangePasswordAuth(ctx context.Context, req auth.ChangePassParams) error
 }

@@ -24,6 +24,7 @@ type Config struct {
 	GoogleClientID     string        `mapstructure:"GOOGLE_OAUTH_CLIENT_ID"`
 	GoogleClientSecret string        `mapstructure:"GOOGLE_OAUTH_SECRET"`
 	UserDir            string        `mapstructure:"USER_DIR"`
+	EmailSMTP          string        `mapstructure:"EMAIL_SMTP"`
 	TokenDuration      time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 	RefreshToken       time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 }

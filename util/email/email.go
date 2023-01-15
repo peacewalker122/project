@@ -45,7 +45,7 @@ func (s *EmailHelper) SendEmail(types NotifType, params ...string) error {
 
 	//log.Panic(fmt.Sprintf("email: %s, pass: %s", s.cfg.Email, s.cfg.EmailPass))
 
-	dialer := gomail.NewDialer("smtp.mailgun.org", 587, s.cfg.Email, s.cfg.EmailPass)
+	dialer := gomail.NewDialer(s.cfg.EmailSMTP, 587, s.cfg.Email, s.cfg.EmailPass)
 
 	err := dialer.DialAndSend(mailer)
 	if err != nil {

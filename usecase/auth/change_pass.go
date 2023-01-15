@@ -4,29 +4,25 @@ import (
 	"context"
 
 	"github.com/peacewalker122/project/db/repository/postgres/ent"
-	"github.com/peacewalker122/project/util"
 	"github.com/peacewalker122/project/util/email"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (a *AuthUsecase) ChangePasswordAuth(ctx context.Context, req ChangePassParams) *util.Error {
+func (a *AuthUsecase) ChangePasswordAuth(ctx context.Context, req ChangePassParams) error {
 	var (
 		payload *ent.Users
-		errs    *util.Error
 	)
 
 	err := a.redis.GetRedisPayload(ctx, req.UUID, &payload)
 	if err != nil {
-		errs.Important(err.Error(), "get-redis-payload")
-		return errs
+		return err
 	}
 
 	accountID, _ := a.postgre.GetAccountsOwner(ctx, payload.Username)
 
 	pass, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		errs.Important(err.Error(), "bcrypt")
-		return errs
+		return err
 	}
 
 	errchan := make(chan error, 1)
@@ -46,14 +42,12 @@ func (a *AuthUsecase) ChangePasswordAuth(ctx context.Context, req ChangePassPara
 	select {
 	case <-done:
 	case err := <-errchan:
-		errs.Important(err.Error(), "error")
-		return errs
+		return err
 	}
 
 	err = a.postgre.SetPassword(ctx, payload.Username, string(pass))
 	if err != nil {
-		errs.Important(err.Error(), "set-password")
-		return errs
+		return err
 	}
 
 	return nil

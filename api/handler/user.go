@@ -23,7 +23,7 @@ type userService interface {
 type CreateUserParam struct {
 	Username       string `json:"username" form:"username" validate:"required,min=4,max=100"`
 	HashedPassword string `json:"password" form:"password" validate:"required,min=6,max=100"`
-	FullName       string `json:"full_name" form:"full_name" validate:"required,min=3,max=100"`
+	FullName       string `json:"fullname" form:"fullname" validate:"required,min=3,max=100"`
 	Email          string `json:"email" form:"email" validate:"required,email"`
 }
 type CreatingUser struct {
@@ -49,7 +49,10 @@ func (s *Handler) CreateRequestUser(c echo.Context) error {
 		Email:          req.Email,
 	})
 	if reqErr != nil {
-		return c.JSON(http.StatusBadRequest, reqErr)
+		if reqErr == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, "user not found")
+		}
+		return c.JSON(http.StatusInternalServerError, reqErr.Error())
 	}
 
 	c.Response().Header().Add("uuid", uid.String())
@@ -68,7 +71,8 @@ func (s *Handler) CreateUser(c echo.Context) error {
 
 	res, err := s.contract.CreateUser(c.Request().Context(), requid, reqs.Token)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		c.Error(err)
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	output := AccountResponse(res.Account)

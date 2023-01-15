@@ -8,24 +8,25 @@ import (
 
 	"github.com/google/uuid"
 	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
-	"github.com/peacewalker122/project/util"
 )
 
-func (s *UserUsecase) CreateNewUserRequest(ctx context.Context, req db.CreateUserParams) (uuid.UUID, *util.Error) {
+func (s *UserUsecase) CreateNewUserRequest(ctx context.Context, req db.CreateUserParams) (uuid.UUID, error) {
 
-	multierror := &util.Error{}
+	// multierror := &util.Error{}
+	errs := map[string]string{}
 
 	_, err := s.postgre.GetEmail(ctx, db.GetEmailParams{Email: req.Email})
 	if err == nil {
-		multierror.Important(errors.New("email already exist").Error(), "email")
+		errs["email"] = "email already exist"
 	}
 	_, err = s.postgre.GetEmail(ctx, db.GetEmailParams{Username: req.Username})
 	if err == nil {
-		multierror.Important(errors.New("username already exist").Error(), "username")
+		errs["username"] = "username already exist"
 	}
 
-	if multierror.HasError() {
-		return uuid.Nil, multierror
+	if len(errs) > 0 {
+		err := errors.New("failed to create new user request: " + errs["email"] + errs["username"])
+		return uuid.Nil, err
 	}
 
 	var wg sync.WaitGroup
@@ -52,8 +53,7 @@ func (s *UserUsecase) CreateNewUserRequest(ctx context.Context, req db.CreateUse
 	select {
 	case err := <-errchan:
 		if err != nil {
-			multierror.Error(err.Error())
-			return uuid.Nil, multierror
+			return uuid.Nil, err
 		}
 	case uid = <-uuidchan:
 	}

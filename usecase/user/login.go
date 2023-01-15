@@ -5,13 +5,12 @@ import (
 
 	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/token"
-	"github.com/peacewalker122/project/util"
 )
 
-func (u *UserUsecase) Login(ctx context.Context, params SessionParams) (*SessionResult, *util.Error) {
+func (u *UserUsecase) Login(ctx context.Context, params SessionParams) (*SessionResult, error) {
 
 	var (
-		errs *util.Error
+	// errs *util.Error
 	)
 
 	// go u.email.SendEmailWithNotif(ctx, email.SendEmail{
@@ -24,8 +23,7 @@ func (u *UserUsecase) Login(ctx context.Context, params SessionParams) (*Session
 	if params.ID == nil {
 		ID, err := u.postgre.GetAccountID(ctx, params.Username)
 		if err != nil {
-			errs.Important(err.Error(), "get-account-id")
-			return nil, errs
+			return nil, err
 		}
 		params.ID = &ID
 	}
@@ -36,8 +34,7 @@ func (u *UserUsecase) Login(ctx context.Context, params SessionParams) (*Session
 		Duration:  u.config.TokenDuration,
 	})
 	if err != nil {
-		errs.Important(err.Error(), "create-acctoken")
-		return nil, errs
+		return nil, err
 	}
 
 	refreshToken, refreshPayload, err := u.token.CreateToken(&token.PayloadRequest{
@@ -46,8 +43,7 @@ func (u *UserUsecase) Login(ctx context.Context, params SessionParams) (*Session
 		Duration:  u.config.RefreshToken,
 	})
 	if err != nil {
-		errs.Important(err.Error(), "create-reftoken")
-		return nil, errs
+		return nil, err
 	}
 
 	arg := db.CreateSessionParams{
@@ -62,8 +58,7 @@ func (u *UserUsecase) Login(ctx context.Context, params SessionParams) (*Session
 
 	session, err := u.postgre.CreateSession(ctx, arg)
 	if err != nil {
-		errs.Important(err.Error(), "create-session")
-		return nil, errs
+		return nil, err
 	}
 
 	res := &SessionResult{

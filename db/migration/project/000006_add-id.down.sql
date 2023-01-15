@@ -1,1 +1,1 @@
-ALTER TABLE project DROP COLUMN id;
+ALTER TABLE tokens DROP COLUMN id;

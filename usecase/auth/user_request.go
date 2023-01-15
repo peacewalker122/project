@@ -4,14 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/peacewalker122/project/util"
 	"github.com/peacewalker122/project/util/email"
 )
 
-func (a *AuthUsecase) CreateRequest(ctx context.Context, params AuthParams) *util.Error {
+func (a *AuthUsecase) CreateRequest(ctx context.Context, params AuthParams) error {
 	errchan := make(chan error, 1)
 	done := make(chan struct{})
-	errs := &util.Error{}
 
 	go func() {
 		err := a.email.ChangePasswordAuth(ctx, email.SendEmail{
@@ -38,8 +36,7 @@ func (a *AuthUsecase) CreateRequest(ctx context.Context, params AuthParams) *uti
 	select {
 	case <-done:
 	case err := <-errchan:
-		errs.Important(err.Error(), "error")
-		return errs
+		return err
 	}
 
 	return nil
