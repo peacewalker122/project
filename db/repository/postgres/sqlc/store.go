@@ -29,11 +29,11 @@ func newTeststore(db *sql.DB) *SQLStore {
 	}
 }
 
-func Newstore(projectDB, NotifDB *sql.DB) *SQLStore {
+func Newstore(projectDB *sql.DB) *SQLStore {
 	return &SQLStore{
 		Queries: New(projectDB),
 		db:      projectDB,
-		Payload: payload.NewPayload(NotifDB, projectDB), // the first db is for notif and the second is for the main db
+		Payload: payload.NewPayload(projectDB), // the first db is for notif and the second is for the main db
 	}
 }
 

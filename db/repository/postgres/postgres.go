@@ -13,6 +13,6 @@ type PostgresStore interface {
 	payload.Payload // we using this due tx not needed right now
 }
 
-func NewPostgresStore(projectDB, NotifDB *sql.DB) PostgresStore {
-	return db.Newstore(projectDB, NotifDB)
+func NewPostgresStore(projectDB *sql.DB) PostgresStore {
+	return db.Newstore(projectDB)
 }

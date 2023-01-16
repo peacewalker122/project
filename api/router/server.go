@@ -91,6 +91,7 @@ func (s *Server) StartHTTPS(path string) error {
 	return s.Router.StartAutoTLS(path)
 }
 func (s *Server) StartHTTP(path string) error {
+	s.Router.Logger.Info("server is running on ", path)
 	return s.Router.Start(path)
 }
 func (s *Server) timeout(c echo.Context) error {

@@ -9,7 +9,6 @@ import (
 type Config struct {
 	DBDriver           string        `mapstructure:"DB_DRIVER"`
 	DBSource           string        `mapstructure:"DB_SOURCE"`
-	NotifDBSource      string        `mapstructure:"NOTIFDB_SOURCE"`
 	RedisSource        string        `mapstructure:"REDIS_ADDR"`
 	Email              string        `mapstructure:"EMAIL_HOST"`
 	EmailPass          string        `mapstructure:"EMAIL_PASSWORD"`

@@ -20,6 +20,11 @@ func NewRedis(URL string) (Store, error) {
 	}
 	rdb := redis.NewClient(opt)
 
+	_, err = rdb.Conn().Ping(context.TODO()).Result()
+	if err != nil {
+		return nil, err
+	}
+
 	return &RedisStore{rdb}, nil
 }
 

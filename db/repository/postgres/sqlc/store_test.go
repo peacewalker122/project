@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"sync"
 	"testing"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestAddFollow(t *testing.T) {
-	store := Newstore(testDB,&sql.DB{})
+	store := Newstore(testDB)
 	account1 := CreateRandomAccount(t)
 	account2 := CreateRandomAccount(t)
 	var res FollowTXResult
@@ -68,7 +67,7 @@ func TestAddFollow(t *testing.T) {
 }
 
 func TestCreatePostTX(t *testing.T) {
-	store := Newstore(testDB,&sql.DB{})
+	store := Newstore(testDB)
 	account := CreateRandomAccount(t)
 
 	arg := CreatePostParams{
@@ -93,7 +92,7 @@ func TestCreatePostTX(t *testing.T) {
 }
 
 func TestIndexingFile(t *testing.T) {
-	store := Newstore(testDB,&sql.DB{})
+	store := Newstore(testDB)
 	filename, err := store.CreateFileIndex("/home/servumtopia/Pictures/Project/1/", "golang.png")
 	require.NoError(t, err)
 

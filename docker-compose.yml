@@ -1,0 +1,61 @@
+version: '3'
+services:
+  postgre:
+    image: postgres:latest
+    container_name: project
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpass
+      POSTGRES_DB: project
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "root", "-d", "project"]
+      interval: 1m
+      timeout: 5s
+      retries: 5
+    mem_limit: 256m
+    networks:
+      - project-network
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7.0.7-alpine
+    container_name: redisdb
+    mem_limit: 256m
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      - postgre
+    networks:
+      - project-network
+
+  project-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: project-api
+    ports:
+      - "8080:8080"
+    restart: 
+      on-failure
+    environment:
+      - DB_SOURCE=postgres://root:rootpass@postgre:5432/project?sslmode=disable
+      - REDIS_ADDR=redis://@redis:6379/
+    depends_on:
+      - postgre
+      - redis
+    networks:
+      - project-network
+    entrypoint: ["/app/wait-for.sh", "postgre:5432", "--", "/app/start.sh"]
+    command: ["/app/project"]
+
+networks:
+  project-network:
+    name: project-network
+    driver: bridge
