@@ -1,6 +1,8 @@
-project-socmed-a72a5157bae8.json
+*.json
 backup.txt
 *.env
-*.idea
+.idea/
+.vscode/
 /template
 /template/*
+.dockerignore

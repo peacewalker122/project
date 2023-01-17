@@ -12,7 +12,6 @@ services:
       interval: 1m
       timeout: 5s
       retries: 5
-    mem_limit: 256m
     networks:
       - project-network
     ports:
@@ -21,7 +20,6 @@ services:
   redis:
     image: redis:7.0.7-alpine
     container_name: redisdb
-    mem_limit: 256m
     ports:
       - "6379:6379"
     healthcheck:
@@ -29,16 +27,11 @@ services:
       interval: 1m30s
       timeout: 30s
       retries: 5
-      start_period: 30s
-    depends_on:
-      - postgre
     networks:
       - project-network
 
   project-api:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: project:latest
     container_name: project-api
     ports:
       - "8080:8080"
@@ -57,5 +50,4 @@ services:
 
 networks:
   project-network:
-    name: project-network
     driver: bridge

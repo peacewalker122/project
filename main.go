@@ -29,7 +29,7 @@ func main() {
 	}
 	log.Println("Connect into postgres project database")
 
-	redis, err := redis.NewRedis(config.RedisSource)
+	redisServer, err := redis.NewRedis(config.RedisSource)
 	if err != nil {
 		log.Fatal("can't establish the connection: ", err.Error())
 	}
@@ -38,7 +38,7 @@ func main() {
 	log.Println("initialize store")
 	store := db.Newstore(projectConn)
 
-	server, err := api.Newserver(config, store, redis)
+	server, err := api.Newserver(config, store, redisServer)
 	if err != nil {
 		log.Fatal("can't establish the connection")
 	}
