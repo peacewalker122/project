@@ -3,11 +3,11 @@ package user
 import (
 	"context"
 	"errors"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 )
 
 func (s *UserUsecase) CreateNewUserRequest(ctx context.Context, req db.CreateUserParams) (uuid.UUID, error) {

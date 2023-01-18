@@ -1,7 +1,7 @@
 package user
 
 import (
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/token"
 )
 
@@ -25,6 +25,6 @@ type (
 		Username string `json:"username"`
 		Password string `json:"hashed_password"`
 		FullName string `json:"full_name"`
-		Email    string	`json:"email"`
+		Email    string `json:"email"`
 	}
 )

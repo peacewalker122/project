@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/peacewalker122/project/service/db/repository/postgres/mock"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"io"
 	"log"
 	"net/http"
@@ -15,8 +17,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
-	mockdb "github.com/peacewalker122/project/db/repository/postgres/mock"
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 	"github.com/stretchr/testify/require"
@@ -40,7 +40,7 @@ func TestCreateAccount(t *testing.T) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockPostgresStore) {
-				arg := db.CreateAccountsParams{Owner: acc.Owner, IsPrivate: acc.IsPrivate}
+				arg := db2.CreateAccountsParams{Owner: acc.Owner, IsPrivate: acc.IsPrivate}
 				mock.EXPECT().CreateAccounts(gomock.Any(), gomock.Eq(arg)).Times(1).Return(acc, nil)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
@@ -59,7 +59,7 @@ func TestCreateAccount(t *testing.T) {
 			stubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().
 					CreateAccounts(gomock.Any(), gomock.Any()).
-					Times(1).Return(db.Account{}, &pq.Error{Code: "23503"})
+					Times(1).Return(db2.Account{}, &pq.Error{Code: "23503"})
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusForbidden, record.Code)
@@ -77,7 +77,7 @@ func TestCreateAccount(t *testing.T) {
 			stubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().
 					CreateAccounts(gomock.Any(), gomock.Any()).
-					Times(1).Return(db.Account{}, &pq.Error{Code: "23505"})
+					Times(1).Return(db2.Account{}, &pq.Error{Code: "23505"})
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusForbidden, record.Code)
@@ -95,7 +95,7 @@ func TestCreateAccount(t *testing.T) {
 			stubs: func(mock *mockdb.MockPostgresStore) {
 				mock.EXPECT().
 					CreateAccounts(gomock.Any(), gomock.Any()).
-					Times(1).Return(db.Account{}, sql.ErrConnDone)
+					Times(1).Return(db2.Account{}, sql.ErrConnDone)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, record.Code)
@@ -178,7 +178,7 @@ func TestGetAccount(t *testing.T) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockPostgresStore) {
-				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.ID)).Times(1).Return(db.Account{}, sql.ErrNoRows)
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.ID)).Times(1).Return(db2.Account{}, sql.ErrNoRows)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, record.Code)
@@ -191,7 +191,7 @@ func TestGetAccount(t *testing.T) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockPostgresStore) {
-				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.ID)).Times(1).Return(db.Account{}, sql.ErrConnDone)
+				mock.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(acc.ID)).Times(1).Return(db2.Account{}, sql.ErrConnDone)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, record.Code)
@@ -239,7 +239,7 @@ func TestListAccount(t *testing.T) {
 	user, _ := NewUser(t)
 
 	n := 5
-	acc := make([]db.Account, n)
+	acc := make([]db2.Account, n)
 	for i := 0; i < n; i++ {
 		acc[i] = NewAcc(user.Username)
 	}
@@ -271,7 +271,7 @@ func TestListAccount(t *testing.T) {
 					account = acc[i].Owner
 				}
 
-				arg := db.ListAccountsParams{
+				arg := db2.ListAccountsParams{
 					Owner:  account,
 					Limit:  int32(n),
 					Offset: 0,
@@ -295,7 +295,7 @@ func TestListAccount(t *testing.T) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockPostgresStore) {
-				mock.EXPECT().ListAccounts(gomock.Any(), gomock.Any()).Times(1).Return([]db.Account{}, sql.ErrConnDone)
+				mock.EXPECT().ListAccounts(gomock.Any(), gomock.Any()).Times(1).Return([]db2.Account{}, sql.ErrConnDone)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, record.Code)
@@ -308,7 +308,7 @@ func TestListAccount(t *testing.T) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
 			stubs: func(mock *mockdb.MockPostgresStore) {
-				arg := db.ListAccountsParams{Limit: int32(n), Offset: 0}
+				arg := db2.ListAccountsParams{Limit: int32(n), Offset: 0}
 				mock.EXPECT().ListAccounts(gomock.Any(), gomock.Eq(arg)).Times(0)
 			},
 			recorder: func(record *httptest.ResponseRecorder) {
@@ -362,19 +362,19 @@ func TestListAccount(t *testing.T) {
 	}
 }
 
-func NewAcc(random string) db.Account {
-	return db.Account{
+func NewAcc(random string) db2.Account {
+	return db2.Account{
 		ID:        util.Randomint(1, 1000),
 		Owner:     random,
 		IsPrivate: false,
 	}
 }
 
-func BodycheckAccount(t *testing.T, body *bytes.Buffer, account db.Account) {
+func BodycheckAccount(t *testing.T, body *bytes.Buffer, account db2.Account) {
 	data, err := io.ReadAll(body)
 	require.NoError(t, err)
 
-	var gotAccount db.Account
+	var gotAccount db2.Account
 	err = json.Unmarshal(data, &gotAccount)
 
 	require.NoError(t, err)
@@ -383,11 +383,11 @@ func BodycheckAccount(t *testing.T, body *bytes.Buffer, account db.Account) {
 	// Just Create The Testing Like The Returning API
 }
 
-func BodycheckAccounts(t *testing.T, body *bytes.Buffer, account []db.Account) {
+func BodycheckAccounts(t *testing.T, body *bytes.Buffer, account []db2.Account) {
 	data, err := io.ReadAll(body)
 	require.NoError(t, err)
 
-	var gotAccount []db.Account
+	var gotAccount []db2.Account
 	err = json.Unmarshal(data, &gotAccount)
 	require.NoError(t, err)
 	require.Equal(t, account, gotAccount)

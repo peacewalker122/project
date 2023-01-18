@@ -3,14 +3,14 @@ package oauth
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model"
+	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/account"
+	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/tokens"
+	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/users"
 	"net/http"
 	"sync"
 
 	"github.com/labstack/echo/v4"
-	"github.com/peacewalker122/project/db/repository/postgres/payload/model"
-	"github.com/peacewalker122/project/db/repository/postgres/payload/model/account"
-	"github.com/peacewalker122/project/db/repository/postgres/payload/model/tokens"
-	"github.com/peacewalker122/project/db/repository/postgres/payload/model/users"
 	"github.com/peacewalker122/project/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"

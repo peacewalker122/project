@@ -3,8 +3,8 @@ package oauth
 import (
 	"github.com/labstack/echo/v4"
 	apiutil "github.com/peacewalker122/project/api/util"
-	db "github.com/peacewalker122/project/db/repository/postgres"
-	"github.com/peacewalker122/project/db/repository/redis"
+	db "github.com/peacewalker122/project/service/db/repository/postgres"
+	"github.com/peacewalker122/project/service/db/repository/redis"
 	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 )

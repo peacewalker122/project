@@ -3,11 +3,11 @@ package api
 import (
 	"database/sql"
 	"errors"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 )
 
 type postService interface {
@@ -67,7 +67,7 @@ func (s *Handler) CreatePost(c echo.Context) error {
 	if err = ValidateString(req.PictureDescription, 1, 70); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	if errNum, err = s.AuthAccount(c, req.AccountID); err != nil {
+	if errNum, _, err = s.AuthAccount(c); err != nil {
 		return c.JSON(errNum, err)
 	}
 
@@ -86,7 +86,7 @@ func (s *Handler) GetPost(c echo.Context) error {
 	if err = c.Validate(req); err != nil {
 		return err
 	}
-	if errNum, err = s.AuthAccount(c, req.FromAccountID); err != nil {
+	if errNum, _, err = s.AuthAccount(c); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
 	return s.GettingPost(c, req)
@@ -104,7 +104,7 @@ func (s *Handler) GetPostImage(c echo.Context) error {
 	if err = c.Validate(req); err != nil {
 		return err
 	}
-	if errNum, err = s.AuthAccount(c, req.FromAccountID); err != nil {
+	if errNum, _, err = s.AuthAccount(c); err != nil {
 		return c.JSON(errNum, err)
 	}
 
@@ -112,7 +112,7 @@ func (s *Handler) GetPostImage(c echo.Context) error {
 }
 
 func (s *Handler) LikePost(c echo.Context) error {
-	var result db.CreateLikeTXResult
+	var result db2.CreateLikeTXResult
 	req := new(LikePostRequest)
 	if err = c.Bind(req); err != nil {
 		return err
@@ -120,10 +120,10 @@ func (s *Handler) LikePost(c echo.Context) error {
 	if err = c.Validate(req); err != nil {
 		return err
 	}
-	if errNum, err = s.AuthAccount(c, req.FromAccountID); err != nil {
+	if errNum, _, err = s.AuthAccount(c); err != nil {
 		return c.JSON(errNum, err)
 	}
-	num, err := s.store.GetLikeRows(c.Request().Context(), db.GetLikeRowsParams{
+	num, err := s.store.GetLikeRows(c.Request().Context(), db2.GetLikeRowsParams{
 		Fromaccountid: req.FromAccountID,
 		Postid:        req.PostID,
 	})
@@ -147,7 +147,7 @@ func (s *Handler) LikePost(c echo.Context) error {
 		if ok {
 			return c.JSON(http.StatusBadRequest, "already like")
 		}
-		result, err = s.store.CreateLikeTX(c.Request().Context(), db.CreateLikeParams{
+		result, err = s.store.CreateLikeTX(c.Request().Context(), db2.CreateLikeParams{
 			FromAccountID: req.FromAccountID,
 			PostID:        req.PostID,
 		})
@@ -159,7 +159,7 @@ func (s *Handler) LikePost(c echo.Context) error {
 		if !ok {
 			return c.JSON(http.StatusBadRequest, "never like")
 		}
-		result, err = s.store.UnlikeTX(c.Request().Context(), db.CreateLikeParams{
+		result, err = s.store.UnlikeTX(c.Request().Context(), db2.CreateLikeParams{
 			FromAccountID: req.FromAccountID,
 			PostID:        req.PostID,
 		})
@@ -189,11 +189,11 @@ func (s *Handler) CommentPost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ValidateError("comment", err.Error()))
 	}
 
-	if errNum, err = s.AuthAccount(c, req.FromAccountID); err != nil {
+	if errNum, _, err = s.AuthAccount(c); err != nil {
 		return c.JSON(errNum, err)
 	}
 
-	result, err := s.store.CreateCommentTX(c.Request().Context(), db.CreateCommentParams{
+	result, err := s.store.CreateCommentTX(c.Request().Context(), db2.CreateCommentParams{
 		FromAccountID: req.FromAccountID,
 		PostID:        req.PostID,
 		Comment:       req.Comment,
@@ -221,11 +221,11 @@ func (s *Handler) RetweetPost(c echo.Context) error {
 	if err = c.Validate(req); err != nil {
 		return err
 	}
-	if errNum, err = s.AuthAccount(c, req.FromAccountID); err != nil {
+	if errNum, _, err = s.AuthAccount(c); err != nil {
 		return c.JSON(errNum, err)
 	}
 
-	num, err = s.store.GetRetweetRows(ctx, db.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
+	num, err = s.store.GetRetweetRows(ctx, db2.GetRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			errNum = http.StatusNotFound
@@ -271,11 +271,11 @@ func (s *Handler) QouteretweetPost(c echo.Context) error {
 	if err = c.Validate(req); err != nil {
 		return err
 	}
-	if errNum, err = s.AuthAccount(c, req.FromAccountID); err != nil {
+	if errNum, _, err = s.AuthAccount(c); err != nil {
 		return c.JSON(errNum, err)
 	}
 
-	num, err = s.store.GetQouteRetweetRows(c.Request().Context(), db.GetQouteRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
+	num, err = s.store.GetQouteRetweetRows(c.Request().Context(), db2.GetQouteRetweetRowsParams{FromAccountID: req.FromAccountID, PostID: req.PostID})
 	if errNum, err = GetErrorValidator(c, err, Qretweet); err != nil {
 		return c.JSON(errNum, err.Error())
 	}
@@ -296,7 +296,7 @@ func (s *Handler) QouteretweetPost(c echo.Context) error {
 		if num == 0 {
 			return c.JSON(http.StatusBadRequest, "no retweet")
 		}
-		errNum, err = s.store.DeleteQouteRetweetTX(c.Request().Context(), db.UnRetweetTXParam{
+		errNum, err = s.store.DeleteQouteRetweetTX(c.Request().Context(), db2.UnRetweetTXParam{
 			FromAccountID: req.FromAccountID,
 			PostID:        req.PostID,
 		})

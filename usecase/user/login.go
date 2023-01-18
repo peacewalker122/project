@@ -2,8 +2,8 @@ package user
 
 import (
 	"context"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/token"
 )
 

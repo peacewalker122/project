@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"io"
 	"net/http"
 	"os"
@@ -15,20 +16,19 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	apiutil "github.com/peacewalker122/project/api/util"
 	"github.com/peacewalker122/project/util"
 )
 
 type (
 	PostResponses struct {
-		Post        db.Post
-		PostFeature db.PostFeature
-		CommentList []db.ListCommentRow
+		Post        db2.Post
+		PostFeature db2.PostFeature
+		CommentList []db2.ListCommentRow
 	}
 	QouteRetweetResponse struct {
-		Post        db.Post
-		PostFeature db.PostFeature
+		Post        db2.Post
+		PostFeature db2.PostFeature
 		ErrNum      int
 	}
 )
@@ -48,7 +48,7 @@ var (
 )
 
 func (s *Handler) CreateLike(ctx context.Context, arg *LikePostRequest) (int, error) {
-	err = s.store.CreateLike_feature(ctx, db.CreateLike_featureParams{
+	err = s.store.CreateLike_feature(ctx, db2.CreateLike_featureParams{
 		FromAccountID: arg.FromAccountID,
 		IsLike:        false,
 		PostID:        arg.PostID,
@@ -61,7 +61,7 @@ func (s *Handler) CreateLike(ctx context.Context, arg *LikePostRequest) (int, er
 
 func (s *Handler) CreateQouteRetweetPost(c context.Context, param *QouteRetweetPostRequest) (QouteRetweetResponse, error) {
 	var result QouteRetweetResponse
-	res, err := s.store.CreateQouteRetweetPostTX(c, db.CreateQRetweetParams{
+	res, err := s.store.CreateQouteRetweetPostTX(c, db2.CreateQRetweetParams{
 		FromAccountID: param.FromAccountID,
 		PostID:        param.PostID,
 		Qoute:         param.Qoute,
@@ -71,7 +71,7 @@ func (s *Handler) CreateQouteRetweetPost(c context.Context, param *QouteRetweetP
 		return result, err
 	}
 
-	errNum, err = s.store.CreateQouteRetweet(c, db.CreateQRetweetParams{
+	errNum, err = s.store.CreateQouteRetweet(c, db2.CreateQRetweetParams{
 		FromAccountID: param.FromAccountID,
 		PostID:        param.PostID,
 	})
@@ -84,7 +84,7 @@ func (s *Handler) CreateQouteRetweetPost(c context.Context, param *QouteRetweetP
 }
 
 func (s *Handler) CreateRetweetPost(c echo.Context, param *RetweetPostRequest) (RetweetResponse, int, error) {
-	arg := db.CreateRetweetParams{
+	arg := db2.CreateRetweetParams{
 		FromAccountID: param.FromAccountID,
 		PostID:        param.PostID,
 		IsRetweet:     true}
@@ -102,7 +102,7 @@ func (s *Handler) CreateRetweetPost(c echo.Context, param *RetweetPostRequest) (
 }
 
 func (s *Handler) DeleteRetweetpost(arg *RetweetPostRequest, c echo.Context) error {
-	err := s.store.DeleteRetweetTX(c.Request().Context(), db.DeleteRetweetParams{
+	err := s.store.DeleteRetweetTX(c.Request().Context(), db2.DeleteRetweetParams{
 		PostID:        arg.PostID,
 		FromAccountID: arg.FromAccountID,
 	})
@@ -118,7 +118,7 @@ func (s *Handler) DeleteRetweetpost(arg *RetweetPostRequest, c echo.Context) err
 
 func (s *Handler) CreatingPost(c echo.Context, arg *CreatePostParams) error {
 	var wg sync.WaitGroup
-	var post db.PostTXResult
+	var post db2.PostTXResult
 
 	// in this block we created a goroutine to minimize the respond time
 	// first step we need declare our sync using waitgroup
@@ -139,7 +139,7 @@ func (s *Handler) CreatingPost(c echo.Context, arg *CreatePostParams) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	dbArg := db.CreatePostParams{
+	dbArg := db2.CreatePostParams{
 		AccountID:          arg.AccountID,
 		PictureDescription: arg.PictureDescription,
 		PhotoDir:           util.InputSqlString(filePath),
@@ -289,7 +289,7 @@ func (s *Handler) GettingPost(c echo.Context, req *GetPostParam) error {
 		return c.JSON(errNum, err.Error())
 	}
 
-	arg := db.ListCommentParams{PostID: int64(req.PostID), Limit: int32(10), Offset: (req.Offset - 1) * 10}
+	arg := db2.ListCommentParams{PostID: int64(req.PostID), Limit: int32(10), Offset: (req.Offset - 1) * 10}
 	result.CommentList, err = s.store.ListComment(c.Request().Context(), arg)
 	if err != nil {
 		if err == sql.ErrNoRows {

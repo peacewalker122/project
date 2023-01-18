@@ -1,18 +1,26 @@
 package main
 
 import (
+	"cloud.google.com/go/storage"
+	"context"
 	"database/sql"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	"github.com/peacewalker122/project/service/db/repository/redis"
+	"github.com/peacewalker122/project/service/gcp"
+	"google.golang.org/api/option"
 	"log"
 
 	_ "github.com/golang/mock/mockgen/model"
 	_ "github.com/lib/pq"
 	api "github.com/peacewalker122/project/api/router"
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
-	"github.com/peacewalker122/project/db/repository/redis"
 	"github.com/peacewalker122/project/util"
 )
 
+var ctx context.Context
+
 func main() {
+	ctx = context.Background()
+
 	config, err := util.LoadConfig(".")
 	if err != nil {
 		log.Fatal("can't load config: ", err.Error())
@@ -35,10 +43,16 @@ func main() {
 	}
 	log.Println("Connect into redis")
 
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile(config.ClientOption))
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+	gcpService := gcp.NewGCPService(client)
+
 	log.Println("initialize store")
 	store := db.Newstore(projectConn)
 
-	server, err := api.Newserver(config, store, redisServer)
+	server, err := api.Newserver(config, store, redisServer, gcpService)
 	if err != nil {
 		log.Fatal("can't establish the connection")
 	}

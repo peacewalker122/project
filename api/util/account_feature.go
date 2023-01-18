@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"io"
 	"net/http"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/util"
 )
 
@@ -35,7 +35,7 @@ type (
 
 func (s *utilTools) CreateAccountsQueue(ctx context.Context, req *CreateQueue) error {
 
-	ok, err := s.store.CreateAccountsQueueTX(ctx, db.CreateAccountQueueParams{
+	ok, err := s.store.CreateAccountsQueueTX(ctx, db2.CreateAccountQueueParams{
 		FromAccountID: req.FromAccountID,
 		ToAccountID:   req.ToAccountID,
 	})
@@ -58,7 +58,7 @@ func (s *utilTools) UpdateProfilePhoto(c echo.Context, accountid int64) (int, er
 		return http.StatusBadRequest, err
 	}
 
-	err = s.store.UpdatePhoto(ctx, db.UpdatePhotoParams{
+	err = s.store.UpdatePhoto(ctx, db2.UpdatePhotoParams{
 		Filedirectory: util.InputSqlString(file),
 		Accountid:     accountid,
 	})
@@ -70,12 +70,12 @@ func (s *utilTools) UpdateProfilePhoto(c echo.Context, accountid int64) (int, er
 }
 
 func (s *utilTools) SaveFile(c echo.Context, PhotoType string, AccountID int64) (string, error, bool) {
-	// the bool return to indicate a error that will viewed by the client side.
+	// the bool return to indicate an error that will be view by the client side.
 	// True = client will see and vice versa.
 
 	// PhotoType indicate in what folder this will save.
 	// only accept ProfilePhoto & PostPhoto
-	// will updated soon
+	// will update soon
 
 	// validate photoype if it doesn't recognise then throw error
 	if PhotoType != postTag && PhotoType != profilephoto {

@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/notif_query"
 	"strconv"
 	"time"
 
 	"github.com/google/uuid"
-	notifquery "github.com/peacewalker122/project/db/repository/postgres/payload/model/notif_query"
 	"github.com/peacewalker122/project/util"
 	"gopkg.in/gomail.v2"
 )

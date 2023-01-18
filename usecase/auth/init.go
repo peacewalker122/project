@@ -1,8 +1,8 @@
 package auth
 
 import (
-	db "github.com/peacewalker122/project/db/repository/postgres"
-	"github.com/peacewalker122/project/db/repository/redis"
+	db "github.com/peacewalker122/project/service/db/repository/postgres"
+	"github.com/peacewalker122/project/service/db/repository/redis"
 	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 	"github.com/peacewalker122/project/util/email"

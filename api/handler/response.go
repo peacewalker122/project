@@ -1,11 +1,13 @@
 package api
 
 import (
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"time"
 
 	"github.com/google/uuid"
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 )
+
+type BasicResponse map[string]interface{}
 
 type (
 	QueueResponse struct {
@@ -13,7 +15,7 @@ type (
 		AccountID int64  `json:"accountid"`
 	}
 	OwnerGetAccountResponse struct {
-		Account      db.Account      `json:"account"`
+		Account      db2.Account     `json:"account"`
 		QueueAccount []QueueResponse `json:"queue"`
 	}
 	CreateUserResponse struct {
@@ -30,6 +32,7 @@ type (
 		Follower    int64  `json:"follower"`
 		Following   int64  `json:"following"`
 		CreatedAt   int64  `json:"created_at"`
+		PhototDir   string `json:"photo_dir"`
 	}
 	CreatePostResponse struct {
 		ID                 int64               `json:"post_id"`
@@ -47,11 +50,11 @@ type (
 		CreatedAt       int64 `json:"created_at"`
 	}
 	GetPostResponses struct {
-		ID                 int64          `json:"id"`
-		PictureDescription string         `json:"picture_description"`
-		PostFeature        db.PostFeature `json:"post_feature"`
-		PostComment        []commentresp  `json:"post_comment"`
-		CreatedAt          int64          `json:"created_at"`
+		ID                 int64           `json:"id"`
+		PictureDescription string          `json:"picture_description"`
+		PostFeature        db2.PostFeature `json:"post_feature"`
+		PostComment        []commentresp   `json:"post_comment"`
+		CreatedAt          int64           `json:"created_at"`
 	}
 	loginResp struct {
 		SessionID             uuid.UUID          `json:"session_id"`
@@ -104,12 +107,25 @@ type (
 		ToAccount   CreateAccountsResponse `json:"to_account"`
 	}
 	RetweetResponse struct {
-		Post    db.Post
-		Feature db.PostFeature
+		Post    db2.Post
+		Feature db2.PostFeature
+	}
+	PublicAccountResponse struct {
+		ID          int64  `json:"id"`
+		Owner       string `json:"owner"`
+		AccountType bool   `json:"is_private"`
+		Follower    int64  `json:"follower"`
+		Following   int64  `json:"following"`
+		CreatedAt   int64  `json:"created_at"`
+		PhotoDir    string `json:"photo_dir"`
+	}
+	PublicAccountResp struct {
+		Accounts []PublicAccountResponse `json:"accounts"`
+		PageInfo map[string]interface{}  `json:"page_info"`
 	}
 )
 
-func createaccountfollowresp(arg db.AccountsFollow) accountfollowresp {
+func createaccountfollowresp(arg db2.AccountsFollow) accountfollowresp {
 	return accountfollowresp{
 		FromAccountID: arg.FromAccountID,
 		ToAccountID:   arg.ToAccountID,
@@ -117,7 +133,7 @@ func createaccountfollowresp(arg db.AccountsFollow) accountfollowresp {
 	}
 }
 
-func CreateUserResponses(input db.User, input2 CreateAccountsResponse) CreateUserResponse {
+func CreateUserResponses(input db2.User, input2 CreateAccountsResponse) CreateUserResponse {
 	return CreateUserResponse{
 		Username:  input.Username,
 		FullName:  input.FullName,
@@ -126,7 +142,7 @@ func CreateUserResponses(input db.User, input2 CreateAccountsResponse) CreateUse
 		CreatedAt: input.CreatedAt.Unix(),
 	}
 }
-func UserResponse(input db.User, account db.Account) CreateUserResponse {
+func UserResponse(input db2.User, account db2.Account) CreateUserResponse {
 	return CreateUserResponse{
 		Username:  input.Username,
 		FullName:  input.FullName,
@@ -136,24 +152,30 @@ func UserResponse(input db.User, account db.Account) CreateUserResponse {
 	}
 }
 
-func OwnerAccountResponse(Account db.Account, Queue ...db.ListQueueRow) OwnerGetAccountResponse {
+func OwnerAccountResponse(Account db2.Account, Queue ...db2.ListQueueRow) OwnerGetAccountResponse {
 	return OwnerGetAccountResponse{
 		Account:      Account,
 		QueueAccount: queueconverter(Queue),
 	}
 }
 
-func AccountResponse(input db.Account) CreateAccountsResponse {
+func AccountResponse(input db2.Account) CreateAccountsResponse {
+	var ProfilePhoto string
+	if input.PhotoDir.Valid {
+		ProfilePhoto = input.PhotoDir.String
+	}
+
 	return CreateAccountsResponse{
 		ID:          input.ID,
 		Owner:       input.Owner,
 		AccountType: input.IsPrivate,
 		Follower:    input.Follower,
 		Following:   input.Following,
+		PhototDir:   ProfilePhoto,
 		CreatedAt:   input.CreatedAt.Unix(),
 	}
 }
-func postfeatureresp(input db.PostFeature) postfeatureresponse {
+func postfeatureresp(input db2.PostFeature) postfeatureresponse {
 	return postfeatureresponse{
 		ID:              input.PostID,
 		SumComment:      input.SumComment,
@@ -164,7 +186,7 @@ func postfeatureresp(input db.PostFeature) postfeatureresponse {
 	}
 }
 
-func PostResponse(input db.Post, input2 db.PostFeature) CreatePostResponse {
+func PostResponse(input db2.Post, input2 db2.PostFeature) CreatePostResponse {
 	return CreatePostResponse{
 		ID:                 input.PostID,
 		PictureDescription: input.PictureDescription,
@@ -173,7 +195,7 @@ func PostResponse(input db.Post, input2 db.PostFeature) CreatePostResponse {
 		CreatedAt:          input.CreatedAt.Unix(),
 	}
 }
-func PostResponsePointer(input *db.Post, input2 db.PostFeature) CreatePostResponse {
+func PostResponsePointer(input *db2.Post, input2 db2.PostFeature) CreatePostResponse {
 	return CreatePostResponse{
 		ID:                 input.PostID,
 		PictureDescription: input.PictureDescription,
@@ -182,7 +204,7 @@ func PostResponsePointer(input *db.Post, input2 db.PostFeature) CreatePostRespon
 		CreatedAt:          input.CreatedAt.Unix(),
 	}
 }
-func GetPostResponse(input db.Post, input2 db.PostFeature, comment []db.ListCommentRow) GetPostResponses {
+func GetPostResponse(input db2.Post, input2 db2.PostFeature, comment []db2.ListCommentRow) GetPostResponses {
 	return GetPostResponses{
 		ID:                 input.PostID,
 		PictureDescription: input.PictureDescription,
@@ -192,7 +214,7 @@ func GetPostResponse(input db.Post, input2 db.PostFeature, comment []db.ListComm
 	}
 }
 
-func likeResponse(arg db.PostFeature) LikePostResp {
+func likeResponse(arg db2.PostFeature) LikePostResp {
 	return LikePostResp{
 		PostID:  arg.PostID,
 		SumLike: arg.SumLike,
@@ -200,7 +222,7 @@ func likeResponse(arg db.PostFeature) LikePostResp {
 	}
 }
 
-func commentResponse(comment string, arg db.PostFeature) CommentPostResp {
+func commentResponse(comment string, arg db2.PostFeature) CommentPostResp {
 	return CommentPostResp{
 		PostID:     arg.PostID,
 		Comment:    comment,
@@ -209,7 +231,7 @@ func commentResponse(comment string, arg db.PostFeature) CommentPostResp {
 	}
 }
 
-func retweetResponse(postFeature db.PostFeature, post db.Post) RetweetPostResp {
+func retweetResponse(postFeature db2.PostFeature, post db2.Post) RetweetPostResp {
 	return RetweetPostResp{
 		PostID:      post.PostID,
 		Postfeature: PostResponse(post, postFeature),
@@ -217,7 +239,7 @@ func retweetResponse(postFeature db.PostFeature, post db.Post) RetweetPostResp {
 	}
 }
 
-func qouteretweetResponse(post db.Post, postFeature db.PostFeature, qoute string) QouteRetweetPostResp {
+func qouteretweetResponse(post db2.Post, postFeature db2.PostFeature, qoute string) QouteRetweetPostResp {
 	return QouteRetweetPostResp{
 		Qoute:       qoute,
 		PostFeature: PostResponse(post, postFeature),
@@ -225,7 +247,7 @@ func qouteretweetResponse(post db.Post, postFeature db.PostFeature, qoute string
 	}
 }
 
-func followResponse(follow db.FollowTXResult) FollowResponse {
+func followResponse(follow db2.FollowTXResult) FollowResponse {
 	return FollowResponse{
 		Follow:      createaccountfollowresp(follow.Follow),
 		FromAccount: AccountResponse(follow.FromAcc),
@@ -242,7 +264,7 @@ func followResponse(follow db.FollowTXResult) FollowResponse {
 // 	return v[string]
 // }
 
-func queueconverter(arg []db.ListQueueRow) []QueueResponse {
+func queueconverter(arg []db2.ListQueueRow) []QueueResponse {
 	result := make([]QueueResponse, len(arg))
 
 	for i := range arg {
@@ -252,7 +274,7 @@ func queueconverter(arg []db.ListQueueRow) []QueueResponse {
 	return result
 }
 
-func commentconverter(arg []db.ListCommentRow) []commentresp {
+func commentconverter(arg []db2.ListCommentRow) []commentresp {
 	result := make([]commentresp, len(arg))
 	for i := range arg {
 		result[i].Comment = arg[i].Comment
@@ -263,4 +285,26 @@ func commentconverter(arg []db.ListCommentRow) []commentresp {
 		result[i].CreatedAt = arg[i].CreatedAt.Unix()
 	}
 	return result
+}
+
+func FuncPublicAccountResponse(input []db2.Account) []PublicAccountResponse {
+	result := make([]PublicAccountResponse, len(input))
+	for i := range input {
+		result[i].ID = input[i].ID
+		result[i].Owner = input[i].Owner
+		result[i].AccountType = input[i].IsPrivate
+		result[i].Follower = input[i].Follower
+		result[i].Following = input[i].Following
+		result[i].CreatedAt = input[i].CreatedAt.Unix()
+		result[i].PhotoDir = input[i].PhotoDir.String
+	}
+	return result
+}
+
+func FuncPublicAccountsResp(input []db2.Account, pageInfo map[string]interface{}) PublicAccountResp {
+	accounts := FuncPublicAccountResponse(input)
+	return PublicAccountResp{
+		Accounts: accounts,
+		PageInfo: pageInfo,
+	}
 }

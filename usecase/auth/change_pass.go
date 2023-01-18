@@ -2,8 +2,8 @@ package auth
 
 import (
 	"context"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent"
 
-	"github.com/peacewalker122/project/db/repository/postgres/ent"
 	"github.com/peacewalker122/project/util/email"
 	"golang.org/x/crypto/bcrypt"
 )

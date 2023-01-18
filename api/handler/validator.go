@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"mime/multipart"
 	"net/http"
 	"net/mail"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/token"
 )
 
@@ -41,53 +41,61 @@ const (
 	Accountag  = "account"
 )
 
-func (s *Handler) AuthAccount(c echo.Context, accountID int64) (int, error) {
-	var acc db.Account
+type Helper interface {
+	AuthAccount(c echo.Context) (int, *token.Payload, error)
+}
+
+func (s *Handler) AuthAccount(c echo.Context) (int, *token.Payload, error) {
+	var sessionS db.Session
 
 	authParam, ok := c.Get(AuthPayload).(*token.Payload)
 	if !ok {
 		err := errors.New("failed conversion")
-		return http.StatusInternalServerError, err
+		return http.StatusInternalServerError, nil, err
 	}
 
-	key := "session:AccountsID:" + strconv.Itoa(int(accountID))
+	key := "session:AccountsID:" + strconv.Itoa(int(authParam.AccountID))
 
 	// Here we get from our redis cache value
 	session, err := s.redis.Get(c.Request().Context(), key)
 	if err != nil {
 		// if it doesn't exist then query it from thes postgres
-		acc, err = s.store.GetAccounts(c.Request().Context(), accountID)
+		sessionS, err := s.store.GetSession(c.Request().Context(), authParam.ID)
 		if num, err := GetErrorValidator(c, err, Accountag); err != nil {
-			return num, err
+			return num, nil, err
+		}
+
+		if sessionS.ExpiresAt.Unix() < time.Now().Unix() {
+			return http.StatusUnauthorized, nil, errors.New("session expired")
+		}
+
+		if sessionS.IsBlocked {
+			return http.StatusUnauthorized, nil, errors.New("already LOGOUT")
 		}
 
 		// set into redis cache
-		err = s.redis.Set(c.Request().Context(), key, acc, 15*time.Minute)
+		err = s.redis.Set(c.Request().Context(), key, sessionS, 15*time.Minute)
 		if err != nil {
-			return http.StatusInternalServerError, err
+			return http.StatusInternalServerError, nil, err
 		}
 
-		// checking
-		if acc.Owner != authParam.Username {
-			err := errors.New("unauthorized Username for this account")
-			return http.StatusUnauthorized, err
-		}
-
-		return 0, nil
+		return 0, authParam, nil
 	}
 
-	// unmarshaling because we marshal into json for any value into set.
-	err = json.Unmarshal([]byte(session), &acc)
+	err = json.Unmarshal([]byte(session), &sessionS)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusInternalServerError, nil, err
 	}
 
-	// checking
-	if acc.Owner != authParam.Username {
-		err := errors.New("unauthorized Username for this account")
-		return http.StatusUnauthorized, err
+	if sessionS.ExpiresAt.Unix() < time.Now().Unix() {
+		return http.StatusUnauthorized, nil, errors.New("session expired")
 	}
-	return 0, nil
+
+	if sessionS.IsBlocked {
+		return http.StatusUnauthorized, nil, errors.New("already LOGOUT")
+	}
+
+	return 0, authParam, nil
 }
 
 func validateString(target string, minChar, maxChar int) error {
@@ -175,15 +183,6 @@ func ValidateID(num int) error {
 	return nil
 }
 
-func ValidateURIAccount(param *GetAccountsParams, context echo.Context, URIparam string) (*GetAccountsParams, error) {
-	n := ConverterParam(context, URIparam)
-	if err := ValidateID(n); err != nil {
-		return nil, err
-	}
-	param.ToAccountID = n
-	return param, nil
-}
-
 func ValidateURI[T int64 | int](context echo.Context, URIparam string) (T, error) {
 	n := ConverterParam(context, URIparam)
 	if err := ValidateID(n); err != nil {
@@ -192,6 +191,7 @@ func ValidateURI[T int64 | int](context echo.Context, URIparam string) (T, error
 	id := T(n)
 	return id, nil
 }
+
 func (s *GetPostParam) ValidateURIPost(context echo.Context, URIparam string) error {
 	n := ConverterParam(context, URIparam)
 	if err := ValidateID(n); err != nil {
@@ -247,15 +247,6 @@ func ValidateCreateListAccount(req *listAccountRequest) (errors []string) {
 		errors = append(errors, ValidateError("page_size", err.Error()))
 	}
 	return errors
-}
-
-func ValidationGetUser(input *GetAccountsParams) (errors string, ok bool) {
-	if err := ValidateNum(input.ToAccountID); err != nil {
-		ok = false
-		errors = ValidateError("full_name", err.Error())
-	}
-	ok = true
-	return errors, ok
 }
 
 func ValidateFileType(input multipart.File) error {

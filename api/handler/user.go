@@ -2,10 +2,10 @@ package api
 
 import (
 	"database/sql"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/usecase/user"
 	"github.com/peacewalker122/project/util"
 )

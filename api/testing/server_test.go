@@ -1,11 +1,11 @@
 package api
 
 import (
+	db "github.com/peacewalker122/project/service/db/repository/postgres"
 	"testing"
 	"time"
 
 	router "github.com/peacewalker122/project/api/router"
-	db "github.com/peacewalker122/project/db/repository/postgres"
 	"github.com/peacewalker122/project/token"
 	"github.com/peacewalker122/project/util"
 	"github.com/stretchr/testify/require"

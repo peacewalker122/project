@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/peacewalker122/project/service/db/repository/postgres/mock"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,8 +16,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
-	mockdb "github.com/peacewalker122/project/db/repository/postgres/mock"
-	db "github.com/peacewalker122/project/db/repository/postgres/sqlc"
 	"github.com/peacewalker122/project/util"
 	"github.com/stretchr/testify/require"
 )
@@ -23,12 +23,12 @@ import (
 type H map[string]interface{}
 
 type EqMatcherPass struct {
-	user db.CreateUserParams
+	user db2.CreateUserParams
 	pass string
 }
 
 func (e EqMatcherPass) Matches(x interface{}) bool {
-	arg, ok := x.(db.CreateUserParams)
+	arg, ok := x.(db2.CreateUserParams)
 	if !ok {
 		return false
 	}
@@ -45,7 +45,7 @@ func (e EqMatcherPass) String() string {
 	return fmt.Sprintf("matches arg %v amd password %v", e.user, e.pass)
 }
 
-func Eq(user db.CreateUserParams, pass string) gomock.Matcher {
+func Eq(user db2.CreateUserParams, pass string) gomock.Matcher {
 	return EqMatcherPass{
 		user: user,
 		pass: pass,
@@ -70,7 +70,7 @@ func TestCreateUser(t *testing.T) {
 				"email":     user.Email,
 			},
 			buildstubs: func(mockdb *mockdb.MockPostgresStore) {
-				arg := db.CreateUserParams{
+				arg := db2.CreateUserParams{
 					Username:       user.Username,
 					FullName:       user.FullName,
 					Email:          user.Email,
@@ -96,7 +96,7 @@ func TestCreateUser(t *testing.T) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(db.User{}, &pq.Error{Code: "23505"})
+					Return(db2.User{}, &pq.Error{Code: "23505"})
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusForbidden, recorder.Code)
@@ -130,7 +130,7 @@ func TestCreateUser(t *testing.T) {
 			},
 			buildstubs: func(mockdb *mockdb.MockPostgresStore) {
 				mockdb.EXPECT().CreateUser(gomock.Any(), gomock.Any()).
-					Times(1).Return(db.User{}, sql.ErrConnDone)
+					Times(1).Return(db2.User{}, sql.ErrConnDone)
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
@@ -165,11 +165,11 @@ func TestCreateUser(t *testing.T) {
 
 }
 
-func NewUser(t *testing.T) (user db.User, password string) {
+func NewUser(t *testing.T) (user db2.User, password string) {
 	password = util.Randomstring(6)
 	hash, err := util.HashPassword(password)
 	require.NoError(t, err)
-	user = db.User{
+	user = db2.User{
 		Username:       util.Randomusername(),
 		HashedPassword: hash,
 		FullName:       util.Randomusername(),
@@ -178,11 +178,11 @@ func NewUser(t *testing.T) (user db.User, password string) {
 	return
 }
 
-func BodycheckUser(t *testing.T, body *bytes.Buffer, account db.User) {
+func BodycheckUser(t *testing.T, body *bytes.Buffer, account db2.User) {
 	data, err := io.ReadAll(body)
 	require.NoError(t, err)
 
-	var gotUser db.User
+	var gotUser db2.User
 	err = json.Unmarshal(data, &gotUser)
 
 	require.NoError(t, err)
