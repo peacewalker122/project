@@ -2,17 +2,19 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	"github.com/peacewalker122/project/util"
+	"net/http"
 
 	"github.com/peacewalker122/project/token"
 )
 
-func (u *UserUsecase) Login(ctx context.Context, params SessionParams) (*SessionResult, error) {
+func (u *UserUsecase) Login(ctx context.Context, params *LoginParams) (*SessionResult, *util.Error) {
 
-	var (
-	// errs *util.Error
-	)
-
+	if params == nil {
+		return nil, util.NewError(http.StatusBadRequest, "invalid params")
+	}
 	// go u.email.SendEmailWithNotif(ctx, email.SendEmail{
 	// 	AccountID: []int64{params.ID},
 	// 	Params:    []string{params.Email, params.ClientIp},
@@ -20,30 +22,43 @@ func (u *UserUsecase) Login(ctx context.Context, params SessionParams) (*Session
 	// 	TimeSend:  time.Now().UTC().Local(),
 	// })
 
-	if params.ID == nil {
-		ID, err := u.postgre.GetAccountID(ctx, params.Username)
-		if err != nil {
-			return nil, err
+	username, err := u.postgre.GetUser(ctx, params.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, util.NewError(http.StatusNotFound, "user not found")
 		}
-		params.ID = &ID
+		return nil, util.NewError(http.StatusInternalServerError, err.Error())
+	}
+
+	account, err := u.postgre.GetAccountsOwner(ctx, params.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, util.NewError(http.StatusNotFound, "account not found")
+		}
+		return nil, util.NewError(http.StatusInternalServerError, err.Error())
+	}
+
+	err = util.CheckPassword(params.Password, username.HashedPassword)
+	if err != nil {
+		return nil, util.NewError(http.StatusUnauthorized, "password is incorrect")
 	}
 
 	accesstoken, Accespayload, err := u.token.CreateToken(&token.PayloadRequest{
 		Username:  params.Username,
-		AccountID: *params.ID,
+		AccountID: account.ID,
 		Duration:  u.config.TokenDuration,
 	})
 	if err != nil {
-		return nil, err
+		return nil, util.NewError(http.StatusInternalServerError, err.Error())
 	}
 
 	refreshToken, refreshPayload, err := u.token.CreateToken(&token.PayloadRequest{
 		Username:  params.Username,
-		AccountID: *params.ID,
+		AccountID: account.ID,
 		Duration:  u.config.RefreshToken,
 	})
 	if err != nil {
-		return nil, err
+		return nil, util.NewError(http.StatusInternalServerError, err.Error())
 	}
 
 	arg := db.CreateSessionParams{
@@ -58,12 +73,14 @@ func (u *UserUsecase) Login(ctx context.Context, params SessionParams) (*Session
 
 	session, err := u.postgre.CreateSession(ctx, arg)
 	if err != nil {
-		return nil, err
+		return nil, util.NewError(http.StatusInternalServerError, err.Error())
 	}
 
 	res := &SessionResult{
 		AccessToken:    accesstoken,
 		RefreshToken:   refreshToken,
+		Account:        account,
+		User:           username,
 		AccessPayload:  Accespayload,
 		RefreshPayload: refreshPayload,
 		Session:        session,

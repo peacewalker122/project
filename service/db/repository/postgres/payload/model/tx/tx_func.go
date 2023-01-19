@@ -1,4 +1,4 @@
-package model
+package tx
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent"
 )
 
-func (s *Models) WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error {
-	tx, err := s.Client.Tx(ctx)
+func (t *Tx) WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error {
+	tx, err := t.Client.Tx(ctx)
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-package model
+package tx
 
 import (
 	ent2 "github.com/peacewalker122/project/service/db/repository/postgres/ent"

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent"
+	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/params"
 
 	"github.com/peacewalker122/project/util/email"
 	"golang.org/x/crypto/bcrypt"
@@ -28,6 +29,12 @@ func (a *AuthUsecase) ChangePasswordAuth(ctx context.Context, req ChangePassPara
 	errchan := make(chan error, 1)
 	done := make(chan struct{})
 
+	err = a.postgre.ChangePasswordAuth(ctx, params.ChangePasswordParam{
+		UUID:     req.UUID,
+		Password: string(pass),
+		RedisDel: a.redis.Del,
+	})
+
 	go func() {
 		err = a.email.SendEmailWithNotif(ctx, email.SendEmail{
 			AccountID: []int64{accountID.ID},
@@ -42,11 +49,6 @@ func (a *AuthUsecase) ChangePasswordAuth(ctx context.Context, req ChangePassPara
 	select {
 	case <-done:
 	case err := <-errchan:
-		return err
-	}
-
-	err = a.postgre.SetPassword(ctx, payload.Username, string(pass))
-	if err != nil {
 		return err
 	}
 

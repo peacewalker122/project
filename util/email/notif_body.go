@@ -22,7 +22,7 @@ const (
     <p>Hi there,</p>
     <p>We wanted to let you know that your password was recently changed from the IP address %s.</p>
     <p>If you did not request this change, please contact us immediately to secure your account.</p>
-	<a href="http://localhost:8080/user/request/forget/%s">Change Password</a>
+	<a href="http://localhost:8080/user/change-password/%s">Change Password</a>
     <p>Best regards,</p>
     <p> <br>Project Team</br> </p>
   </body>

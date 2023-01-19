@@ -3,10 +3,13 @@ package api
 import (
 	"fmt"
 	"github.com/peacewalker122/project/api/handler/account"
+	"github.com/peacewalker122/project/api/handler/user"
 	db "github.com/peacewalker122/project/service/db/repository/postgres"
 	"github.com/peacewalker122/project/service/db/repository/redis"
 	"github.com/peacewalker122/project/service/gcp"
 	account2 "github.com/peacewalker122/project/usecase/account"
+	auth2 "github.com/peacewalker122/project/usecase/auth"
+	user2 "github.com/peacewalker122/project/usecase/user"
 	"os"
 	"time"
 
@@ -32,6 +35,7 @@ type Server struct {
 	Token      token.Maker
 	FileString string
 	account    *account.AccountHandler
+	user       *user.UserHandler
 	apiutil.UtilTools
 	gcp.GCPService
 }
@@ -52,7 +56,6 @@ func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, se
 	server.UtilTools = apiutil.NewApiUtil(store, redisStore, c)
 	server.handler, server.FileString = handler.NewHandler(store, service, redisStore, c, newtoken, server.UtilTools)
 	server.Oauth = oauth.NewHandler(store, redisStore, c, newtoken, server.UtilTools)
-	server.routerhandle()
 
 	server.account = account.NewAccountHandler(
 		account2.NewAccountUseCase(store, redisStore, c, service),
@@ -60,6 +63,13 @@ func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, se
 		server.Router,
 		newtoken,
 	)
+
+	server.user = user.NewUserHandler(
+		auth2.NewAuthUsecase(store, redisStore, c),
+		user2.NewUserUsecase(store, redisStore, c),
+	)
+
+	server.routerhandle()
 
 	return server, nil
 }
@@ -70,19 +80,17 @@ func (s *Server) routerhandle() {
 	router.Validator = s.Auth.Validator
 	router.HTTPErrorHandler = s.Auth.HTTPErrorHandler
 
-	router.POST("/user", s.handler.CreateRequestUser)
-	router.POST("/user/signup/:uuid", s.handler.CreateUser)
+	userGroup := router.Group("/user")
+	s.user.Router(userGroup)
+
 	router.POST("/token/renew", s.handler.RenewToken)
-	router.POST("/user/login", s.handler.Login)
-
-	router.POST("/user/forget", s.handler.AuthUser)
-	router.POST("/user/request/forget/:uid", s.handler.ChangePassword)
-
 	OauthRouter := router.Group("/oauth")
 	OauthRouter.GET("/google", s.Oauth.GoogleVerif)
 	OauthRouter.GET("/google/callback", s.Oauth.GoogleToken)
 
 	authRouter := router.Group("/auth", auth.AuthMiddleware(s.Token))
+
+	s.account.Router(authRouter)
 
 	authRouter.POST("/post", s.handler.CreatePost, middleware.TimeoutWithConfig(s.TimeoutPost()))
 	authRouter.GET("/post/:id", s.handler.GetPost)

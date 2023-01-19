@@ -1,4 +1,4 @@
-package model
+package params
 
 import (
 	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/account"
@@ -10,4 +10,7 @@ type CreateUsersOauthParam struct {
 	User       *users.UsersParam
 	OauthToken *tokens.TokensParams
 	Account    *account.AccountParam
+}
+
+type UpdatePasswordParam struct {
 }

@@ -103,7 +103,7 @@ func (s *Handler) Login(c echo.Context) error {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusNotFound, "user not found")
 		}
-		c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	account, err := s.store.GetAccountsOwner(c.Request().Context(), req.Username)
@@ -111,7 +111,7 @@ func (s *Handler) Login(c echo.Context) error {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusNotFound, err.Error())
 		}
-		c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	err = util.CheckPassword(req.Password, username.HashedPassword)
@@ -119,16 +119,16 @@ func (s *Handler) Login(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, ValidateError("password", err.Error()))
 	}
 
-	loginparam := user.SessionParams{
-		ID:        &account.ID,
-		Username:  username.Username,
-		Email:     username.Email,
-		ClientIp:  c.RealIP(),
-		UserAgent: c.Request().UserAgent(),
-		IsBlocked: false,
-	}
+	//loginparam := user.SessionParams{
+	//	ID:        &account.ID,
+	//	Username:  username.Username,
+	//	Email:     username.Email,
+	//	ClientIp:  c.RealIP(),
+	//	UserAgent: c.Request().UserAgent(),
+	//	IsBlocked: false,
+	//}
 
-	result, loginErr := s.contract.Login(c.Request().Context(), loginparam)
+	result, loginErr := s.contract.Login(c.Request().Context(), &user.LoginParams{})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, loginErr)
 	}

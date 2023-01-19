@@ -16,6 +16,7 @@ import (
 type SendEmail struct {
 	AccountID []int64
 	Params    []string
+	Username  string
 	Type      NotifType
 	TimeSend  time.Time
 }
@@ -56,16 +57,33 @@ func (s *EmailHelper) SendEmail(types NotifType, params ...string) error {
 
 func (s *EmailHelper) SendEmailWithNotif(ctx context.Context, params SendEmail) error {
 
-	_, err := s.postgre.CreateNotif(ctx, &notifquery.NotifParams{
-		AccountID: params.AccountID,
-		NotifType: string(params.Type),
-		NotifTime: params.TimeSend,
-	})
-	if err != nil {
-		return err
+	if len(params.AccountID) >= 0 && params.Username != "" {
+		return errors.New("account id and username cannot be filled at the same time")
 	}
 
-	err = s.SendEmail(params.Type, params.Params[0], params.Params[1])
+	if len(params.AccountID) >= 0 {
+		_, err := s.postgre.CreateNotif(ctx, &notifquery.NotifParams{
+			AccountID: params.AccountID,
+			NotifType: string(params.Type),
+			NotifTime: params.TimeSend,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if params.Username != "" {
+		_, err := s.postgre.CreateNotifUsername(ctx, &notifquery.NotifParams{
+			Username:  params.Username,
+			NotifType: string(params.Type),
+			NotifTime: params.TimeSend,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	err := s.SendEmail(params.Type, params.Params[0], params.Params[1])
 	if err != nil {
 		return err
 	}

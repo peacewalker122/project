@@ -3,8 +3,8 @@ package oauth
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model"
 	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/account"
+	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/params"
 	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/tokens"
 	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/users"
 	"net/http"
@@ -105,7 +105,7 @@ func (s *Handler) GoogleToken(c echo.Context) error {
 	}
 
 	if !ok {
-		_, err = s.store.SetUsersOauth(ctx, &model.CreateUsersOauthParam{
+		_, err = s.store.SetUsersOauth(ctx, &params.CreateUsersOauthParam{
 			User: &users.UsersParam{
 				Email:          payload.Email,
 				FullName:       payload.Name,
