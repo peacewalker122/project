@@ -6,14 +6,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 )
 
 // NotifReadUpdate is the builder for updating NotifRead entities.

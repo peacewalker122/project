@@ -2,16 +2,29 @@ package postgres
 
 import (
 	"database/sql"
-	"github.com/peacewalker122/project/service/db/repository/postgres/payload"
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model"
+	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/tx"
+	sqlcTX "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/TX"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 )
 
 type PostgresStore interface {
-	db2.Querier
-	db2.Model
-	payload.Payload // we using this due tx not needed right now
+	db.Querier
+	db.Model
+	sqlcTX.SQLCTX
+	tx.ENTTX
+}
+
+type postgreStruct struct {
+	*sqlcTX.Tx
+	*model.Models
+	*db.SQLStore
 }
 
 func NewPostgresStore(projectDB *sql.DB) PostgresStore {
-	return db2.Newstore(projectDB)
+	var res postgreStruct
+	res.Tx = sqlcTX.NewTx(projectDB)
+	res.Models = model.NewModel(projectDB)
+	res.SQLStore = db.NewStore(projectDB)
+	return &res
 }

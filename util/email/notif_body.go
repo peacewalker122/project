@@ -38,7 +38,7 @@ const (
 </body>`
 )
 
-// here enum for the response email body
+// here enum for the result email body
 // for signup, the format is [0] = token, [1] = uuid
 func (n NotifBody) Format(Format ...string) string {
 	switch n {

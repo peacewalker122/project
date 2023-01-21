@@ -3,12 +3,14 @@ package api
 import (
 	"fmt"
 	"github.com/peacewalker122/project/api/handler/account"
+	"github.com/peacewalker122/project/api/handler/post"
 	"github.com/peacewalker122/project/api/handler/user"
 	db "github.com/peacewalker122/project/service/db/repository/postgres"
 	"github.com/peacewalker122/project/service/db/repository/redis"
 	"github.com/peacewalker122/project/service/gcp"
 	account2 "github.com/peacewalker122/project/usecase/account"
 	auth2 "github.com/peacewalker122/project/usecase/auth"
+	post2 "github.com/peacewalker122/project/usecase/post"
 	user2 "github.com/peacewalker122/project/usecase/user"
 	"os"
 	"time"
@@ -36,6 +38,7 @@ type Server struct {
 	FileString string
 	account    *account.AccountHandler
 	user       *user.UserHandler
+	post       *post.PostHandler
 	apiutil.UtilTools
 	gcp.GCPService
 }
@@ -54,7 +57,7 @@ func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, se
 		Token:      newtoken,
 	}
 	server.UtilTools = apiutil.NewApiUtil(store, redisStore, c)
-	server.handler, server.FileString = handler.NewHandler(store, service, redisStore, c, newtoken, server.UtilTools)
+	server.handler = handler.NewHandler(store, service, redisStore, c, newtoken, server.UtilTools)
 	server.Oauth = oauth.NewHandler(store, redisStore, c, newtoken, server.UtilTools)
 
 	server.account = account.NewAccountHandler(
@@ -67,6 +70,11 @@ func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, se
 	server.user = user.NewUserHandler(
 		auth2.NewAuthUsecase(store, redisStore, c),
 		user2.NewUserUsecase(store, redisStore, c),
+	)
+
+	server.post = post.NewPostHandler(
+		post2.NewPostUsecase(store, redisStore, c, service),
+		server.handler,
 	)
 
 	server.routerhandle()
@@ -82,6 +90,7 @@ func (s *Server) routerhandle() {
 
 	userGroup := router.Group("/user")
 	s.user.Router(userGroup)
+	s.post.PostRouter(router)
 
 	router.POST("/token/renew", s.handler.RenewToken)
 	OauthRouter := router.Group("/oauth")
@@ -92,13 +101,13 @@ func (s *Server) routerhandle() {
 
 	s.account.Router(authRouter)
 
-	authRouter.POST("/post", s.handler.CreatePost, middleware.TimeoutWithConfig(s.TimeoutPost()))
-	authRouter.GET("/post/:id", s.handler.GetPost)
-	authRouter.POST("/post/like", s.handler.LikePost)
-	authRouter.POST("/post/comment", s.handler.CommentPost)
-	authRouter.POST("/post/retweet", s.handler.RetweetPost)
-	authRouter.GET("/post/image/:id", s.handler.GetPostImage, middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
-	authRouter.POST("/post/qoute/retweet", s.handler.QouteretweetPost)
+	//authRouter.POST("/post", s.handler.CreatePost, middleware.TimeoutWithConfig(s.TimeoutPost()))
+	//authRouter.GET("/post/:id", s.handler.GetPost)
+	//authRouter.POST("/post/like", s.handler.LikePost)
+	//authRouter.POST("/post/comment", s.handler.CommentPost)
+	//authRouter.POST("/post/retweet", s.handler.RetweetPost)
+	//authRouter.GET("/post/image/:id", s.handler.GetPostImage, middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+	//authRouter.POST("/post/qoute/retweet", s.handler.QouteretweetPost)
 
 	s.Router = router
 }
@@ -136,11 +145,11 @@ func (s *Server) Testrouterhandle() {
 	// router.Binder = new(CustomBinder)
 	router.POST("/user", s.handler.CreateUser)
 
-	AuthMethod := router.Group("", auth.AuthMiddleware(s.Token))
+	//AuthMethod := router.Group("", auth.AuthMiddleware(s.Token))
 
 	//AuthMethod.POST("/account", s.createAccount)
-	AuthMethod.POST("/post", s.handler.CreatePost)
-	AuthMethod.GET("/post/:id", s.handler.GetPost)
+	//AuthMethod.POST("/post", s.handler.CreatePost)
+	//AuthMethod.GET("/post/:id", s.handler.GetPost)
 
 	s.Router = router
 }

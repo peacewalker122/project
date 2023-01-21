@@ -9,7 +9,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 )
 
-func NewModel(sql *sql.DB) Model {
+func NewModel(sql *sql.DB) *Models {
 	notifdrv := entsql.OpenDB("postgres", sql)
 	//defer sql.Close()
 
@@ -21,9 +21,8 @@ func NewModel(sql *sql.DB) Model {
 
 	return &res
 }
-
 type Model interface {
-	tx.TX
+	tx.ENTTX
 }
 
 type Models struct {

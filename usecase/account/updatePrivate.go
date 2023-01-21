@@ -3,7 +3,7 @@ package account
 import (
 	"context"
 	api "github.com/peacewalker122/project/api/handler"
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 )
 
 func (a *AccountUseCase) PrivateAccount(ctx context.Context, AccountID int64) (api.BasicResponse, error) {

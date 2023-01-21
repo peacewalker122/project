@@ -5,12 +5,12 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 )
 
 // Tokens is the model entity for the Tokens schema.

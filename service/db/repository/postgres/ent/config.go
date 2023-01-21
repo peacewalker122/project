@@ -27,6 +27,7 @@ type hooks struct {
 	Account       []ent.Hook
 	AccountNotifs []ent.Hook
 	NotifRead     []ent.Hook
+	Post          []ent.Hook
 	Tokens        []ent.Hook
 	Users         []ent.Hook
 }

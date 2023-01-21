@@ -22,6 +22,18 @@ type Account struct {
 	PhotoDir  sql.NullString `json:"photo_dir"`
 }
 
+type AccountNotif struct {
+	ID           uuid.UUID      `json:"id"`
+	AccountID    sql.NullInt64  `json:"account_id"`
+	NotifType    string         `json:"notif_type"`
+	IsRead       bool           `json:"is_read"`
+	NotifTitle   sql.NullString `json:"notif_title"`
+	NotifContent sql.NullString `json:"notif_content"`
+	NotifTime    sql.NullTime   `json:"notif_time"`
+	CreatedAt    time.Time      `json:"created_at"`
+	Username     sql.NullString `json:"username"`
+}
+
 type AccountsFollow struct {
 	FromAccountID int64     `json:"from_account_id"`
 	ToAccountID   int64     `json:"to_account_id"`
@@ -37,11 +49,11 @@ type AccountsQueue struct {
 }
 
 type CommentFeature struct {
-	CommentID     int64     `json:"comment_id"`
+	CommentID     uuid.UUID `json:"comment_id"`
 	FromAccountID int64     `json:"from_account_id"`
 	Comment       string    `json:"comment"`
 	SumLike       int64     `json:"sum_like"`
-	PostID        int64     `json:"post_id"`
+	PostID        uuid.UUID `json:"post_id"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
@@ -49,7 +61,7 @@ type Entry struct {
 	EntriesID     int64     `json:"entries_id"`
 	FromAccountID int64     `json:"from_account_id"`
 	ToAccountID   int64     `json:"to_account_id"`
-	PostID        int64     `json:"post_id"`
+	PostID        uuid.UUID `json:"post_id"`
 	TypeEntries   string    `json:"type_entries"`
 	CreatedAt     time.Time `json:"created_at"`
 }
@@ -57,12 +69,12 @@ type Entry struct {
 type LikeFeature struct {
 	FromAccountID int64     `json:"from_account_id"`
 	IsLike        bool      `json:"is_like"`
-	PostID        int64     `json:"post_id"`
+	PostID        uuid.UUID `json:"post_id"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
 type Post struct {
-	PostID             int64          `json:"post_id"`
+	PostID             uuid.UUID      `json:"post_id"`
 	AccountID          int64          `json:"account_id"`
 	PictureDescription string         `json:"picture_description"`
 	PhotoDir           sql.NullString `json:"photo_dir"`
@@ -71,7 +83,7 @@ type Post struct {
 }
 
 type PostFeature struct {
-	PostID          int64     `json:"post_id"`
+	PostID          uuid.UUID `json:"post_id"`
 	SumComment      int64     `json:"sum_comment"`
 	SumLike         int64     `json:"sum_like"`
 	SumRetweet      int64     `json:"sum_retweet"`
@@ -83,14 +95,14 @@ type QouteRetweetFeature struct {
 	FromAccountID int64     `json:"from_account_id"`
 	QouteRetweet  bool      `json:"qoute_retweet"`
 	Qoute         string    `json:"qoute"`
-	PostID        int64     `json:"post_id"`
+	PostID        uuid.UUID `json:"post_id"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
 type RetweetFeature struct {
 	FromAccountID int64     `json:"from_account_id"`
 	Retweet       bool      `json:"retweet"`
-	PostID        int64     `json:"post_id"`
+	PostID        uuid.UUID `json:"post_id"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 

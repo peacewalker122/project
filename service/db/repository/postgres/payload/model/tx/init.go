@@ -11,7 +11,7 @@ import (
 	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/users"
 )
 
-type TX interface {
+type ENTTX interface {
 	not.NotifQuery
 	tokens.TokensQuery
 	users.UsersQuery

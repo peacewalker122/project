@@ -3,22 +3,22 @@
 package ent
 
 import (
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
-	schema2 "github.com/peacewalker122/project/service/db/repository/postgres/ent/schema"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/schema"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	accountFields := schema2.Account{}.Fields()
+	accountFields := schema.Account{}.Fields()
 	_ = accountFields
 	// accountDescOwner is the schema descriptor for owner field.
 	accountDescOwner := accountFields[1].Descriptor()
@@ -44,7 +44,7 @@ func init() {
 	accountDescPhotoDir := accountFields[6].Descriptor()
 	// account.PhotoDirValidator is a validator for the "photo_dir" field. It is called by the builders before save.
 	account.PhotoDirValidator = accountDescPhotoDir.Validators[0].(func(string) error)
-	accountnotifsFields := schema2.AccountNotifs{}.Fields()
+	accountnotifsFields := schema.AccountNotifs{}.Fields()
 	_ = accountnotifsFields
 	// accountnotifsDescNotifType is the schema descriptor for notif_type field.
 	accountnotifsDescNotifType := accountnotifsFields[2].Descriptor()
@@ -74,13 +74,13 @@ func init() {
 	accountnotifsDescID := accountnotifsFields[0].Descriptor()
 	// accountnotifs.DefaultID holds the default value on creation for the id field.
 	accountnotifs.DefaultID = accountnotifsDescID.Default.(func() uuid.UUID)
-	notifreadFields := schema2.NotifRead{}.Fields()
+	notifreadFields := schema.NotifRead{}.Fields()
 	_ = notifreadFields
 	// notifreadDescNotifID is the schema descriptor for notif_id field.
 	notifreadDescNotifID := notifreadFields[0].Descriptor()
 	// notifread.DefaultNotifID holds the default value on creation for the notif_id field.
 	notifread.DefaultNotifID = notifreadDescNotifID.Default.(func() uuid.UUID)
-	tokensFields := schema2.Tokens{}.Fields()
+	tokensFields := schema.Tokens{}.Fields()
 	_ = tokensFields
 	// tokensDescEmail is the schema descriptor for email field.
 	tokensDescEmail := tokensFields[1].Descriptor()
@@ -112,7 +112,7 @@ func init() {
 	tokensDescID := tokensFields[0].Descriptor()
 	// tokens.DefaultID holds the default value on creation for the id field.
 	tokens.DefaultID = tokensDescID.Default.(func() uuid.UUID)
-	usersFields := schema2.Users{}.Fields()
+	usersFields := schema.Users{}.Fields()
 	_ = usersFields
 	// usersDescUsername is the schema descriptor for username field.
 	usersDescUsername := usersFields[1].Descriptor()
@@ -130,16 +130,8 @@ func init() {
 	usersDescFullName := usersFields[4].Descriptor()
 	// users.FullNameValidator is a validator for the "full_name" field. It is called by the builders before save.
 	users.FullNameValidator = usersDescFullName.Validators[0].(func(string) error)
-	// usersDescPasswordChangedAt is the schema descriptor for password_changed_at field.
-	usersDescPasswordChangedAt := usersFields[5].Descriptor()
-	// users.DefaultPasswordChangedAt holds the default value on creation for the password_changed_at field.
-	users.DefaultPasswordChangedAt = usersDescPasswordChangedAt.Default.(string)
-	// users.PasswordChangedAtValidator is a validator for the "password_changed_at" field. It is called by the builders before save.
-	users.PasswordChangedAtValidator = usersDescPasswordChangedAt.Validators[0].(func(string) error)
 	// usersDescCreatedAt is the schema descriptor for created_at field.
 	usersDescCreatedAt := usersFields[6].Descriptor()
 	// users.DefaultCreatedAt holds the default value on creation for the created_at field.
-	users.DefaultCreatedAt = usersDescCreatedAt.Default.(string)
-	// users.CreatedAtValidator is a validator for the "created_at" field. It is called by the builders before save.
-	users.CreatedAtValidator = usersDescCreatedAt.Validators[0].(func(string) error)
+	users.DefaultCreatedAt = usersDescCreatedAt.Default.(time.Time)
 }

@@ -35,7 +35,7 @@ func (s *Handler) AuthUser(c echo.Context) error {
 		ClientIp: c.RealIP(),
 	})
 	if errReq != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, errReq.Error())
 	}
 
 	return c.JSON(http.StatusCreated, id.String())
@@ -50,7 +50,7 @@ func (s *Handler) ChangePassword(c echo.Context) error {
 	req := new(ChangePasswordRequest)
 	ctx := c.Request().Context()
 
-	if err = c.Bind(req); err != nil {
+	if err := c.Bind(req); err != nil {
 		return err
 	}
 
@@ -62,10 +62,10 @@ func (s *Handler) ChangePassword(c echo.Context) error {
 		ClientIp: c.RealIP(),
 	})
 	if errChange != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, errChange.Error())
 	}
 
-	if err = c.Validate(req); err != nil {
+	if err := c.Validate(req); err != nil {
 		return err
 	}
 

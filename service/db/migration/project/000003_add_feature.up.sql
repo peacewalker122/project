@@ -1,23 +1,23 @@
 CREATE TABLE "like_feature" (
   "from_account_id" bigint NOT NULL,
   "is_like" boolean NOT NULL DEFAULT false,
-  "post_id" bigint NOT NULL,
+  "post_id" uuid NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "comment_feature" (
-  "comment_id" bigserial NOT NULL,
+  "comment_id" uuid NOT NULL,
   "from_account_id" bigint NOT NULL,
   "comment" varchar NOT NULL,
   "sum_like" bigint NOT NULL DEFAULT 0,
-  "post_id" bigint NOT NULL,
+  "post_id" uuid NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "retweet_feature" (
   "from_account_id" bigint NOT NULL,
   "retweet" boolean NOT NULL DEFAULT false,
-  "post_id" bigint NOT NULL,
+  "post_id" uuid NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
@@ -25,12 +25,12 @@ CREATE TABLE "qoute_retweet_feature" (
   "from_account_id" bigint NOT NULL,
   "qoute_retweet" boolean NOT NULL DEFAULT false,
   "qoute" varchar NOT NULL,
-  "post_id" bigint NOT NULL,
+  "post_id" uuid NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "post_feature" (
-  "post_id" bigint PRIMARY KEY,
+  "post_id" uuid PRIMARY KEY,
   "sum_comment" bigint NOT NULL DEFAULT 0,
   "sum_like" bigint NOT NULL DEFAULT 0,
   "sum_retweet" bigint NOT NULL DEFAULT 0,
@@ -42,7 +42,7 @@ CREATE TABLE "entries" (
   "entries_id" bigserial PRIMARY KEY,
   "from_account_id" bigint NOT NULL,
   "to_account_id" bigint NOT NULL,
-  "post_id" bigint NOT NULL,
+  "post_id" uuid NOT NULL,
   "type_entries" varchar NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );

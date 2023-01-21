@@ -4,11 +4,11 @@ package ent
 
 import (
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
 	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
 )
 
 // Account is the model entity for the Account schema.

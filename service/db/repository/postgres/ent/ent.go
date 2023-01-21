@@ -6,15 +6,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -38,6 +39,7 @@ func columnChecker(table string) func(string) error {
 		account.Table:       account.ValidColumn,
 		accountnotifs.Table: accountnotifs.ValidColumn,
 		notifread.Table:     notifread.ValidColumn,
+		post.Table:          post.ValidColumn,
 		tokens.Table:        tokens.ValidColumn,
 		users.Table:         users.ValidColumn,
 	}

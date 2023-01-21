@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/labstack/echo/v4"
-	db "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 	"net/http"
 )
 

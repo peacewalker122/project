@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 	"io"
 	"net/http"
 	"os"
@@ -15,7 +15,6 @@ import (
 	"github.com/peacewalker122/project/util"
 )
 
-// due golang doesn't have enum so this is the "enum"
 const (
 	postTag      = "post"
 	profilephoto = "profilephoto"
@@ -101,7 +100,7 @@ func (s *utilTools) SaveFile(c echo.Context, PhotoType string, AccountID int64) 
 
 	// Here we validate the file is it already in our directory or not
 	if _, err = os.Stat(folderPath + file.Filename); err == nil {
-		fileName, err = s.store.CreateFileIndex(folderPath, file.Filename)
+		fileName, err = util.RandomFileName(file.Filename)
 		if err != nil {
 			return "", err, true
 		}

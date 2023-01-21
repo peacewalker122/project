@@ -1,8 +1,9 @@
 package api
 
 import (
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
 	"time"
+
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 
 	"github.com/google/uuid"
 )
@@ -35,22 +36,22 @@ type (
 		PhototDir   string `json:"photo_dir"`
 	}
 	CreatePostResponse struct {
-		ID                 int64               `json:"post_id"`
+		ID                 uuid.UUID           `json:"post_id"`
 		PictureDescription string              `json:"picture_description"`
 		PostFeature        postfeatureresponse `json:"post_feature"`
 		IsRetweet          bool                `json:"is_retweet"`
 		CreatedAt          int64               `json:"created_at"`
 	}
 	postfeatureresponse struct {
-		ID              int64 `json:"post_id"`
-		SumComment      int64 `json:"sum_comment"`
-		SumLike         int64 `json:"sum_like"`
-		SumRetweet      int64 `json:"sum_retweet"`
-		SumQouteRetweet int64 `json:"sum_qoute_retweet"`
-		CreatedAt       int64 `json:"created_at"`
+		ID              uuid.UUID `json:"post_id"`
+		SumComment      int64     `json:"sum_comment"`
+		SumLike         int64     `json:"sum_like"`
+		SumRetweet      int64     `json:"sum_retweet"`
+		SumQouteRetweet int64     `json:"sum_qoute_retweet"`
+		CreatedAt       int64     `json:"created_at"`
 	}
 	GetPostResponses struct {
-		ID                 int64           `json:"id"`
+		ID                 uuid.UUID       `json:"id"`
 		PictureDescription string          `json:"picture_description"`
 		PostFeature        db2.PostFeature `json:"post_feature"`
 		PostComment        []commentresp   `json:"post_comment"`
@@ -69,25 +70,25 @@ type (
 		AccesTokenExpiresAt time.Time `json:"access_token_expires_at"`
 	}
 	LikePostResp struct {
-		PostID  int64 `json:"id"`
-		SumLike int64 `json:"like"`
-		LikeAT  int64 `json:"like_at"`
+		PostID  uuid.UUID `json:"id"`
+		SumLike int64     `json:"like"`
+		LikeAT  int64     `json:"like_at"`
 	}
 	CommentPostResp struct {
-		PostID     int64  `json:"id"`
-		Comment    string `json:"comment"`
-		SumComment int64  `json:"sum_comment"`
-		LikeAT     int64  `json:"like_at"`
+		PostID     uuid.UUID `json:"id"`
+		Comment    string    `json:"comment"`
+		SumComment int64     `json:"sum_comment"`
+		LikeAT     int64     `json:"like_at"`
 	}
 	commentresp struct {
-		FromAccountID int64  `json:"from_account_id"`
-		CommentID     int64  `json:"comment_id"`
-		Comment       string `json:"comment"`
-		SumLike       int64  `json:"sum_like"`
-		CreatedAt     int64  `json:"created_at"`
+		FromAccountID int64     `json:"from_account_id"`
+		CommentID     uuid.UUID `json:"comment_id"`
+		Comment       string    `json:"comment"`
+		SumLike       int64     `json:"sum_like"`
+		CreatedAt     int64     `json:"created_at"`
 	}
 	RetweetPostResp struct {
-		PostID      int64              `json:"id"`
+		PostID      uuid.UUID          `json:"id"`
 		Postfeature CreatePostResponse `json:"post_feature"`
 		RetweetAt   int64              `json:"retweet_at"`
 	}
@@ -247,13 +248,13 @@ func qouteretweetResponse(post db2.Post, postFeature db2.PostFeature, qoute stri
 	}
 }
 
-func followResponse(follow db2.FollowTXResult) FollowResponse {
-	return FollowResponse{
-		Follow:      createaccountfollowresp(follow.Follow),
-		FromAccount: AccountResponse(follow.FromAcc),
-		ToAccount:   AccountResponse(follow.ToAcc),
-	}
-}
+// func followResponse(follow db.FollowTXResult) FollowResponse {
+// 	return FollowResponse{
+// 		Follow:      createaccountfollowresp(follow.Follow),
+// 		FromAccount: AccountResponse(follow.FromAcc),
+// 		ToAccount:   AccountResponse(follow.ToAcc),
+// 	}
+// }
 
 // TO BE IMPLEMENTED (GENERIC RETURN)
 // type anyFeature interface {

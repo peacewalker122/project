@@ -1,7 +1,9 @@
 package util
 
 import (
+	"crypto/md5"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -9,7 +11,7 @@ import (
 )
 
 const (
-	alphabet = "abcdefghijklmnopqrstuvwxyz"
+	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
 func init() {
@@ -53,6 +55,28 @@ func InputSqlString(input string) (sql sql.NullString) {
 		return sql
 	}
 	return sql
+}
+
+func RandomFileName(fileName string) (string, error) {
+
+	ok := strings.ContainsRune(fileName, '.')
+	if !ok {
+		return "", fmt.Errorf("file is not valid")
+	}
+
+	_, filetype, _ := strings.Cut(fileName, ".")
+
+	hasher := md5.New()
+	hasher.Write([]byte(fileName))
+	md5Hash := hex.EncodeToString(hasher.Sum(nil))
+
+	unixTimestamp := time.Now().Unix()
+	last4Digits := unixTimestamp % 10000
+	md5Hash = md5Hash[:8]
+	unique4string := Randomstring(4)
+
+	filename := fmt.Sprintf("%s_%04d%s.%s", md5Hash, last4Digits, unique4string, filetype)
+	return filename, nil
 }
 
 func RandomType() string {

@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createPost = `-- name: CreatePost :one
@@ -52,7 +54,7 @@ DELETE FROM post
 WHERE post_id = $1
 `
 
-func (q *Queries) DeletePost(ctx context.Context, postID int64) error {
+func (q *Queries) DeletePost(ctx context.Context, postID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deletePost, postID)
 	return err
 }
@@ -62,7 +64,7 @@ SELECT post_id, account_id, picture_description, photo_dir, is_retweet, created_
 WHERE post_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetPost(ctx context.Context, postID int64) (Post, error) {
+func (q *Queries) GetPost(ctx context.Context, postID uuid.UUID) (Post, error) {
 	row := q.db.QueryRowContext(ctx, getPost, postID)
 	var i Post
 	err := row.Scan(
@@ -83,13 +85,13 @@ WHERE qrf.from_account_id = $2 and qrf.post_id = $1
 `
 
 type GetPostQRetweetJoinParams struct {
-	PostID        int64 `json:"post_id"`
-	FromAccountID int64 `json:"from_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
 }
 
 type GetPostQRetweetJoinRow struct {
-	PostID       int64 `json:"post_id"`
-	QouteRetweet bool  `json:"qoute_retweet"`
+	PostID       uuid.UUID `json:"post_id"`
+	QouteRetweet bool      `json:"qoute_retweet"`
 }
 
 func (q *Queries) GetPostQRetweetJoin(ctx context.Context, arg GetPostQRetweetJoinParams) (GetPostQRetweetJoinRow, error) {
@@ -106,13 +108,13 @@ WHERE rf.from_account_id = $2 and rf.post_id = $1
 `
 
 type GetPostidretweetJoinParams struct {
-	PostID        int64 `json:"post_id"`
-	FromAccountID int64 `json:"from_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
 }
 
 type GetPostidretweetJoinRow struct {
-	PostID  int64 `json:"post_id"`
-	Retweet bool  `json:"retweet"`
+	PostID  uuid.UUID `json:"post_id"`
+	Retweet bool      `json:"retweet"`
 }
 
 func (q *Queries) GetPostidretweetJoin(ctx context.Context, arg GetPostidretweetJoinParams) (GetPostidretweetJoinRow, error) {
@@ -128,8 +130,8 @@ WHERE from_account_id=$1 and post_id = $2 LIMIT 1
 `
 
 type GetRetweetRowsParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	PostID        int64 `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
 }
 
 func (q *Queries) GetRetweetRows(ctx context.Context, arg GetRetweetRowsParams) (int64, error) {
@@ -190,8 +192,8 @@ RETURNING post_id, account_id, picture_description, photo_dir, is_retweet, creat
 `
 
 type UpdatePostParams struct {
-	PostID             int64  `json:"post_id"`
-	PictureDescription string `json:"picture_description"`
+	PostID             uuid.UUID `json:"post_id"`
+	PictureDescription string    `json:"picture_description"`
 }
 
 func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error) {

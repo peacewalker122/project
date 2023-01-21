@@ -4,12 +4,12 @@ package ent
 
 import (
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
 	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
 )
 
 // NotifRead is the model entity for the NotifRead schema.

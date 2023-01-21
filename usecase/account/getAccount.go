@@ -2,7 +2,7 @@ package account
 
 import (
 	"context"
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 )
 
 func (a *AccountUseCase) GetAccount(ctx context.Context, AccountID int64) (*db2.Account, error) {

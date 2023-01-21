@@ -6,17 +6,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+
+	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/migrate"
+
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/migrate"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
-	"log"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 )
 
 // Client is the client that holds all ent builders.
@@ -30,6 +33,8 @@ type Client struct {
 	AccountNotifs *AccountNotifsClient
 	// NotifRead is the client for interacting with the NotifRead builders.
 	NotifRead *NotifReadClient
+	// Post is the client for interacting with the Post builders.
+	Post *PostClient
 	// Tokens is the client for interacting with the Tokens builders.
 	Tokens *TokensClient
 	// Users is the client for interacting with the Users builders.
@@ -50,6 +55,7 @@ func (c *Client) init() {
 	c.Account = NewAccountClient(c.config)
 	c.AccountNotifs = NewAccountNotifsClient(c.config)
 	c.NotifRead = NewNotifReadClient(c.config)
+	c.Post = NewPostClient(c.config)
 	c.Tokens = NewTokensClient(c.config)
 	c.Users = NewUsersClient(c.config)
 }
@@ -88,6 +94,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Account:       NewAccountClient(cfg),
 		AccountNotifs: NewAccountNotifsClient(cfg),
 		NotifRead:     NewNotifReadClient(cfg),
+		Post:          NewPostClient(cfg),
 		Tokens:        NewTokensClient(cfg),
 		Users:         NewUsersClient(cfg),
 	}, nil
@@ -112,6 +119,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Account:       NewAccountClient(cfg),
 		AccountNotifs: NewAccountNotifsClient(cfg),
 		NotifRead:     NewNotifReadClient(cfg),
+		Post:          NewPostClient(cfg),
 		Tokens:        NewTokensClient(cfg),
 		Users:         NewUsersClient(cfg),
 	}, nil
@@ -145,6 +153,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Account.Use(hooks...)
 	c.AccountNotifs.Use(hooks...)
 	c.NotifRead.Use(hooks...)
+	c.Post.Use(hooks...)
 	c.Tokens.Use(hooks...)
 	c.Users.Use(hooks...)
 }
@@ -417,6 +426,96 @@ func (c *NotifReadClient) GetX(ctx context.Context, id int) *NotifRead {
 // Hooks returns the client hooks.
 func (c *NotifReadClient) Hooks() []Hook {
 	return c.hooks.NotifRead
+}
+
+// PostClient is a client for the Post schema.
+type PostClient struct {
+	config
+}
+
+// NewPostClient returns a client for the Post from the given config.
+func NewPostClient(c config) *PostClient {
+	return &PostClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `post.Hooks(f(g(h())))`.
+func (c *PostClient) Use(hooks ...Hook) {
+	c.hooks.Post = append(c.hooks.Post, hooks...)
+}
+
+// Create returns a builder for creating a Post entity.
+func (c *PostClient) Create() *PostCreate {
+	mutation := newPostMutation(c.config, OpCreate)
+	return &PostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Post entities.
+func (c *PostClient) CreateBulk(builders ...*PostCreate) *PostCreateBulk {
+	return &PostCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Post.
+func (c *PostClient) Update() *PostUpdate {
+	mutation := newPostMutation(c.config, OpUpdate)
+	return &PostUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PostClient) UpdateOne(po *Post) *PostUpdateOne {
+	mutation := newPostMutation(c.config, OpUpdateOne, withPost(po))
+	return &PostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PostClient) UpdateOneID(id int) *PostUpdateOne {
+	mutation := newPostMutation(c.config, OpUpdateOne, withPostID(id))
+	return &PostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Post.
+func (c *PostClient) Delete() *PostDelete {
+	mutation := newPostMutation(c.config, OpDelete)
+	return &PostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PostClient) DeleteOne(po *Post) *PostDeleteOne {
+	return c.DeleteOneID(po.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PostClient) DeleteOneID(id int) *PostDeleteOne {
+	builder := c.Delete().Where(post.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PostDeleteOne{builder}
+}
+
+// Query returns a query builder for Post.
+func (c *PostClient) Query() *PostQuery {
+	return &PostQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Post entity by its id.
+func (c *PostClient) Get(ctx context.Context, id int) (*Post, error) {
+	return c.Query().Where(post.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PostClient) GetX(ctx context.Context, id int) *Post {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PostClient) Hooks() []Hook {
+	return c.hooks.Post
 }
 
 // TokensClient is a client for the Tokens schema.

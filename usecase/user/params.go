@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 	"github.com/peacewalker122/project/token"
 )
 

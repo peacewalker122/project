@@ -5,14 +5,14 @@ package ent
 import (
 	"context"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 )
 
 // UsersQuery is the builder for querying Users entities.

@@ -19,7 +19,7 @@ CREATE TABLE "accounts" (
 
 -- considered to add picture id in post.
 CREATE TABLE "post" (
-  "post_id" bigserial PRIMARY KEY,
+  "post_id" UUID PRIMARY KEY,
   "account_id" bigint NOT NULL,
   "picture_description" varchar NOT NULL,
   "photo_dir" varchar,

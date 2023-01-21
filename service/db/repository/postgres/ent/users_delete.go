@@ -5,12 +5,12 @@ package ent
 import (
 	"context"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 )
 
 // UsersDelete is the builder for deleting a Users entity.

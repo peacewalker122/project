@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/peacewalker122/project/service/db/repository/postgres/mock"
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 	"io"
 	"log"
 	"net/http"

@@ -61,6 +61,16 @@ var (
 		Columns:    NotifReadsColumns,
 		PrimaryKey: []*schema.Column{NotifReadsColumns[0]},
 	}
+	// PostsColumns holds the columns for the "posts" table.
+	PostsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// PostsTable holds the schema information for the "posts" table.
+	PostsTable = &schema.Table{
+		Name:       "posts",
+		Columns:    PostsColumns,
+		PrimaryKey: []*schema.Column{PostsColumns[0]},
+	}
 	// TokensColumns holds the columns for the "tokens" table.
 	TokensColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -84,8 +94,8 @@ var (
 		{Name: "hashed_password", Type: field.TypeString, Nullable: true},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "full_name", Type: field.TypeString},
-		{Name: "password_changed_at", Type: field.TypeString, Default: "0001-01-01 00:00:00Z"},
-		{Name: "created_at", Type: field.TypeString, Default: "now()"},
+		{Name: "password_changed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -98,6 +108,7 @@ var (
 		AccountsTable,
 		AccountNotifsTable,
 		NotifReadsTable,
+		PostsTable,
 		TokensTable,
 		UsersTable,
 	}

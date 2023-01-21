@@ -2,6 +2,10 @@
 
 package users
 
+import (
+	"time"
+)
+
 const (
 	// Label holds the string label denoting the users type in the database.
 	Label = "users"
@@ -53,12 +57,6 @@ var (
 	EmailValidator func(string) error
 	// FullNameValidator is a validator for the "full_name" field. It is called by the builders before save.
 	FullNameValidator func(string) error
-	// DefaultPasswordChangedAt holds the default value on creation for the "password_changed_at" field.
-	DefaultPasswordChangedAt string
-	// PasswordChangedAtValidator is a validator for the "password_changed_at" field. It is called by the builders before save.
-	PasswordChangedAtValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
-	DefaultCreatedAt string
-	// CreatedAtValidator is a validator for the "created_at" field. It is called by the builders before save.
-	CreatedAtValidator func(string) error
+	DefaultCreatedAt time.Time
 )

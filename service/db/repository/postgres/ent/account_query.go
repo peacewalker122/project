@@ -5,13 +5,13 @@ package ent
 import (
 	"context"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 )
 
 // AccountQuery is the builder for querying Account entities.

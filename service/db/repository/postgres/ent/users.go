@@ -4,11 +4,12 @@ package ent
 
 import (
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 )
 
 // Users is the model entity for the Users schema.
@@ -25,9 +26,9 @@ type Users struct {
 	// FullName holds the value of the "full_name" field.
 	FullName string `json:"full_name,omitempty"`
 	// PasswordChangedAt holds the value of the "password_changed_at" field.
-	PasswordChangedAt string `json:"password_changed_at,omitempty"`
+	PasswordChangedAt time.Time `json:"password_changed_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt string `json:"created_at,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -35,8 +36,10 @@ func (*Users) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case users.FieldUsername, users.FieldHashedPassword, users.FieldEmail, users.FieldFullName, users.FieldPasswordChangedAt, users.FieldCreatedAt:
+		case users.FieldUsername, users.FieldHashedPassword, users.FieldEmail, users.FieldFullName:
 			values[i] = new(sql.NullString)
+		case users.FieldPasswordChangedAt, users.FieldCreatedAt:
+			values[i] = new(sql.NullTime)
 		case users.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
@@ -85,16 +88,16 @@ func (u *Users) assignValues(columns []string, values []any) error {
 				u.FullName = value.String
 			}
 		case users.FieldPasswordChangedAt:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field password_changed_at", values[i])
 			} else if value.Valid {
-				u.PasswordChangedAt = value.String
+				u.PasswordChangedAt = value.Time
 			}
 		case users.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				u.CreatedAt = value.String
+				u.CreatedAt = value.Time
 			}
 		}
 	}
@@ -137,10 +140,10 @@ func (u *Users) String() string {
 	builder.WriteString(u.FullName)
 	builder.WriteString(", ")
 	builder.WriteString("password_changed_at=")
-	builder.WriteString(u.PasswordChangedAt)
+	builder.WriteString(u.PasswordChangedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(u.CreatedAt)
+	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

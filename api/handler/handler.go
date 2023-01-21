@@ -10,14 +10,14 @@ import (
 	"github.com/peacewalker122/project/util"
 )
 
-func NewHandler(store db.PostgresStore, gcpClient gcp.GCPService, redis redis.Store, config util.Config, token token.Maker, apiutil apiutil.UtilTools) (HandlerService, string) {
+func NewHandler(store db.PostgresStore, gcpClient gcp.GCPService, redis redis.Store, config util.Config, token token.Maker, apiutil apiutil.UtilTools) HandlerService {
 	return &Handler{
 		store:  store,
 		redis:  redis,
 		config: config,
 		token:  token,
 		util:   apiutil,
-	}, FileName
+	}
 }
 
 type Handler struct {
@@ -30,10 +30,8 @@ type Handler struct {
 }
 
 type HandlerService interface {
-	postService
 	tokenService
 	userService
-	accountService
 	AuthHandler
 	Helper
 }

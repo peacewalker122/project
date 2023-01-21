@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/peacewalker122/project/service/db/repository/postgres/mock"
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 	"io"
 	"log"
 	"net/http"
@@ -25,7 +26,7 @@ func TestCreatePost(t *testing.T) {
 	user, _ := NewUser(t)
 	acc := NewAcc(user.Username)
 	post := NewPost(int(acc.ID))
-	postfeature := NewPostFeature(int(post.PostID))
+	postfeature := NewPostFeature(post.PostID)
 
 	TestCases := []struct {
 		name       string
@@ -146,10 +147,10 @@ func TestGetPost(t *testing.T) {
 	acc := NewAcc(user.Username)
 	acc2 := NewAcc(user2.Username)
 	post := NewPost(int(acc.ID))
-	postfeature := NewPostFeature(int(post.PostID))
+	postfeature := NewPostFeature(post.PostID)
 	testCases := []struct {
 		name       string
-		id         int64
+		id         uuid.UUID
 		setupAuth  func(t *testing.T, request *http.Request, token token.Maker)
 		buildStubs func(mock *mockdb.MockPostgresStore)
 		CodeRecord func(record *httptest.ResponseRecorder)
@@ -275,7 +276,7 @@ func TestGetPost(t *testing.T) {
 		},
 		{
 			name: "Wrong-Request",
-			id:   0,
+			id:   uuid.Nil,
 			setupAuth: func(t *testing.T, request *http.Request, token token.Maker) {
 				AddAuthorization(t, request, token, user.Username, AuthTypeBearer, time.Minute)
 			},
@@ -315,15 +316,15 @@ func TestGetPost(t *testing.T) {
 
 func NewPost(AccID int) db2.Post {
 	return db2.Post{
-		PostID:             util.Randomint(1, 100),
+		PostID:             uuid.New(),
 		AccountID:          int64(AccID),
 		PictureDescription: util.Randomusername(),
 	}
 }
 
-func NewPostFeature(PostID int) db2.PostFeature {
+func NewPostFeature(UUID uuid.UUID) db2.PostFeature {
 	return db2.PostFeature{
-		PostID:          int64(PostID),
+		PostID:          UUID,
 		SumComment:      util.Randomint(1, 100),
 		SumLike:         util.Randomint(1, 1000),
 		SumRetweet:      util.Randomint(1, 100),

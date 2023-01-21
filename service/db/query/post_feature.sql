@@ -9,11 +9,12 @@ INSERT INTO like_feature(
 
 -- name: CreateComment_feature :one
 INSERT INTO comment_feature(
+    comment_id,
     from_account_id,
     comment,
     post_id
 ) VALUES(
-    $1,$2,$3
+    $1,$2,$3,$4
 ) RETURNING comment;
 
 -- name: CreateRetweet_feature :exec

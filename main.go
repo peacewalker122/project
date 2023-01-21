@@ -1,14 +1,15 @@
 package main
 
 import (
-	"cloud.google.com/go/storage"
 	"context"
 	"database/sql"
-	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	"log"
+
+	"cloud.google.com/go/storage"
+	"github.com/peacewalker122/project/service/db/repository/postgres"
 	"github.com/peacewalker122/project/service/db/repository/redis"
 	"github.com/peacewalker122/project/service/gcp"
 	"google.golang.org/api/option"
-	"log"
 
 	_ "github.com/golang/mock/mockgen/model"
 	_ "github.com/lib/pq"
@@ -50,7 +51,7 @@ func main() {
 	gcpService := gcp.NewGCPService(client)
 
 	log.Println("initialize store")
-	store := db.Newstore(projectConn)
+	store := postgres.NewPostgresStore(projectConn)
 
 	server, err := api.Newserver(config, store, redisServer, gcpService)
 	if err != nil {

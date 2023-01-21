@@ -3,8 +3,9 @@ package account
 import (
 	"context"
 	"errors"
+
 	api "github.com/peacewalker122/project/api/handler"
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 )
 
 func (a *AccountUseCase) FollowAccount(ctx context.Context, FromAccount, AccountID int64) (api.BasicResponse, error) {
@@ -56,11 +57,12 @@ func (a *AccountUseCase) FollowAccount(ctx context.Context, FromAccount, Account
 		return nil, errors.New("already follow")
 	}
 
-	_, err = a.postgre.Followtx(ctx, db2.FollowTXParam{
-		Fromaccid: FromAccount,
-		Toaccid:   AccountID,
-		IsQueue:   false,
-	})
+	err = a.postgre.FollowTX(
+		ctx,
+		false,
+		FromAccount,
+		AccountID,
+	)
 	if err != nil {
 		return nil, err
 	}

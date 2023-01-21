@@ -3,6 +3,8 @@
 package users
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
@@ -108,14 +110,14 @@ func FullName(v string) predicate.Users {
 }
 
 // PasswordChangedAt applies equality check predicate on the "password_changed_at" field. It's identical to PasswordChangedAtEQ.
-func PasswordChangedAt(v string) predicate.Users {
+func PasswordChangedAt(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPasswordChangedAt), v))
 	})
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
-func CreatedAt(v string) predicate.Users {
+func CreatedAt(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
 	})
@@ -532,21 +534,21 @@ func FullNameContainsFold(v string) predicate.Users {
 }
 
 // PasswordChangedAtEQ applies the EQ predicate on the "password_changed_at" field.
-func PasswordChangedAtEQ(v string) predicate.Users {
+func PasswordChangedAtEQ(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPasswordChangedAt), v))
 	})
 }
 
 // PasswordChangedAtNEQ applies the NEQ predicate on the "password_changed_at" field.
-func PasswordChangedAtNEQ(v string) predicate.Users {
+func PasswordChangedAtNEQ(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldPasswordChangedAt), v))
 	})
 }
 
 // PasswordChangedAtIn applies the In predicate on the "password_changed_at" field.
-func PasswordChangedAtIn(vs ...string) predicate.Users {
+func PasswordChangedAtIn(vs ...time.Time) predicate.Users {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -557,7 +559,7 @@ func PasswordChangedAtIn(vs ...string) predicate.Users {
 }
 
 // PasswordChangedAtNotIn applies the NotIn predicate on the "password_changed_at" field.
-func PasswordChangedAtNotIn(vs ...string) predicate.Users {
+func PasswordChangedAtNotIn(vs ...time.Time) predicate.Users {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -568,84 +570,63 @@ func PasswordChangedAtNotIn(vs ...string) predicate.Users {
 }
 
 // PasswordChangedAtGT applies the GT predicate on the "password_changed_at" field.
-func PasswordChangedAtGT(v string) predicate.Users {
+func PasswordChangedAtGT(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldPasswordChangedAt), v))
 	})
 }
 
 // PasswordChangedAtGTE applies the GTE predicate on the "password_changed_at" field.
-func PasswordChangedAtGTE(v string) predicate.Users {
+func PasswordChangedAtGTE(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldPasswordChangedAt), v))
 	})
 }
 
 // PasswordChangedAtLT applies the LT predicate on the "password_changed_at" field.
-func PasswordChangedAtLT(v string) predicate.Users {
+func PasswordChangedAtLT(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldPasswordChangedAt), v))
 	})
 }
 
 // PasswordChangedAtLTE applies the LTE predicate on the "password_changed_at" field.
-func PasswordChangedAtLTE(v string) predicate.Users {
+func PasswordChangedAtLTE(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldPasswordChangedAt), v))
 	})
 }
 
-// PasswordChangedAtContains applies the Contains predicate on the "password_changed_at" field.
-func PasswordChangedAtContains(v string) predicate.Users {
+// PasswordChangedAtIsNil applies the IsNil predicate on the "password_changed_at" field.
+func PasswordChangedAtIsNil() predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldPasswordChangedAt), v))
+		s.Where(sql.IsNull(s.C(FieldPasswordChangedAt)))
 	})
 }
 
-// PasswordChangedAtHasPrefix applies the HasPrefix predicate on the "password_changed_at" field.
-func PasswordChangedAtHasPrefix(v string) predicate.Users {
+// PasswordChangedAtNotNil applies the NotNil predicate on the "password_changed_at" field.
+func PasswordChangedAtNotNil() predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldPasswordChangedAt), v))
-	})
-}
-
-// PasswordChangedAtHasSuffix applies the HasSuffix predicate on the "password_changed_at" field.
-func PasswordChangedAtHasSuffix(v string) predicate.Users {
-	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldPasswordChangedAt), v))
-	})
-}
-
-// PasswordChangedAtEqualFold applies the EqualFold predicate on the "password_changed_at" field.
-func PasswordChangedAtEqualFold(v string) predicate.Users {
-	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldPasswordChangedAt), v))
-	})
-}
-
-// PasswordChangedAtContainsFold applies the ContainsFold predicate on the "password_changed_at" field.
-func PasswordChangedAtContainsFold(v string) predicate.Users {
-	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldPasswordChangedAt), v))
+		s.Where(sql.NotNull(s.C(FieldPasswordChangedAt)))
 	})
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
-func CreatedAtEQ(v string) predicate.Users {
+func CreatedAtEQ(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
 	})
 }
 
 // CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
-func CreatedAtNEQ(v string) predicate.Users {
+func CreatedAtNEQ(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
 	})
 }
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
-func CreatedAtIn(vs ...string) predicate.Users {
+func CreatedAtIn(vs ...time.Time) predicate.Users {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -656,7 +637,7 @@ func CreatedAtIn(vs ...string) predicate.Users {
 }
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
-func CreatedAtNotIn(vs ...string) predicate.Users {
+func CreatedAtNotIn(vs ...time.Time) predicate.Users {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -667,65 +648,30 @@ func CreatedAtNotIn(vs ...string) predicate.Users {
 }
 
 // CreatedAtGT applies the GT predicate on the "created_at" field.
-func CreatedAtGT(v string) predicate.Users {
+func CreatedAtGT(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldCreatedAt), v))
 	})
 }
 
 // CreatedAtGTE applies the GTE predicate on the "created_at" field.
-func CreatedAtGTE(v string) predicate.Users {
+func CreatedAtGTE(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
 	})
 }
 
 // CreatedAtLT applies the LT predicate on the "created_at" field.
-func CreatedAtLT(v string) predicate.Users {
+func CreatedAtLT(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldCreatedAt), v))
 	})
 }
 
 // CreatedAtLTE applies the LTE predicate on the "created_at" field.
-func CreatedAtLTE(v string) predicate.Users {
+func CreatedAtLTE(v time.Time) predicate.Users {
 	return predicate.Users(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtContains applies the Contains predicate on the "created_at" field.
-func CreatedAtContains(v string) predicate.Users {
-	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtHasPrefix applies the HasPrefix predicate on the "created_at" field.
-func CreatedAtHasPrefix(v string) predicate.Users {
-	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtHasSuffix applies the HasSuffix predicate on the "created_at" field.
-func CreatedAtHasSuffix(v string) predicate.Users {
-	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtEqualFold applies the EqualFold predicate on the "created_at" field.
-func CreatedAtEqualFold(v string) predicate.Users {
-	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtContainsFold applies the ContainsFold predicate on the "created_at" field.
-func CreatedAtContainsFold(v string) predicate.Users {
-	return predicate.Users(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldCreatedAt), v))
 	})
 }
 

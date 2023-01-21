@@ -3,10 +3,10 @@
 package account
 
 import (
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

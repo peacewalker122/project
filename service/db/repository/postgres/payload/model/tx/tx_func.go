@@ -3,10 +3,9 @@ package tx
 import (
 	"context"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent"
 )
 
-func (t *Tx) WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error {
+func (t *Tx) WithTx(ctx context.Context, fn func(tx *Tx) error) error {
 	tx, err := t.Client.Tx(ctx)
 	if err != nil {
 		return err
@@ -17,7 +16,8 @@ func (t *Tx) WithTx(ctx context.Context, fn func(tx *ent.Tx) error) error {
 			panic(v)
 		}
 	}()
-	if err := fn(tx); err != nil {
+	q := NewTx(t.Client)
+	if err := fn(q); err != nil {
 		if rerr := tx.Rollback(); rerr != nil {
 			err = fmt.Errorf("%w: rolling back transaction: %v", err, rerr)
 		}

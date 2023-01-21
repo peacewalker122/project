@@ -6,12 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
 )
 
 // AccountNotifsCreate is the builder for creating a AccountNotifs entity.

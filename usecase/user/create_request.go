@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 	"errors"
-	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 	"sync"
 	"time"
 

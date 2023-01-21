@@ -25,7 +25,7 @@ func (s *Handler) RenewToken(c echo.Context) error {
 	payload, err := s.token.VerifyToken(token)
 	if err != nil {
 		errs := fmt.Errorf("invalid token %v", err.Error())
-		c.JSON(http.StatusBadRequest, errs.Error())
+		return c.JSON(http.StatusBadRequest, errs.Error())
 	}
 
 	session, err := s.store.GetSession(c.Request().Context(), payload.ID)
@@ -61,7 +61,7 @@ func (s *Handler) RenewToken(c echo.Context) error {
 		AccountID: payload.AccountID,
 		Duration:  s.config.RefreshToken,
 	})
-	
+
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

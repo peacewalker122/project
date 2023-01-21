@@ -4,11 +4,12 @@ import (
 	"context"
 	ent2 "github.com/peacewalker122/project/service/db/repository/postgres/ent"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
+	"time"
 )
 
 type UsersQuery interface {
 	SetUser(ctx context.Context, Params *UsersParam) (*ent2.Users, error)
-	//GetUser(ctx context.Context, email string) (*ent.Users, error)
+
 	UpdateUser(ctx context.Context, Params *UsersParam) error
 	SetPassword(ctx context.Context, username string, password string) error
 	GetAllWithEmail(ctx context.Context, email string) (*ent2.Users, error)
@@ -28,12 +29,12 @@ func (s *UserQueries) SetUser(ctx context.Context, Params *UsersParam) (*ent2.Us
 		Save(ctx)
 }
 
-func (s *UserQueries) GetUser(ctx context.Context, email string) (*ent2.Users, error) {
-	return s.client.Users.
-		Query().
-		Where(users.Email(email)).
-		Only(ctx)
-}
+//func (s *UserQueries) GetUser(ctx context.Context, email string) (*ent2.Users, error) {
+//	return s.client.Users.
+//		Query().
+//		Where(users.Email(email)).
+//		Only(ctx)
+//}
 
 func (s *UserQueries) UpdateUser(ctx context.Context, Params *UsersParam) error {
 	_, err := s.client.Users.
@@ -54,6 +55,7 @@ func (s *UserQueries) SetPassword(ctx context.Context, username string, password
 	_, err := s.client.Users.
 		Update().
 		Where(users.Username(username)).
+		SetPasswordChangedAt(time.Now()).
 		SetHashedPassword(password).
 		Save(ctx)
 	return err

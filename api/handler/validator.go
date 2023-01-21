@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 	"mime/multipart"
 	"net/http"
 	"net/mail"
@@ -192,23 +192,6 @@ func ValidateURI[T int64 | int](context echo.Context, URIparam string) (T, error
 	return id, nil
 }
 
-func (s *GetPostParam) ValidateURIPost(context echo.Context, URIparam string) error {
-	n := ConverterParam(context, URIparam)
-	if err := ValidateID(n); err != nil {
-		return err
-	}
-	s.PostID = int64(n)
-	return nil
-}
-func (s *GetImageParam) ValidateURIPost(context echo.Context, URIparam string) error {
-	n := ConverterParam(context, URIparam)
-	if err := ValidateID(n); err != nil {
-		return err
-	}
-	s.PostID = int64(n)
-	return nil
-}
-
 func ValidateNum(num int) error {
 	s := []byte("num")
 	if NumCheckByte(s) {
@@ -237,16 +220,6 @@ func CreateErrorValidator(c echo.Context, err error) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return nil
-}
-
-func ValidateCreateListAccount(req *listAccountRequest) (errors []string) {
-	if err := ValidateNum(int(req.PageID)); err != nil {
-		errors = append(errors, ValidateError("page_id", err.Error()))
-	}
-	if err := ValidateNum(int(req.PageSize)); err != nil {
-		errors = append(errors, ValidateError("page_size", err.Error()))
-	}
-	return errors
 }
 
 func ValidateFileType(input multipart.File) error {

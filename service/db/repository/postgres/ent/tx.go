@@ -18,6 +18,8 @@ type Tx struct {
 	AccountNotifs *AccountNotifsClient
 	// NotifRead is the client for interacting with the NotifRead builders.
 	NotifRead *NotifReadClient
+	// Post is the client for interacting with the Post builders.
+	Post *PostClient
 	// Tokens is the client for interacting with the Tokens builders.
 	Tokens *TokensClient
 	// Users is the client for interacting with the Users builders.
@@ -156,6 +158,7 @@ func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
 	tx.AccountNotifs = NewAccountNotifsClient(tx.config)
 	tx.NotifRead = NewNotifReadClient(tx.config)
+	tx.Post = NewPostClient(tx.config)
 	tx.Tokens = NewTokensClient(tx.config)
 	tx.Users = NewUsersClient(tx.config)
 }

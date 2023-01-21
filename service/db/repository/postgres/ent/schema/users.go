@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"time"
 )
 
 // Users holds the schema definition for the Users entity.
@@ -27,12 +28,10 @@ func (Users) Fields() []ent.Field {
 			NotEmpty(),
 		field.String("full_name").
 			NotEmpty(),
-		field.String("password_changed_at").
-			NotEmpty().
-			Default("0001-01-01 00:00:00Z"),
-		field.String("created_at").
-			NotEmpty().
-			Default("now()"),
+		field.Time("password_changed_at").
+			Optional(),
+		field.Time("created_at").
+			Default(time.Now()),
 	}
 }
 

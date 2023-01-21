@@ -5,12 +5,12 @@ package ent
 import (
 	"context"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 )
 
 // TokensDelete is the builder for deleting a Tokens entity.

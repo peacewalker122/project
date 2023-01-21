@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
-	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 	"github.com/peacewalker122/project/util"
 	"net/http"
 

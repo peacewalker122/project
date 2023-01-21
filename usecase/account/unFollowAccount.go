@@ -3,8 +3,9 @@ package account
 import (
 	"context"
 	"errors"
+
 	api "github.com/peacewalker122/project/api/handler"
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 )
 
 func (a *AccountUseCase) UnFollowAccount(ctx context.Context, FromAccount, AccountID int64) (api.BasicResponse, error) {
@@ -23,10 +24,7 @@ func (a *AccountUseCase) UnFollowAccount(ctx context.Context, FromAccount, Accou
 		return nil, errors.New("not requested")
 	}
 
-	_, err = a.postgre.UnFollowtx(ctx, db2.UnfollowTXParam{
-		Fromaccid: FromAccount,
-		Toaccid:   AccountID,
-	})
+	err = a.postgre.UnFollowTX(ctx, FromAccount, AccountID)
 	if err != nil {
 		return nil, err
 	}

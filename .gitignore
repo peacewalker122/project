@@ -3,6 +3,8 @@ backup.txt
 *.env
 .idea/
 .vscode/
+*.png
+*.pptx
 /template
 /template/*
 .dockerignore

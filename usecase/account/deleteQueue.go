@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	api "github.com/peacewalker122/project/api/handler"
-	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+	db2 "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 )
 
 func (a *AccountUseCase) DeleteQueue(ctx context.Context, AccountID, FromAccount int64) (api.BasicResponse, error) {

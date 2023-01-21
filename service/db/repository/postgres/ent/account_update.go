@@ -6,13 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 )
 
 // AccountUpdate is the builder for updating Account entities.

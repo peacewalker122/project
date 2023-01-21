@@ -3,12 +3,14 @@ package user
 import (
 	"context"
 	"encoding/json"
-	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc"
+
+	request "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/request/user"
+	result "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/result/user"
 
 	"github.com/peacewalker122/project/util"
 )
 
-func (s *UserUsecase) CreateUser(ctx context.Context, requid string, token int) (*db.CreateUserTXResult, error) {
+func (s *UserUsecase) CreateUser(ctx context.Context, requid string, token int) (*result.CreateUserResult, error) {
 	var (
 		val PayloadCreateUser
 		// multierror *util.Error
@@ -31,17 +33,17 @@ func (s *UserUsecase) CreateUser(ctx context.Context, requid string, token int) 
 	if err != nil {
 		return nil, err
 	}
-	arg := db.CreateUserParamsTx{
+	arg := request.CreateUserParamsTx{
 		Username: val.Username,
 		Password: hashpass,
 		FullName: val.FullName,
 		Email:    val.Email,
 	}
 
-	res, err := s.postgre.CreateUserTx(ctx, arg)
+	res, err := s.postgre.CreateUserTX(ctx, &arg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &res, nil
+	return res, nil
 }

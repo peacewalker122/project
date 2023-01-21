@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createEntries = `-- name: CreateEntries :one
@@ -21,10 +23,10 @@ INSERT INTO entries (
 `
 
 type CreateEntriesParams struct {
-	FromAccountID int64  `json:"from_account_id"`
-	ToAccountID   int64  `json:"to_account_id"`
-	PostID        int64  `json:"post_id"`
-	TypeEntries   string `json:"type_entries"`
+	FromAccountID int64     `json:"from_account_id"`
+	ToAccountID   int64     `json:"to_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
+	TypeEntries   string    `json:"type_entries"`
 }
 
 func (q *Queries) CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error) {
@@ -71,9 +73,9 @@ WHERE post_id = $1 and from_account_id = $2 and type_entries = $3 LIMIT 1
 `
 
 type GetEntriesFullParams struct {
-	PostID        int64  `json:"post_id"`
-	FromAccountID int64  `json:"from_account_id"`
-	TypeEntries   string `json:"type_entries"`
+	PostID        uuid.UUID `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	TypeEntries   string    `json:"type_entries"`
 }
 
 func (q *Queries) GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error {
@@ -90,9 +92,9 @@ OFFSET $3
 `
 
 type ListEntriesParams struct {
-	PostID int64 `json:"post_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	PostID uuid.UUID `json:"post_id"`
+	Limit  int32     `json:"limit"`
+	Offset int32     `json:"offset"`
 }
 
 func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error) {

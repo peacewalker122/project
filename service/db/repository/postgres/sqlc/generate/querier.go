@@ -18,7 +18,7 @@ type Querier interface {
 	CreateEntries(ctx context.Context, arg CreateEntriesParams) (Entry, error)
 	CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) error
 	CreatePost(ctx context.Context, arg CreatePostParams) (Post, error)
-	CreatePost_feature(ctx context.Context, postID int64) (PostFeature, error)
+	CreatePost_feature(ctx context.Context, postID uuid.UUID) (PostFeature, error)
 	CreatePrivateQueue(ctx context.Context, arg CreatePrivateQueueParams) (AccountsQueue, error)
 	CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (string, error)
 	CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) error
@@ -27,8 +27,8 @@ type Querier interface {
 	DeleteAccountQueue(ctx context.Context, arg DeleteAccountQueueParams) error
 	DeleteAccountsFollow(ctx context.Context, arg DeleteAccountsFollowParams) error
 	DeleteAcoountsQueue(ctx context.Context, arg DeleteAcoountsQueueParams) error
-	DeletePost(ctx context.Context, postID int64) error
-	DeletePostFeature(ctx context.Context, postID int64) error
+	DeletePost(ctx context.Context, postID uuid.UUID) error
+	DeletePostFeature(ctx context.Context, postID uuid.UUID) error
 	DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweetParams) error
 	DeleteRetweet(ctx context.Context, arg DeleteRetweetParams) error
 	GetAccountByEmail(ctx context.Context, email string) (GetAccountByEmailRow, error)
@@ -44,15 +44,15 @@ type Querier interface {
 	GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error
 	GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeFeature, error)
 	GetLikeRows(ctx context.Context, arg GetLikeRowsParams) (int64, error)
-	GetLikejoin(ctx context.Context, postID int64) (bool, error)
-	GetPost(ctx context.Context, postID int64) (Post, error)
-	GetPostJoin(ctx context.Context, postID int64) (GetPostJoinRow, error)
+	GetLikejoin(ctx context.Context, postID uuid.UUID) (bool, error)
+	GetPost(ctx context.Context, postID uuid.UUID) (Post, error)
+	GetPostJoin(ctx context.Context, postID uuid.UUID) (GetPostJoinRow, error)
 	GetPostQRetweetJoin(ctx context.Context, arg GetPostQRetweetJoinParams) (GetPostQRetweetJoinRow, error)
-	GetPost_feature(ctx context.Context, postID int64) (PostFeature, error)
-	GetPost_feature_Update(ctx context.Context, postID int64) (GetPost_feature_UpdateRow, error)
+	GetPost_feature(ctx context.Context, postID uuid.UUID) (PostFeature, error)
+	GetPost_feature_Update(ctx context.Context, postID uuid.UUID) (GetPost_feature_UpdateRow, error)
 	GetPostidretweetJoin(ctx context.Context, arg GetPostidretweetJoinParams) (GetPostidretweetJoinRow, error)
 	GetQouteRetweet(ctx context.Context, arg GetQouteRetweetParams) (QouteRetweetFeature, error)
-	GetQouteRetweetJoin(ctx context.Context, postID int64) (bool, error)
+	GetQouteRetweetJoin(ctx context.Context, postID uuid.UUID) (bool, error)
 	GetQouteRetweetRows(ctx context.Context, arg GetQouteRetweetRowsParams) (int64, error)
 	GetQueueRows(ctx context.Context, arg GetQueueRowsParams) (int64, error)
 	GetRetweet(ctx context.Context, arg GetRetweetParams) (RetweetFeature, error)

@@ -6,11 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 )
 
 // UsersCreate is the builder for creating a Users entity.
@@ -53,29 +54,29 @@ func (uc *UsersCreate) SetFullName(s string) *UsersCreate {
 }
 
 // SetPasswordChangedAt sets the "password_changed_at" field.
-func (uc *UsersCreate) SetPasswordChangedAt(s string) *UsersCreate {
-	uc.mutation.SetPasswordChangedAt(s)
+func (uc *UsersCreate) SetPasswordChangedAt(t time.Time) *UsersCreate {
+	uc.mutation.SetPasswordChangedAt(t)
 	return uc
 }
 
 // SetNillablePasswordChangedAt sets the "password_changed_at" field if the given value is not nil.
-func (uc *UsersCreate) SetNillablePasswordChangedAt(s *string) *UsersCreate {
-	if s != nil {
-		uc.SetPasswordChangedAt(*s)
+func (uc *UsersCreate) SetNillablePasswordChangedAt(t *time.Time) *UsersCreate {
+	if t != nil {
+		uc.SetPasswordChangedAt(*t)
 	}
 	return uc
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (uc *UsersCreate) SetCreatedAt(s string) *UsersCreate {
-	uc.mutation.SetCreatedAt(s)
+func (uc *UsersCreate) SetCreatedAt(t time.Time) *UsersCreate {
+	uc.mutation.SetCreatedAt(t)
 	return uc
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (uc *UsersCreate) SetNillableCreatedAt(s *string) *UsersCreate {
-	if s != nil {
-		uc.SetCreatedAt(*s)
+func (uc *UsersCreate) SetNillableCreatedAt(t *time.Time) *UsersCreate {
+	if t != nil {
+		uc.SetCreatedAt(*t)
 	}
 	return uc
 }
@@ -163,10 +164,6 @@ func (uc *UsersCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UsersCreate) defaults() {
-	if _, ok := uc.mutation.PasswordChangedAt(); !ok {
-		v := users.DefaultPasswordChangedAt
-		uc.mutation.SetPasswordChangedAt(v)
-	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		v := users.DefaultCreatedAt
 		uc.mutation.SetCreatedAt(v)
@@ -204,21 +201,8 @@ func (uc *UsersCreate) check() error {
 			return &ValidationError{Name: "full_name", err: fmt.Errorf(`ent: validator failed for field "Users.full_name": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.PasswordChangedAt(); !ok {
-		return &ValidationError{Name: "password_changed_at", err: errors.New(`ent: missing required field "Users.password_changed_at"`)}
-	}
-	if v, ok := uc.mutation.PasswordChangedAt(); ok {
-		if err := users.PasswordChangedAtValidator(v); err != nil {
-			return &ValidationError{Name: "password_changed_at", err: fmt.Errorf(`ent: validator failed for field "Users.password_changed_at": %w`, err)}
-		}
-	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Users.created_at"`)}
-	}
-	if v, ok := uc.mutation.CreatedAt(); ok {
-		if err := users.CreatedAtValidator(v); err != nil {
-			return &ValidationError{Name: "created_at", err: fmt.Errorf(`ent: validator failed for field "Users.created_at": %w`, err)}
-		}
 	}
 	return nil
 }
@@ -273,11 +257,11 @@ func (uc *UsersCreate) createSpec() (*Users, *sqlgraph.CreateSpec) {
 		_node.FullName = value
 	}
 	if value, ok := uc.mutation.PasswordChangedAt(); ok {
-		_spec.SetField(users.FieldPasswordChangedAt, field.TypeString, value)
+		_spec.SetField(users.FieldPasswordChangedAt, field.TypeTime, value)
 		_node.PasswordChangedAt = value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
-		_spec.SetField(users.FieldCreatedAt, field.TypeString, value)
+		_spec.SetField(users.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	return _node, _spec

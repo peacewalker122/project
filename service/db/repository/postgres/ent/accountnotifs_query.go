@@ -5,14 +5,14 @@ package ent
 import (
 	"context"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 )
 
 // AccountNotifsQuery is the builder for querying AccountNotifs entities.

@@ -4,13 +4,13 @@ package enttest
 
 import (
 	"context"
-	ent2 "github.com/peacewalker122/project/service/db/repository/postgres/ent"
-	migrate2 "github.com/peacewalker122/project/service/db/repository/postgres/ent/migrate"
 
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent"
 	// required by schema hooks.
 	_ "github.com/peacewalker122/project/service/db/repository/postgres/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/migrate"
 )
 
 type (
@@ -25,13 +25,13 @@ type (
 	Option func(*options)
 
 	options struct {
-		opts        []ent2.Option
+		opts        []ent.Option
 		migrateOpts []schema.MigrateOption
 	}
 )
 
 // WithOptions forwards options to client creation.
-func WithOptions(opts ...ent2.Option) Option {
+func WithOptions(opts ...ent.Option) Option {
 	return func(o *options) {
 		o.opts = append(o.opts, opts...)
 	}
@@ -53,9 +53,9 @@ func newOptions(opts []Option) *options {
 }
 
 // Open calls ent.Open and auto-run migration.
-func Open(t TestingT, driverName, dataSourceName string, opts ...Option) *ent2.Client {
+func Open(t TestingT, driverName, dataSourceName string, opts ...Option) *ent.Client {
 	o := newOptions(opts)
-	c, err := ent2.Open(driverName, dataSourceName, o.opts...)
+	c, err := ent.Open(driverName, dataSourceName, o.opts...)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -65,19 +65,19 @@ func Open(t TestingT, driverName, dataSourceName string, opts ...Option) *ent2.C
 }
 
 // NewClient calls ent.NewClient and auto-run migration.
-func NewClient(t TestingT, opts ...Option) *ent2.Client {
+func NewClient(t TestingT, opts ...Option) *ent.Client {
 	o := newOptions(opts)
-	c := ent2.NewClient(o.opts...)
+	c := ent.NewClient(o.opts...)
 	migrateSchema(t, c, o)
 	return c
 }
-func migrateSchema(t TestingT, c *ent2.Client, o *options) {
-	tables, err := schema.CopyTables(migrate2.Tables)
+func migrateSchema(t TestingT, c *ent.Client, o *options) {
+	tables, err := schema.CopyTables(migrate.Tables)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
-	if err := migrate2.Create(context.Background(), c.Schema, tables, o.migrateOpts...); err != nil {
+	if err := migrate.Create(context.Background(), c.Schema, tables, o.migrateOpts...); err != nil {
 		t.Error(err)
 		t.FailNow()
 	}

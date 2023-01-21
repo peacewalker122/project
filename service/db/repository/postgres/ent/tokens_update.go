@@ -6,13 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 )
 
 // TokensUpdate is the builder for updating Tokens entities.

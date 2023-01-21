@@ -32,6 +32,7 @@ func (a *AuthUsecase) ChangePasswordAuth(ctx context.Context, req ChangePassPara
 	err = a.postgre.ChangePasswordAuth(ctx, params.ChangePasswordParam{
 		UUID:     req.UUID,
 		Password: string(pass),
+		Username: payload.Username,
 		RedisDel: a.redis.Del,
 	})
 

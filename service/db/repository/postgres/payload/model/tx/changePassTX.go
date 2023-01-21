@@ -2,15 +2,14 @@ package tx
 
 import (
 	"context"
-	ent2 "github.com/peacewalker122/project/service/db/repository/postgres/ent"
 	"github.com/peacewalker122/project/service/db/repository/postgres/payload/model/params"
 )
 
 func (t *Tx) ChangePasswordAuth(ctx context.Context, params params.ChangePasswordParam) error {
-	err := t.WithTx(ctx, func(tx *ent2.Tx) error {
+	err := t.WithTx(ctx, func(tx *Tx) error {
 		var err error
 
-		err = t.ChangePasswordAuth(ctx, params)
+		err = t.SetPassword(ctx, params.Username, params.Password)
 		if err != nil {
 			return err
 		}
@@ -22,6 +21,6 @@ func (t *Tx) ChangePasswordAuth(ctx context.Context, params params.ChangePasswor
 
 		return err
 	})
-	
+
 	return err
 }

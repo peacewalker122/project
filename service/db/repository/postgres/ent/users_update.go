@@ -6,12 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 )
 
 // UsersUpdate is the builder for updating Users entities.
@@ -66,29 +67,35 @@ func (uu *UsersUpdate) SetFullName(s string) *UsersUpdate {
 }
 
 // SetPasswordChangedAt sets the "password_changed_at" field.
-func (uu *UsersUpdate) SetPasswordChangedAt(s string) *UsersUpdate {
-	uu.mutation.SetPasswordChangedAt(s)
+func (uu *UsersUpdate) SetPasswordChangedAt(t time.Time) *UsersUpdate {
+	uu.mutation.SetPasswordChangedAt(t)
 	return uu
 }
 
 // SetNillablePasswordChangedAt sets the "password_changed_at" field if the given value is not nil.
-func (uu *UsersUpdate) SetNillablePasswordChangedAt(s *string) *UsersUpdate {
-	if s != nil {
-		uu.SetPasswordChangedAt(*s)
+func (uu *UsersUpdate) SetNillablePasswordChangedAt(t *time.Time) *UsersUpdate {
+	if t != nil {
+		uu.SetPasswordChangedAt(*t)
 	}
 	return uu
 }
 
+// ClearPasswordChangedAt clears the value of the "password_changed_at" field.
+func (uu *UsersUpdate) ClearPasswordChangedAt() *UsersUpdate {
+	uu.mutation.ClearPasswordChangedAt()
+	return uu
+}
+
 // SetCreatedAt sets the "created_at" field.
-func (uu *UsersUpdate) SetCreatedAt(s string) *UsersUpdate {
-	uu.mutation.SetCreatedAt(s)
+func (uu *UsersUpdate) SetCreatedAt(t time.Time) *UsersUpdate {
+	uu.mutation.SetCreatedAt(t)
 	return uu
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (uu *UsersUpdate) SetNillableCreatedAt(s *string) *UsersUpdate {
-	if s != nil {
-		uu.SetCreatedAt(*s)
+func (uu *UsersUpdate) SetNillableCreatedAt(t *time.Time) *UsersUpdate {
+	if t != nil {
+		uu.SetCreatedAt(*t)
 	}
 	return uu
 }
@@ -180,16 +187,6 @@ func (uu *UsersUpdate) check() error {
 			return &ValidationError{Name: "full_name", err: fmt.Errorf(`ent: validator failed for field "Users.full_name": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.PasswordChangedAt(); ok {
-		if err := users.PasswordChangedAtValidator(v); err != nil {
-			return &ValidationError{Name: "password_changed_at", err: fmt.Errorf(`ent: validator failed for field "Users.password_changed_at": %w`, err)}
-		}
-	}
-	if v, ok := uu.mutation.CreatedAt(); ok {
-		if err := users.CreatedAtValidator(v); err != nil {
-			return &ValidationError{Name: "created_at", err: fmt.Errorf(`ent: validator failed for field "Users.created_at": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -227,10 +224,13 @@ func (uu *UsersUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(users.FieldFullName, field.TypeString, value)
 	}
 	if value, ok := uu.mutation.PasswordChangedAt(); ok {
-		_spec.SetField(users.FieldPasswordChangedAt, field.TypeString, value)
+		_spec.SetField(users.FieldPasswordChangedAt, field.TypeTime, value)
+	}
+	if uu.mutation.PasswordChangedAtCleared() {
+		_spec.ClearField(users.FieldPasswordChangedAt, field.TypeTime)
 	}
 	if value, ok := uu.mutation.CreatedAt(); ok {
-		_spec.SetField(users.FieldCreatedAt, field.TypeString, value)
+		_spec.SetField(users.FieldCreatedAt, field.TypeTime, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -290,29 +290,35 @@ func (uuo *UsersUpdateOne) SetFullName(s string) *UsersUpdateOne {
 }
 
 // SetPasswordChangedAt sets the "password_changed_at" field.
-func (uuo *UsersUpdateOne) SetPasswordChangedAt(s string) *UsersUpdateOne {
-	uuo.mutation.SetPasswordChangedAt(s)
+func (uuo *UsersUpdateOne) SetPasswordChangedAt(t time.Time) *UsersUpdateOne {
+	uuo.mutation.SetPasswordChangedAt(t)
 	return uuo
 }
 
 // SetNillablePasswordChangedAt sets the "password_changed_at" field if the given value is not nil.
-func (uuo *UsersUpdateOne) SetNillablePasswordChangedAt(s *string) *UsersUpdateOne {
-	if s != nil {
-		uuo.SetPasswordChangedAt(*s)
+func (uuo *UsersUpdateOne) SetNillablePasswordChangedAt(t *time.Time) *UsersUpdateOne {
+	if t != nil {
+		uuo.SetPasswordChangedAt(*t)
 	}
 	return uuo
 }
 
+// ClearPasswordChangedAt clears the value of the "password_changed_at" field.
+func (uuo *UsersUpdateOne) ClearPasswordChangedAt() *UsersUpdateOne {
+	uuo.mutation.ClearPasswordChangedAt()
+	return uuo
+}
+
 // SetCreatedAt sets the "created_at" field.
-func (uuo *UsersUpdateOne) SetCreatedAt(s string) *UsersUpdateOne {
-	uuo.mutation.SetCreatedAt(s)
+func (uuo *UsersUpdateOne) SetCreatedAt(t time.Time) *UsersUpdateOne {
+	uuo.mutation.SetCreatedAt(t)
 	return uuo
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (uuo *UsersUpdateOne) SetNillableCreatedAt(s *string) *UsersUpdateOne {
-	if s != nil {
-		uuo.SetCreatedAt(*s)
+func (uuo *UsersUpdateOne) SetNillableCreatedAt(t *time.Time) *UsersUpdateOne {
+	if t != nil {
+		uuo.SetCreatedAt(*t)
 	}
 	return uuo
 }
@@ -417,16 +423,6 @@ func (uuo *UsersUpdateOne) check() error {
 			return &ValidationError{Name: "full_name", err: fmt.Errorf(`ent: validator failed for field "Users.full_name": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.PasswordChangedAt(); ok {
-		if err := users.PasswordChangedAtValidator(v); err != nil {
-			return &ValidationError{Name: "password_changed_at", err: fmt.Errorf(`ent: validator failed for field "Users.password_changed_at": %w`, err)}
-		}
-	}
-	if v, ok := uuo.mutation.CreatedAt(); ok {
-		if err := users.CreatedAtValidator(v); err != nil {
-			return &ValidationError{Name: "created_at", err: fmt.Errorf(`ent: validator failed for field "Users.created_at": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -481,10 +477,13 @@ func (uuo *UsersUpdateOne) sqlSave(ctx context.Context) (_node *Users, err error
 		_spec.SetField(users.FieldFullName, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.PasswordChangedAt(); ok {
-		_spec.SetField(users.FieldPasswordChangedAt, field.TypeString, value)
+		_spec.SetField(users.FieldPasswordChangedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.PasswordChangedAtCleared() {
+		_spec.ClearField(users.FieldPasswordChangedAt, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.CreatedAt(); ok {
-		_spec.SetField(users.FieldCreatedAt, field.TypeString, value)
+		_spec.SetField(users.FieldCreatedAt, field.TypeTime, value)
 	}
 	_node = &Users{config: uuo.config}
 	_spec.Assign = _node.assignValues

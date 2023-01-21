@@ -8,26 +8,35 @@ package db
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createComment_feature = `-- name: CreateComment_feature :one
 INSERT INTO comment_feature(
+    comment_id,
     from_account_id,
     comment,
     post_id
 ) VALUES(
-    $1,$2,$3
+    $1,$2,$3,$4
 ) RETURNING comment
 `
 
 type CreateComment_featureParams struct {
-	FromAccountID int64  `json:"from_account_id"`
-	Comment       string `json:"comment"`
-	PostID        int64  `json:"post_id"`
+	CommentID     uuid.UUID `json:"comment_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	Comment       string    `json:"comment"`
+	PostID        uuid.UUID `json:"post_id"`
 }
 
 func (q *Queries) CreateComment_feature(ctx context.Context, arg CreateComment_featureParams) (string, error) {
-	row := q.db.QueryRowContext(ctx, createComment_feature, arg.FromAccountID, arg.Comment, arg.PostID)
+	row := q.db.QueryRowContext(ctx, createComment_feature,
+		arg.CommentID,
+		arg.FromAccountID,
+		arg.Comment,
+		arg.PostID,
+	)
 	var comment string
 	err := row.Scan(&comment)
 	return comment, err
@@ -44,9 +53,9 @@ INSERT INTO like_feature(
 `
 
 type CreateLike_featureParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	IsLike        bool  `json:"is_like"`
-	PostID        int64 `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	IsLike        bool      `json:"is_like"`
+	PostID        uuid.UUID `json:"post_id"`
 }
 
 func (q *Queries) CreateLike_feature(ctx context.Context, arg CreateLike_featureParams) error {
@@ -62,7 +71,7 @@ INSERT INTO post_feature(
 ) RETURNING post_id, sum_comment, sum_like, sum_retweet, sum_qoute_retweet, created_at
 `
 
-func (q *Queries) CreatePost_feature(ctx context.Context, postID int64) (PostFeature, error) {
+func (q *Queries) CreatePost_feature(ctx context.Context, postID uuid.UUID) (PostFeature, error) {
 	row := q.db.QueryRowContext(ctx, createPost_feature, postID)
 	var i PostFeature
 	err := row.Scan(
@@ -88,10 +97,10 @@ INSERT INTO qoute_retweet_feature(
 `
 
 type CreateQouteRetweet_featureParams struct {
-	FromAccountID int64  `json:"from_account_id"`
-	QouteRetweet  bool   `json:"qoute_retweet"`
-	Qoute         string `json:"qoute"`
-	PostID        int64  `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	QouteRetweet  bool      `json:"qoute_retweet"`
+	Qoute         string    `json:"qoute"`
+	PostID        uuid.UUID `json:"post_id"`
 }
 
 func (q *Queries) CreateQouteRetweet_feature(ctx context.Context, arg CreateQouteRetweet_featureParams) (string, error) {
@@ -117,9 +126,9 @@ INSERT INTO retweet_feature(
 `
 
 type CreateRetweet_featureParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	Retweet       bool  `json:"retweet"`
-	PostID        int64 `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	Retweet       bool      `json:"retweet"`
+	PostID        uuid.UUID `json:"post_id"`
 }
 
 func (q *Queries) CreateRetweet_feature(ctx context.Context, arg CreateRetweet_featureParams) error {
@@ -132,7 +141,7 @@ delete from post_feature p
 WHERE p.post_id = $1
 `
 
-func (q *Queries) DeletePostFeature(ctx context.Context, postID int64) error {
+func (q *Queries) DeletePostFeature(ctx context.Context, postID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deletePostFeature, postID)
 	return err
 }
@@ -143,8 +152,8 @@ WHERE post_id = $1 and from_account_id = $2
 `
 
 type DeleteQouteRetweetParams struct {
-	PostID        int64 `json:"post_id"`
-	FromAccountID int64 `json:"from_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
 }
 
 func (q *Queries) DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweetParams) error {
@@ -158,8 +167,8 @@ WHERE post_id=$1 and from_account_id=$2
 `
 
 type DeleteRetweetParams struct {
-	PostID        int64 `json:"post_id"`
-	FromAccountID int64 `json:"from_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
 }
 
 func (q *Queries) DeleteRetweet(ctx context.Context, arg DeleteRetweetParams) error {
@@ -173,8 +182,8 @@ WHERE from_account_id = $1 and post_id = $2 LIMIT 1
 `
 
 type GetLikeInfoParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	PostID        int64 `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
 }
 
 func (q *Queries) GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeFeature, error) {
@@ -195,8 +204,8 @@ where from_account_id = $1 and post_id = $2 limit 1
 `
 
 type GetLikeRowsParams struct {
-	Fromaccountid int64 `json:"fromaccountid"`
-	Postid        int64 `json:"postid"`
+	Fromaccountid int64     `json:"fromaccountid"`
+	Postid        uuid.UUID `json:"postid"`
 }
 
 func (q *Queries) GetLikeRows(ctx context.Context, arg GetLikeRowsParams) (int64, error) {
@@ -212,7 +221,7 @@ INNER JOIN post ON post.post_id = like_feature.post_id
 WHERE post.post_id = $1
 `
 
-func (q *Queries) GetLikejoin(ctx context.Context, postID int64) (bool, error) {
+func (q *Queries) GetLikejoin(ctx context.Context, postID uuid.UUID) (bool, error) {
 	row := q.db.QueryRowContext(ctx, getLikejoin, postID)
 	var is_like bool
 	err := row.Scan(&is_like)
@@ -226,11 +235,11 @@ WHERE post.post_id = $1
 `
 
 type GetPostJoinRow struct {
-	PostID    int64 `json:"post_id"`
-	AccountID int64 `json:"account_id"`
+	PostID    uuid.UUID `json:"post_id"`
+	AccountID int64     `json:"account_id"`
 }
 
-func (q *Queries) GetPostJoin(ctx context.Context, postID int64) (GetPostJoinRow, error) {
+func (q *Queries) GetPostJoin(ctx context.Context, postID uuid.UUID) (GetPostJoinRow, error) {
 	row := q.db.QueryRowContext(ctx, getPostJoin, postID)
 	var i GetPostJoinRow
 	err := row.Scan(&i.PostID, &i.AccountID)
@@ -242,7 +251,7 @@ SELECT post_id, sum_comment, sum_like, sum_retweet, sum_qoute_retweet, created_a
 WHERE post_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetPost_feature(ctx context.Context, postID int64) (PostFeature, error) {
+func (q *Queries) GetPost_feature(ctx context.Context, postID uuid.UUID) (PostFeature, error) {
 	row := q.db.QueryRowContext(ctx, getPost_feature, postID)
 	var i PostFeature
 	err := row.Scan(
@@ -269,7 +278,7 @@ type GetPost_feature_UpdateRow struct {
 	SumQouteRetweet int64 `json:"sum_qoute_retweet"`
 }
 
-func (q *Queries) GetPost_feature_Update(ctx context.Context, postID int64) (GetPost_feature_UpdateRow, error) {
+func (q *Queries) GetPost_feature_Update(ctx context.Context, postID uuid.UUID) (GetPost_feature_UpdateRow, error) {
 	row := q.db.QueryRowContext(ctx, getPost_feature_Update, postID)
 	var i GetPost_feature_UpdateRow
 	err := row.Scan(
@@ -287,8 +296,8 @@ WHERE from_account_id=$1 and post_id = $2 LIMIT 1
 `
 
 type GetQouteRetweetParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	PostID        int64 `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
 }
 
 func (q *Queries) GetQouteRetweet(ctx context.Context, arg GetQouteRetweetParams) (QouteRetweetFeature, error) {
@@ -310,7 +319,7 @@ INNER JOIN post on post.post_id = qoute_retweet_feature.post_id
 WHERE qoute_retweet_feature.post_id = $1
 `
 
-func (q *Queries) GetQouteRetweetJoin(ctx context.Context, postID int64) (bool, error) {
+func (q *Queries) GetQouteRetweetJoin(ctx context.Context, postID uuid.UUID) (bool, error) {
 	row := q.db.QueryRowContext(ctx, getQouteRetweetJoin, postID)
 	var qoute_retweet bool
 	err := row.Scan(&qoute_retweet)
@@ -323,8 +332,8 @@ WHERE from_account_id=$1 and post_id = $2
 `
 
 type GetQouteRetweetRowsParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	PostID        int64 `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
 }
 
 func (q *Queries) GetQouteRetweetRows(ctx context.Context, arg GetQouteRetweetRowsParams) (int64, error) {
@@ -340,8 +349,8 @@ WHERE from_account_id = $1 and post_id = $2 LIMIT 1
 `
 
 type GetRetweetParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	PostID        int64 `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
+	PostID        uuid.UUID `json:"post_id"`
 }
 
 func (q *Queries) GetRetweet(ctx context.Context, arg GetRetweetParams) (RetweetFeature, error) {
@@ -363,8 +372,8 @@ WHERE post.post_id = $1 and rf.from_account_id  = $2
 `
 
 type GetRetweetJoinParams struct {
-	Postid        int64 `json:"postid"`
-	Fromaccountid int64 `json:"fromaccountid"`
+	Postid        uuid.UUID `json:"postid"`
+	Fromaccountid int64     `json:"fromaccountid"`
 }
 
 func (q *Queries) GetRetweetJoin(ctx context.Context, arg GetRetweetJoinParams) (bool, error) {
@@ -383,13 +392,13 @@ OFFSET $3
 `
 
 type ListCommentParams struct {
-	PostID int64 `json:"post_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	PostID uuid.UUID `json:"post_id"`
+	Limit  int32     `json:"limit"`
+	Offset int32     `json:"offset"`
 }
 
 type ListCommentRow struct {
-	CommentID     int64     `json:"comment_id"`
+	CommentID     uuid.UUID `json:"comment_id"`
 	FromAccountID int64     `json:"from_account_id"`
 	Comment       string    `json:"comment"`
 	SumLike       int64     `json:"sum_like"`
@@ -433,9 +442,9 @@ RETURNING is_like
 `
 
 type UpdateLikeParams struct {
-	IsLike        bool  `json:"is_like"`
-	PostID        int64 `json:"post_id"`
-	FromAccountID int64 `json:"from_account_id"`
+	IsLike        bool      `json:"is_like"`
+	PostID        uuid.UUID `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
 }
 
 func (q *Queries) UpdateLike(ctx context.Context, arg UpdateLikeParams) error {
@@ -451,11 +460,11 @@ RETURNING post_id, sum_comment, sum_like, sum_retweet, sum_qoute_retweet, create
 `
 
 type UpdatePost_featureParams struct {
-	PostID          int64 `json:"post_id"`
-	SumComment      int64 `json:"sum_comment"`
-	SumLike         int64 `json:"sum_like"`
-	SumRetweet      int64 `json:"sum_retweet"`
-	SumQouteRetweet int64 `json:"sum_qoute_retweet"`
+	PostID          uuid.UUID `json:"post_id"`
+	SumComment      int64     `json:"sum_comment"`
+	SumLike         int64     `json:"sum_like"`
+	SumRetweet      int64     `json:"sum_retweet"`
+	SumQouteRetweet int64     `json:"sum_qoute_retweet"`
 }
 
 func (q *Queries) UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error) {
@@ -485,9 +494,9 @@ WHERE post_id = $2 and from_account_id = $3
 `
 
 type UpdateQouteRetweetParams struct {
-	QouteRetweet  bool  `json:"qoute_retweet"`
-	PostID        int64 `json:"post_id"`
-	FromAccountID int64 `json:"from_account_id"`
+	QouteRetweet  bool      `json:"qoute_retweet"`
+	PostID        uuid.UUID `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
 }
 
 func (q *Queries) UpdateQouteRetweet(ctx context.Context, arg UpdateQouteRetweetParams) error {
@@ -503,9 +512,9 @@ RETURNING retweet
 `
 
 type UpdateRetweetParams struct {
-	Retweet       bool  `json:"retweet"`
-	PostID        int64 `json:"post_id"`
-	FromAccountID int64 `json:"from_account_id"`
+	Retweet       bool      `json:"retweet"`
+	PostID        uuid.UUID `json:"post_id"`
+	FromAccountID int64     `json:"from_account_id"`
 }
 
 func (q *Queries) UpdateRetweet(ctx context.Context, arg UpdateRetweetParams) error {
