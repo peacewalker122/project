@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"github.com/peacewalker122/project/api/util"
 	util2 "github.com/peacewalker122/project/util"
+	"time"
 
 	"github.com/peacewalker122/project/service/gcp/request"
 	"io"
 	"net/url"
-	"time"
 )
 
 func (g *gcpService) UploadPhoto(ctx context.Context, req *request.UploadFilesRequest) (string, error) {
@@ -35,20 +35,27 @@ func (g *gcpService) UploadPhoto(ctx context.Context, req *request.UploadFilesRe
 		return "", err
 	}
 
-	upload := g.Client.Bucket(req.BucketName).Object(req.FileHeader.Filename).NewWriter(ctx)
-
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 
-	if _, err := io.Copy(upload, req.File); err != nil {
+	upload := g.Client.Bucket(g.BUCKET).Object(req.FileHeader.Filename).NewWriter(ctx)
+
+	clientFile, err := req.FileHeader.Open()
+	if err != nil {
 		return "", err
 	}
+
+	if _, err := io.Copy(upload, clientFile); err != nil {
+		return "", err
+	}
+	defer clientFile.Close()
 
 	if err := upload.Close(); err != nil {
 		return "", err
 	}
 
-	URL := fmt.Sprintf("/%s/%v", req.BucketName, upload.Attrs())
+	baseURl := "https://storage.cloud.google.com"
+	URL := fmt.Sprintf("%s/%s/%v", baseURl, g.BUCKET, upload.Attrs().Name)
 
 	fileLink, err := url.Parse(URL)
 	if err != nil {

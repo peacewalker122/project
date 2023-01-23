@@ -74,7 +74,7 @@ type LikeFeature struct {
 }
 
 type Post struct {
-	PostID             uuid.UUID      `json:"post_id"`
+	ID                 uuid.UUID      `json:"id"`
 	AccountID          int64          `json:"account_id"`
 	PictureDescription string         `json:"picture_description"`
 	PhotoDir           sql.NullString `json:"photo_dir"`

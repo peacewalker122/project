@@ -5,16 +5,30 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
 )
 
 // Post is the model entity for the Post schema.
 type Post struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
+	// Owner holds the value of the "owner" field.
+	Owner string `json:"owner,omitempty"`
+	// IsPrivate holds the value of the "is_private" field.
+	IsPrivate bool `json:"is_private,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// Follower holds the value of the "follower" field.
+	Follower int64 `json:"follower,omitempty"`
+	// Following holds the value of the "following" field.
+	Following int64 `json:"following,omitempty"`
+	// PhotoDir holds the value of the "photo_dir" field.
+	PhotoDir string `json:"photo_dir,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -22,8 +36,16 @@ func (*Post) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case post.FieldID:
+		case post.FieldIsPrivate:
+			values[i] = new(sql.NullBool)
+		case post.FieldFollower, post.FieldFollowing:
 			values[i] = new(sql.NullInt64)
+		case post.FieldOwner, post.FieldPhotoDir:
+			values[i] = new(sql.NullString)
+		case post.FieldCreatedAt:
+			values[i] = new(sql.NullTime)
+		case post.FieldID:
+			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Post", columns[i])
 		}
@@ -40,11 +62,47 @@ func (po *Post) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case post.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				po.ID = *value
 			}
-			po.ID = int(value.Int64)
+		case post.FieldOwner:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field owner", values[i])
+			} else if value.Valid {
+				po.Owner = value.String
+			}
+		case post.FieldIsPrivate:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_private", values[i])
+			} else if value.Valid {
+				po.IsPrivate = value.Bool
+			}
+		case post.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				po.CreatedAt = value.Time
+			}
+		case post.FieldFollower:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field follower", values[i])
+			} else if value.Valid {
+				po.Follower = value.Int64
+			}
+		case post.FieldFollowing:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field following", values[i])
+			} else if value.Valid {
+				po.Following = value.Int64
+			}
+		case post.FieldPhotoDir:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field photo_dir", values[i])
+			} else if value.Valid {
+				po.PhotoDir = value.String
+			}
 		}
 	}
 	return nil
@@ -72,7 +130,24 @@ func (po *Post) Unwrap() *Post {
 func (po *Post) String() string {
 	var builder strings.Builder
 	builder.WriteString("Post(")
-	builder.WriteString(fmt.Sprintf("id=%v", po.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", po.ID))
+	builder.WriteString("owner=")
+	builder.WriteString(po.Owner)
+	builder.WriteString(", ")
+	builder.WriteString("is_private=")
+	builder.WriteString(fmt.Sprintf("%v", po.IsPrivate))
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
+	builder.WriteString(po.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("follower=")
+	builder.WriteString(fmt.Sprintf("%v", po.Follower))
+	builder.WriteString(", ")
+	builder.WriteString("following=")
+	builder.WriteString(fmt.Sprintf("%v", po.Following))
+	builder.WriteString(", ")
+	builder.WriteString("photo_dir=")
+	builder.WriteString(po.PhotoDir)
 	builder.WriteByte(')')
 	return builder.String()
 }

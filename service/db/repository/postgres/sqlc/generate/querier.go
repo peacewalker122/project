@@ -27,7 +27,7 @@ type Querier interface {
 	DeleteAccountQueue(ctx context.Context, arg DeleteAccountQueueParams) error
 	DeleteAccountsFollow(ctx context.Context, arg DeleteAccountsFollowParams) error
 	DeleteAcoountsQueue(ctx context.Context, arg DeleteAcoountsQueueParams) error
-	DeletePost(ctx context.Context, postID uuid.UUID) error
+	DeletePost(ctx context.Context, id uuid.UUID) error
 	DeletePostFeature(ctx context.Context, postID uuid.UUID) error
 	DeleteQouteRetweet(ctx context.Context, arg DeleteQouteRetweetParams) error
 	DeleteRetweet(ctx context.Context, arg DeleteRetweetParams) error
@@ -44,9 +44,9 @@ type Querier interface {
 	GetEntriesFull(ctx context.Context, arg GetEntriesFullParams) error
 	GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeFeature, error)
 	GetLikeRows(ctx context.Context, arg GetLikeRowsParams) (int64, error)
-	GetLikejoin(ctx context.Context, postID uuid.UUID) (bool, error)
-	GetPost(ctx context.Context, postID uuid.UUID) (Post, error)
-	GetPostJoin(ctx context.Context, postID uuid.UUID) (GetPostJoinRow, error)
+	GetLikejoin(ctx context.Context, postid uuid.UUID) (bool, error)
+	GetPost(ctx context.Context, id uuid.UUID) (Post, error)
+	GetPostJoin(ctx context.Context, id uuid.UUID) (GetPostJoinRow, error)
 	GetPostQRetweetJoin(ctx context.Context, arg GetPostQRetweetJoinParams) (GetPostQRetweetJoinRow, error)
 	GetPost_feature(ctx context.Context, postID uuid.UUID) (PostFeature, error)
 	GetPost_feature_Update(ctx context.Context, postID uuid.UUID) (GetPost_feature_UpdateRow, error)

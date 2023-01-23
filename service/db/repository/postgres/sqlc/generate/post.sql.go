@@ -14,16 +14,18 @@ import (
 
 const createPost = `-- name: CreatePost :one
 INSERT INTO post(
+    id,
     account_id,
     is_retweet,
     picture_description,
     photo_dir
 ) VALUES(
-    $1,$2,$3,$4
-) RETURNING post_id, account_id, picture_description, photo_dir, is_retweet, created_at
+    $1,$2,$3,$4,$5
+) RETURNING id, account_id, picture_description, photo_dir, is_retweet, created_at
 `
 
 type CreatePostParams struct {
+	ID                 uuid.UUID      `json:"id"`
 	AccountID          int64          `json:"account_id"`
 	IsRetweet          bool           `json:"is_retweet"`
 	PictureDescription string         `json:"picture_description"`
@@ -32,6 +34,7 @@ type CreatePostParams struct {
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
 	row := q.db.QueryRowContext(ctx, createPost,
+		arg.ID,
 		arg.AccountID,
 		arg.IsRetweet,
 		arg.PictureDescription,
@@ -39,7 +42,7 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 	)
 	var i Post
 	err := row.Scan(
-		&i.PostID,
+		&i.ID,
 		&i.AccountID,
 		&i.PictureDescription,
 		&i.PhotoDir,
@@ -51,24 +54,24 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 
 const deletePost = `-- name: DeletePost :exec
 DELETE FROM post
-WHERE post_id = $1
+WHERE id = $1
 `
 
-func (q *Queries) DeletePost(ctx context.Context, postID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deletePost, postID)
+func (q *Queries) DeletePost(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deletePost, id)
 	return err
 }
 
 const getPost = `-- name: GetPost :one
-SELECT post_id, account_id, picture_description, photo_dir, is_retweet, created_at FROM post
-WHERE post_id = $1 LIMIT 1
+SELECT id, account_id, picture_description, photo_dir, is_retweet, created_at FROM post
+WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetPost(ctx context.Context, postID uuid.UUID) (Post, error) {
-	row := q.db.QueryRowContext(ctx, getPost, postID)
+func (q *Queries) GetPost(ctx context.Context, id uuid.UUID) (Post, error) {
+	row := q.db.QueryRowContext(ctx, getPost, id)
 	var i Post
 	err := row.Scan(
-		&i.PostID,
+		&i.ID,
 		&i.AccountID,
 		&i.PictureDescription,
 		&i.PhotoDir,
@@ -79,7 +82,7 @@ func (q *Queries) GetPost(ctx context.Context, postID uuid.UUID) (Post, error) {
 }
 
 const getPostQRetweetJoin = `-- name: GetPostQRetweetJoin :one
-SELECT p.post_id,qrf.qoute_retweet  from post p  
+SELECT p.id,qrf.qoute_retweet  from post p
 INNER JOIN qoute_retweet_feature qrf  on p.is_retweet  = qrf.qoute_retweet 
 WHERE qrf.from_account_id = $2 and qrf.post_id = $1
 `
@@ -90,19 +93,19 @@ type GetPostQRetweetJoinParams struct {
 }
 
 type GetPostQRetweetJoinRow struct {
-	PostID       uuid.UUID `json:"post_id"`
+	ID           uuid.UUID `json:"id"`
 	QouteRetweet bool      `json:"qoute_retweet"`
 }
 
 func (q *Queries) GetPostQRetweetJoin(ctx context.Context, arg GetPostQRetweetJoinParams) (GetPostQRetweetJoinRow, error) {
 	row := q.db.QueryRowContext(ctx, getPostQRetweetJoin, arg.PostID, arg.FromAccountID)
 	var i GetPostQRetweetJoinRow
-	err := row.Scan(&i.PostID, &i.QouteRetweet)
+	err := row.Scan(&i.ID, &i.QouteRetweet)
 	return i, err
 }
 
 const getPostidretweetJoin = `-- name: GetPostidretweetJoin :one
-SELECT p.post_id,rf.retweet  from post p  
+SELECT p.id,rf.retweet  from post p
 INNER JOIN retweet_feature rf ON p.is_retweet  = rf.retweet 
 WHERE rf.from_account_id = $2 and rf.post_id = $1
 `
@@ -113,14 +116,14 @@ type GetPostidretweetJoinParams struct {
 }
 
 type GetPostidretweetJoinRow struct {
-	PostID  uuid.UUID `json:"post_id"`
+	ID      uuid.UUID `json:"id"`
 	Retweet bool      `json:"retweet"`
 }
 
 func (q *Queries) GetPostidretweetJoin(ctx context.Context, arg GetPostidretweetJoinParams) (GetPostidretweetJoinRow, error) {
 	row := q.db.QueryRowContext(ctx, getPostidretweetJoin, arg.PostID, arg.FromAccountID)
 	var i GetPostidretweetJoinRow
-	err := row.Scan(&i.PostID, &i.Retweet)
+	err := row.Scan(&i.ID, &i.Retweet)
 	return i, err
 }
 
@@ -143,8 +146,8 @@ func (q *Queries) GetRetweetRows(ctx context.Context, arg GetRetweetRowsParams) 
 }
 
 const listPost = `-- name: ListPost :many
-SELECT post_id, account_id, picture_description, photo_dir, is_retweet, created_at FROM post
-ORDER BY post_id
+SELECT id, account_id, picture_description, photo_dir, is_retweet, created_at FROM post
+ORDER BY id
 LIMIT $1
 OFFSET $2
 `
@@ -164,7 +167,7 @@ func (q *Queries) ListPost(ctx context.Context, arg ListPostParams) ([]Post, err
 	for rows.Next() {
 		var i Post
 		if err := rows.Scan(
-			&i.PostID,
+			&i.ID,
 			&i.AccountID,
 			&i.PictureDescription,
 			&i.PhotoDir,
@@ -187,20 +190,20 @@ func (q *Queries) ListPost(ctx context.Context, arg ListPostParams) ([]Post, err
 const updatePost = `-- name: UpdatePost :one
 UPDATE post
 SET picture_description = $2
-WHERE post_id = $1
-RETURNING post_id, account_id, picture_description, photo_dir, is_retweet, created_at
+WHERE id = $1
+RETURNING id, account_id, picture_description, photo_dir, is_retweet, created_at
 `
 
 type UpdatePostParams struct {
-	PostID             uuid.UUID `json:"post_id"`
+	ID                 uuid.UUID `json:"id"`
 	PictureDescription string    `json:"picture_description"`
 }
 
 func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error) {
-	row := q.db.QueryRowContext(ctx, updatePost, arg.PostID, arg.PictureDescription)
+	row := q.db.QueryRowContext(ctx, updatePost, arg.ID, arg.PictureDescription)
 	var i Post
 	err := row.Scan(
-		&i.PostID,
+		&i.ID,
 		&i.AccountID,
 		&i.PictureDescription,
 		&i.PhotoDir,

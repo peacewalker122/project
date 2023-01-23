@@ -3,6 +3,7 @@ package request
 import (
 	"context"
 	"errors"
+
 	"github.com/google/uuid"
 	"github.com/peacewalker122/project/service/gcp/request"
 )
@@ -12,6 +13,7 @@ type CreatePostParams struct {
 	IsRetweet          bool   `json:"is_retweet"`
 	PictureDescription string `json:"picture_description"`
 	FileRequest        *request.UploadFilesRequest
+	DelFunc            func(ctx context.Context, Key string) error
 	GcpFunc            func(ctx context.Context, req *request.UploadFilesRequest) (string, error)
 }
 
@@ -24,6 +26,9 @@ func (p *CreatePostParams) Validate() error {
 	}
 	if err := p.FileRequest.Validate(); err != nil {
 		return err
+	}
+	if p.DelFunc == nil {
+		return errors.New("del_func is required")
 	}
 	if p.GcpFunc == nil {
 		return errors.New("gcp_func is required")

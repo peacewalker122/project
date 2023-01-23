@@ -20,9 +20,9 @@ func (p *PostUsecase) CreatePost(ctx context.Context, param *CreatePostRequest) 
 		FileRequest: &request2.UploadFilesRequest{
 			File:          param.File,
 			FileHeader:    param.FileHeader,
-			BucketName:    p.config.BucketName,
 			MaxUploadSize: p.config.MaxUploadSizeInBytes(),
 		},
+		DelFunc: p.gcp.DeleteFile,
 		GcpFunc: p.gcp.UploadPhoto,
 	})
 	if err != nil {

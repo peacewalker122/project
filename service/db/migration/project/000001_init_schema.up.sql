@@ -19,7 +19,7 @@ CREATE TABLE "accounts" (
 
 -- considered to add picture id in post.
 CREATE TABLE "post" (
-  "post_id" UUID PRIMARY KEY,
+  "id" UUID PRIMARY KEY,
   "account_id" bigint NOT NULL,
   "picture_description" varchar NOT NULL,
   "photo_dir" varchar,
@@ -29,7 +29,7 @@ CREATE TABLE "post" (
 
 CREATE INDEX ON "accounts" ("owner");
 
-CREATE INDEX ON "post" ("post_id");
+CREATE INDEX oldest_data_index ON post (created_at DESC);
 
 ALTER TABLE "accounts" ADD FOREIGN KEY ("owner") REFERENCES "users" ("username");
 

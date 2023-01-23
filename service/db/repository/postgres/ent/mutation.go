@@ -13,6 +13,7 @@ import (
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
@@ -1951,7 +1952,15 @@ type PostMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
+	owner         *string
+	is_private    *bool
+	created_at    *time.Time
+	follower      *int64
+	addfollower   *int64
+	following     *int64
+	addfollowing  *int64
+	photo_dir     *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Post, error)
@@ -1978,7 +1987,7 @@ func newPostMutation(c config, op Op, opts ...postOption) *PostMutation {
 }
 
 // withPostID sets the ID field of the mutation.
-func withPostID(id int) postOption {
+func withPostID(id uuid.UUID) postOption {
 	return func(m *PostMutation) {
 		var (
 			err   error
@@ -2028,9 +2037,15 @@ func (m PostMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Post entities.
+func (m *PostMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *PostMutation) ID() (id int, exists bool) {
+func (m *PostMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2041,12 +2056,12 @@ func (m *PostMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *PostMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *PostMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2054,6 +2069,275 @@ func (m *PostMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetOwner sets the "owner" field.
+func (m *PostMutation) SetOwner(s string) {
+	m.owner = &s
+}
+
+// Owner returns the value of the "owner" field in the mutation.
+func (m *PostMutation) Owner() (r string, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwner returns the old "owner" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldOwner(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwner: %w", err)
+	}
+	return oldValue.Owner, nil
+}
+
+// ResetOwner resets all changes to the "owner" field.
+func (m *PostMutation) ResetOwner() {
+	m.owner = nil
+}
+
+// SetIsPrivate sets the "is_private" field.
+func (m *PostMutation) SetIsPrivate(b bool) {
+	m.is_private = &b
+}
+
+// IsPrivate returns the value of the "is_private" field in the mutation.
+func (m *PostMutation) IsPrivate() (r bool, exists bool) {
+	v := m.is_private
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPrivate returns the old "is_private" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldIsPrivate(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPrivate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPrivate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPrivate: %w", err)
+	}
+	return oldValue.IsPrivate, nil
+}
+
+// ResetIsPrivate resets all changes to the "is_private" field.
+func (m *PostMutation) ResetIsPrivate() {
+	m.is_private = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PostMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PostMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PostMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetFollower sets the "follower" field.
+func (m *PostMutation) SetFollower(i int64) {
+	m.follower = &i
+	m.addfollower = nil
+}
+
+// Follower returns the value of the "follower" field in the mutation.
+func (m *PostMutation) Follower() (r int64, exists bool) {
+	v := m.follower
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFollower returns the old "follower" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldFollower(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFollower is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFollower requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFollower: %w", err)
+	}
+	return oldValue.Follower, nil
+}
+
+// AddFollower adds i to the "follower" field.
+func (m *PostMutation) AddFollower(i int64) {
+	if m.addfollower != nil {
+		*m.addfollower += i
+	} else {
+		m.addfollower = &i
+	}
+}
+
+// AddedFollower returns the value that was added to the "follower" field in this mutation.
+func (m *PostMutation) AddedFollower() (r int64, exists bool) {
+	v := m.addfollower
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFollower resets all changes to the "follower" field.
+func (m *PostMutation) ResetFollower() {
+	m.follower = nil
+	m.addfollower = nil
+}
+
+// SetFollowing sets the "following" field.
+func (m *PostMutation) SetFollowing(i int64) {
+	m.following = &i
+	m.addfollowing = nil
+}
+
+// Following returns the value of the "following" field in the mutation.
+func (m *PostMutation) Following() (r int64, exists bool) {
+	v := m.following
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFollowing returns the old "following" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldFollowing(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFollowing is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFollowing requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFollowing: %w", err)
+	}
+	return oldValue.Following, nil
+}
+
+// AddFollowing adds i to the "following" field.
+func (m *PostMutation) AddFollowing(i int64) {
+	if m.addfollowing != nil {
+		*m.addfollowing += i
+	} else {
+		m.addfollowing = &i
+	}
+}
+
+// AddedFollowing returns the value that was added to the "following" field in this mutation.
+func (m *PostMutation) AddedFollowing() (r int64, exists bool) {
+	v := m.addfollowing
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFollowing resets all changes to the "following" field.
+func (m *PostMutation) ResetFollowing() {
+	m.following = nil
+	m.addfollowing = nil
+}
+
+// SetPhotoDir sets the "photo_dir" field.
+func (m *PostMutation) SetPhotoDir(s string) {
+	m.photo_dir = &s
+}
+
+// PhotoDir returns the value of the "photo_dir" field in the mutation.
+func (m *PostMutation) PhotoDir() (r string, exists bool) {
+	v := m.photo_dir
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPhotoDir returns the old "photo_dir" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldPhotoDir(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPhotoDir is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPhotoDir requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPhotoDir: %w", err)
+	}
+	return oldValue.PhotoDir, nil
+}
+
+// ClearPhotoDir clears the value of the "photo_dir" field.
+func (m *PostMutation) ClearPhotoDir() {
+	m.photo_dir = nil
+	m.clearedFields[post.FieldPhotoDir] = struct{}{}
+}
+
+// PhotoDirCleared returns if the "photo_dir" field was cleared in this mutation.
+func (m *PostMutation) PhotoDirCleared() bool {
+	_, ok := m.clearedFields[post.FieldPhotoDir]
+	return ok
+}
+
+// ResetPhotoDir resets all changes to the "photo_dir" field.
+func (m *PostMutation) ResetPhotoDir() {
+	m.photo_dir = nil
+	delete(m.clearedFields, post.FieldPhotoDir)
 }
 
 // Where appends a list predicates to the PostMutation builder.
@@ -2075,7 +2359,25 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 0)
+	fields := make([]string, 0, 6)
+	if m.owner != nil {
+		fields = append(fields, post.FieldOwner)
+	}
+	if m.is_private != nil {
+		fields = append(fields, post.FieldIsPrivate)
+	}
+	if m.created_at != nil {
+		fields = append(fields, post.FieldCreatedAt)
+	}
+	if m.follower != nil {
+		fields = append(fields, post.FieldFollower)
+	}
+	if m.following != nil {
+		fields = append(fields, post.FieldFollowing)
+	}
+	if m.photo_dir != nil {
+		fields = append(fields, post.FieldPhotoDir)
+	}
 	return fields
 }
 
@@ -2083,6 +2385,20 @@ func (m *PostMutation) Fields() []string {
 // return value indicates that this field was not set, or was not defined in the
 // schema.
 func (m *PostMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case post.FieldOwner:
+		return m.Owner()
+	case post.FieldIsPrivate:
+		return m.IsPrivate()
+	case post.FieldCreatedAt:
+		return m.CreatedAt()
+	case post.FieldFollower:
+		return m.Follower()
+	case post.FieldFollowing:
+		return m.Following()
+	case post.FieldPhotoDir:
+		return m.PhotoDir()
+	}
 	return nil, false
 }
 
@@ -2090,6 +2406,20 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
 func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case post.FieldOwner:
+		return m.OldOwner(ctx)
+	case post.FieldIsPrivate:
+		return m.OldIsPrivate(ctx)
+	case post.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case post.FieldFollower:
+		return m.OldFollower(ctx)
+	case post.FieldFollowing:
+		return m.OldFollowing(ctx)
+	case post.FieldPhotoDir:
+		return m.OldPhotoDir(ctx)
+	}
 	return nil, fmt.Errorf("unknown Post field %s", name)
 }
 
@@ -2098,6 +2428,48 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *PostMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case post.FieldOwner:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwner(v)
+		return nil
+	case post.FieldIsPrivate:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPrivate(v)
+		return nil
+	case post.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case post.FieldFollower:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFollower(v)
+		return nil
+	case post.FieldFollowing:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFollowing(v)
+		return nil
+	case post.FieldPhotoDir:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPhotoDir(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Post field %s", name)
 }
@@ -2105,13 +2477,26 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *PostMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addfollower != nil {
+		fields = append(fields, post.FieldFollower)
+	}
+	if m.addfollowing != nil {
+		fields = append(fields, post.FieldFollowing)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *PostMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case post.FieldFollower:
+		return m.AddedFollower()
+	case post.FieldFollowing:
+		return m.AddedFollowing()
+	}
 	return nil, false
 }
 
@@ -2119,13 +2504,33 @@ func (m *PostMutation) AddedField(name string) (ent.Value, bool) {
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
 func (m *PostMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case post.FieldFollower:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFollower(v)
+		return nil
+	case post.FieldFollowing:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFollowing(v)
+		return nil
+	}
 	return fmt.Errorf("unknown Post numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *PostMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(post.FieldPhotoDir) {
+		fields = append(fields, post.FieldPhotoDir)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2138,12 +2543,37 @@ func (m *PostMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *PostMutation) ClearField(name string) error {
+	switch name {
+	case post.FieldPhotoDir:
+		m.ClearPhotoDir()
+		return nil
+	}
 	return fmt.Errorf("unknown Post nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
 func (m *PostMutation) ResetField(name string) error {
+	switch name {
+	case post.FieldOwner:
+		m.ResetOwner()
+		return nil
+	case post.FieldIsPrivate:
+		m.ResetIsPrivate()
+		return nil
+	case post.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case post.FieldFollower:
+		m.ResetFollower()
+		return nil
+	case post.FieldFollowing:
+		m.ResetFollowing()
+		return nil
+	case post.FieldPhotoDir:
+		m.ResetPhotoDir()
+		return nil
+	}
 	return fmt.Errorf("unknown Post field %s", name)
 }
 

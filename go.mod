@@ -8,6 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
+	github.com/h2non/filetype v1.1.3
 	github.com/lib/pq v1.10.7
 	github.com/spf13/viper v1.14.0
 	github.com/tabbed/pqtype v0.1.1
@@ -32,7 +33,6 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.6.0 // indirect
-	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect

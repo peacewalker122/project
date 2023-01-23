@@ -40,11 +40,6 @@ jobs:
 
     steps:
 
-    - name: Create project_notif
-      run: psql -h localhost -p 4321 -U root project -c "CREATE DATABASE project_notif;"
-      env:
-        PGPASSWORD: rootpass
-
     - name: Set up ci-test
       uses: actions/setup-go@v3
       with:
@@ -60,11 +55,7 @@ jobs:
         which migrate
 
     - name: Run migrations
-      run: sh migrate.sh project project up
-
-    # create migrate for project_notif
-    - name: Run migration project_notif
-      run: sh migrate.sh notif project_notif up
+      run: sh migrate.sh up
 
     - name: Build
       run: go build main.go

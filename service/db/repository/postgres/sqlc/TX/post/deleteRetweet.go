@@ -8,7 +8,7 @@ import (
 	db "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 )
 
-func (p *PostTx) UnRetweet(ctx context.Context, PostID uuid.UUID, AccountID int64) error {
+func (p *PostTx) DeleteRetweetTX(ctx context.Context, PostID uuid.UUID, AccountID int64) error {
 	err := p.DBTx(ctx, func(q *db.Queries) error {
 		var err error
 
@@ -57,11 +57,11 @@ func (p *PostTx) UnRetweet(ctx context.Context, PostID uuid.UUID, AccountID int6
 			return err
 		}
 
-		err = q.DeletePostFeature(ctx, retweetPostRelated.PostID)
+		err = q.DeletePostFeature(ctx, retweetPostRelated.ID)
 		if err != nil {
 			return err
 		}
-		err = q.DeletePost(ctx, retweetPostRelated.PostID)
+		err = q.DeletePost(ctx, retweetPostRelated.ID)
 		if err != nil {
 			return err
 		}

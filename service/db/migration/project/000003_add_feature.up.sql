@@ -55,22 +55,22 @@ CREATE INDEX ON "entries" ("post_id");
 
 ALTER TABLE "like_feature" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
 
-ALTER TABLE "like_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");
+ALTER TABLE "like_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("id");
 
 ALTER TABLE "comment_feature" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
 
-ALTER TABLE "comment_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");
+ALTER TABLE "comment_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("id");
 
 ALTER TABLE "retweet_feature" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
 
-ALTER TABLE "retweet_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");
+ALTER TABLE "retweet_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("id");
 
 ALTER TABLE "qoute_retweet_feature" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
 
-ALTER TABLE "qoute_retweet_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");
+ALTER TABLE "qoute_retweet_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("id");
 
-ALTER TABLE "post_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");
+ALTER TABLE "post_feature" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("id");
 
 ALTER TABLE "entries" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("accounts_id");
 
-ALTER TABLE "entries" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("post_id");
+ALTER TABLE "entries" ADD FOREIGN KEY ("post_id") REFERENCES "post" ("id");

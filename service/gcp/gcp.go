@@ -8,12 +8,17 @@ import (
 
 type GCPService interface {
 	UploadPhoto(ctx context.Context, req *request.UploadFilesRequest) (string, error)
+	DeleteFile(ctx context.Context, Object string) error
 }
 
 type gcpService struct {
 	*storage.Client
+	BUCKET string
 }
 
-func NewGCPService(client *storage.Client) GCPService {
-	return &gcpService{client}
+func NewGCPService(client *storage.Client, bucket string) GCPService {
+	return &gcpService{
+		Client: client,
+		BUCKET: bucket,
+	}
 }

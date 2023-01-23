@@ -48,7 +48,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	gcpService := gcp.NewGCPService(client)
+	gcpService := gcp.NewGCPService(client, config.BucketName)
 
 	log.Println("initialize store")
 	store := postgres.NewPostgresStore(projectConn)

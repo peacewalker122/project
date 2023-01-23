@@ -6,20 +6,21 @@ import (
 	"github.com/h2non/filetype"
 	"io"
 	"log"
+	"mime/multipart"
 	"os"
 )
 
-func ValidateFileType(src io.Reader) error {
+func ValidateFileType(src multipart.File) error {
 	tempFile, err := os.CreateTemp("", "")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(tempFile.Name())
-
 	_, err = io.CopyN(tempFile, src, 216)
 	if err != nil {
 		return err
 	}
+	src.Close()
 
 	bytes := make([]byte, 216)
 

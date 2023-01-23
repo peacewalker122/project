@@ -59,14 +59,14 @@ WHERE post_id = $1
 RETURNING *; 
 
 -- name: GetPostJoin :one
-SELECT post.post_id,post.account_id FROM post
-INNER JOIN post_feature ON post_feature.post_id = post.post_id
-WHERE post.post_id = $1;
+SELECT p.id,p.account_id FROM post p
+INNER JOIN post_feature ON post_feature.post_id = p.post_id
+WHERE p.id = $1;
 
 -- name: GetLikejoin :one
 SELECT like_feature.is_like from like_feature
-INNER JOIN post ON post.post_id = like_feature.post_id
-WHERE post.post_id = $1;
+INNER JOIN post ON post.id = like_feature.post_id
+WHERE post.id = @PostID;
 
 -- name: GetLikeInfo :one
 SELECT * from like_feature
@@ -97,8 +97,8 @@ RETURNING retweet;
 
 -- name: GetRetweetJoin :one
 SELECT rf.retweet from retweet_feature rf
-INNER JOIN post ON post.post_id = rf.post_id
-WHERE post.post_id = @PostID and rf.from_account_id  = @FromAccountID;
+INNER JOIN post ON post.id = rf.post_id
+WHERE post.id = @PostID and rf.from_account_id  = @FromAccountID;
 
 -- name: GetQouteRetweet :one
 SELECT * from qoute_retweet_feature

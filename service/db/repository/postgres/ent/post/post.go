@@ -2,11 +2,29 @@
 
 package post
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 const (
 	// Label holds the string label denoting the post type in the database.
 	Label = "post"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldOwner holds the string denoting the owner field in the database.
+	FieldOwner = "owner"
+	// FieldIsPrivate holds the string denoting the is_private field in the database.
+	FieldIsPrivate = "is_private"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldFollower holds the string denoting the follower field in the database.
+	FieldFollower = "follower"
+	// FieldFollowing holds the string denoting the following field in the database.
+	FieldFollowing = "following"
+	// FieldPhotoDir holds the string denoting the photo_dir field in the database.
+	FieldPhotoDir = "photo_dir"
 	// Table holds the table name of the post in the database.
 	Table = "posts"
 )
@@ -14,6 +32,12 @@ const (
 // Columns holds all SQL columns for post fields.
 var Columns = []string{
 	FieldID,
+	FieldOwner,
+	FieldIsPrivate,
+	FieldCreatedAt,
+	FieldFollower,
+	FieldFollowing,
+	FieldPhotoDir,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -25,3 +49,18 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// OwnerValidator is a validator for the "owner" field. It is called by the builders before save.
+	OwnerValidator func(string) error
+	// DefaultIsPrivate holds the default value on creation for the "is_private" field.
+	DefaultIsPrivate bool
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt time.Time
+	// DefaultFollower holds the default value on creation for the "follower" field.
+	DefaultFollower int64
+	// DefaultFollowing holds the default value on creation for the "following" field.
+	DefaultFollowing int64
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
+)

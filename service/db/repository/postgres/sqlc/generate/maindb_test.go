@@ -14,7 +14,6 @@ import (
 var testQueries *Queries
 var testDB *sql.DB
 var rediss *redis.Options
-var config util.Config
 
 func TestMain(m *testing.M) {
 

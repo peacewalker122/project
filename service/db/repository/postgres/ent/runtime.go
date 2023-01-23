@@ -9,6 +9,7 @@ import (
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/schema"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
@@ -80,6 +81,32 @@ func init() {
 	notifreadDescNotifID := notifreadFields[0].Descriptor()
 	// notifread.DefaultNotifID holds the default value on creation for the notif_id field.
 	notifread.DefaultNotifID = notifreadDescNotifID.Default.(func() uuid.UUID)
+	postFields := schema.Post{}.Fields()
+	_ = postFields
+	// postDescOwner is the schema descriptor for owner field.
+	postDescOwner := postFields[1].Descriptor()
+	// post.OwnerValidator is a validator for the "owner" field. It is called by the builders before save.
+	post.OwnerValidator = postDescOwner.Validators[0].(func(string) error)
+	// postDescIsPrivate is the schema descriptor for is_private field.
+	postDescIsPrivate := postFields[2].Descriptor()
+	// post.DefaultIsPrivate holds the default value on creation for the is_private field.
+	post.DefaultIsPrivate = postDescIsPrivate.Default.(bool)
+	// postDescCreatedAt is the schema descriptor for created_at field.
+	postDescCreatedAt := postFields[3].Descriptor()
+	// post.DefaultCreatedAt holds the default value on creation for the created_at field.
+	post.DefaultCreatedAt = postDescCreatedAt.Default.(time.Time)
+	// postDescFollower is the schema descriptor for follower field.
+	postDescFollower := postFields[4].Descriptor()
+	// post.DefaultFollower holds the default value on creation for the follower field.
+	post.DefaultFollower = postDescFollower.Default.(int64)
+	// postDescFollowing is the schema descriptor for following field.
+	postDescFollowing := postFields[5].Descriptor()
+	// post.DefaultFollowing holds the default value on creation for the following field.
+	post.DefaultFollowing = postDescFollowing.Default.(int64)
+	// postDescID is the schema descriptor for id field.
+	postDescID := postFields[0].Descriptor()
+	// post.DefaultID holds the default value on creation for the id field.
+	post.DefaultID = postDescID.Default.(func() uuid.UUID)
 	tokensFields := schema.Tokens{}.Fields()
 	_ = tokensFields
 	// tokensDescEmail is the schema descriptor for email field.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/google/uuid"
 	db "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
 	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc/request/post"
 	result "github.com/peacewalker122/project/service/db/repository/postgres/sqlc/result/post"
@@ -48,6 +49,7 @@ func (p *PostTx) CreateRetweetTX(ctx context.Context, arg *request.CreateRetweet
 		}
 
 		postArg := db.CreatePostParams{
+			ID:        uuid.New(),
 			AccountID: arg.AccountID,
 			IsRetweet: true,
 			PhotoDir:  util.InputSqlString(post.PhotoDir.String),
@@ -57,7 +59,7 @@ func (p *PostTx) CreateRetweetTX(ctx context.Context, arg *request.CreateRetweet
 			return err
 		}
 
-		result.PostFeature, err = q.CreatePost_feature(ctx, result.Post.PostID)
+		result.PostFeature, err = q.CreatePost_feature(ctx, result.Post.ID)
 		if err != nil {
 			return err
 		}

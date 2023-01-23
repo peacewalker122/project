@@ -4,18 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/peacewalker122/project/util"
 )
 
 type SQLStore struct {
 	*Queries
 	DB *sql.DB
-}
-
-func newTeststore(db *sql.DB) *SQLStore {
-	return &SQLStore{
-		Queries: New(db),
-		DB:      db,
-	}
 }
 
 func NewStore(projectDB *sql.DB) *SQLStore {
@@ -25,21 +20,6 @@ func NewStore(projectDB *sql.DB) *SQLStore {
 	}
 
 	return sqlStore
-}
-
-func (s *SQLStore) execCtx(ctx context.Context, fn func(q *Queries) error) error {
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	q := New(tx)
-	err = fn(q)
-	if err != nil {
-		if rBerr := tx.Rollback(); rBerr != nil {
-			return fmt.Errorf("tx error %v, rb error %v", err, rBerr)
-		}
-	}
-	return tx.Commit()
 }
 
 func (s *SQLStore) DBTx(ctx context.Context, fn func(q *Queries) error) error {
@@ -55,6 +35,37 @@ func (s *SQLStore) DBTx(ctx context.Context, fn func(q *Queries) error) error {
 		}
 	}
 	return tx.Commit()
+}
+
+// DBnTx is a function that will be used to execute a transaction with a function that returns a string
+// and a function that will be used to remove the key from the third party db/cloud
+// example: redis and gcp
+func (s *SQLStore) DBnTx(ctx context.Context, removeFn func(ctx context.Context, key string) error, fn func(q *Queries) (string, error)) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	q := New(tx)
+	keyString, err := fn(q)
+	if err != nil {
+		var multiErr *util.MultiError
+		if keyString != "" {
+			if delErr := removeFn(ctx, keyString); delErr != nil {
+				secErr := fmt.Errorf("tx error %v, rb error %v", err, delErr)
+				multiErr.Add(secErr)
+			}
+		}
+		if rBerr := tx.Rollback(); rBerr != nil {
+			secErr := fmt.Errorf("tx error %v, rb error %v", err, rBerr)
+			multiErr.Add(secErr)
+		}
+		return multiErr
+	}
+	return tx.Commit()
+}
+
+type DBTxRequest struct {
+	RemoveFunc func(ctx context.Context, key string) error
 }
 
 const (
@@ -85,7 +96,6 @@ type Model interface {
 	//CreateRetweetPost(ctx context.Context, arg CreateRetweetParams) (CreateRetweetResult, error)
 	//CreateRetweetTX(ctx context.Context, arg CreateRetweetParams) (CreateRetweetTXResult, error)
 }
-
 
 type (
 	CreateRetweetResult struct {

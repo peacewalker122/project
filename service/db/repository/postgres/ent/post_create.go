@@ -4,10 +4,13 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
 )
 
@@ -16,6 +19,96 @@ type PostCreate struct {
 	config
 	mutation *PostMutation
 	hooks    []Hook
+}
+
+// SetOwner sets the "owner" field.
+func (pc *PostCreate) SetOwner(s string) *PostCreate {
+	pc.mutation.SetOwner(s)
+	return pc
+}
+
+// SetIsPrivate sets the "is_private" field.
+func (pc *PostCreate) SetIsPrivate(b bool) *PostCreate {
+	pc.mutation.SetIsPrivate(b)
+	return pc
+}
+
+// SetNillableIsPrivate sets the "is_private" field if the given value is not nil.
+func (pc *PostCreate) SetNillableIsPrivate(b *bool) *PostCreate {
+	if b != nil {
+		pc.SetIsPrivate(*b)
+	}
+	return pc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (pc *PostCreate) SetCreatedAt(t time.Time) *PostCreate {
+	pc.mutation.SetCreatedAt(t)
+	return pc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pc *PostCreate) SetNillableCreatedAt(t *time.Time) *PostCreate {
+	if t != nil {
+		pc.SetCreatedAt(*t)
+	}
+	return pc
+}
+
+// SetFollower sets the "follower" field.
+func (pc *PostCreate) SetFollower(i int64) *PostCreate {
+	pc.mutation.SetFollower(i)
+	return pc
+}
+
+// SetNillableFollower sets the "follower" field if the given value is not nil.
+func (pc *PostCreate) SetNillableFollower(i *int64) *PostCreate {
+	if i != nil {
+		pc.SetFollower(*i)
+	}
+	return pc
+}
+
+// SetFollowing sets the "following" field.
+func (pc *PostCreate) SetFollowing(i int64) *PostCreate {
+	pc.mutation.SetFollowing(i)
+	return pc
+}
+
+// SetNillableFollowing sets the "following" field if the given value is not nil.
+func (pc *PostCreate) SetNillableFollowing(i *int64) *PostCreate {
+	if i != nil {
+		pc.SetFollowing(*i)
+	}
+	return pc
+}
+
+// SetPhotoDir sets the "photo_dir" field.
+func (pc *PostCreate) SetPhotoDir(s string) *PostCreate {
+	pc.mutation.SetPhotoDir(s)
+	return pc
+}
+
+// SetNillablePhotoDir sets the "photo_dir" field if the given value is not nil.
+func (pc *PostCreate) SetNillablePhotoDir(s *string) *PostCreate {
+	if s != nil {
+		pc.SetPhotoDir(*s)
+	}
+	return pc
+}
+
+// SetID sets the "id" field.
+func (pc *PostCreate) SetID(u uuid.UUID) *PostCreate {
+	pc.mutation.SetID(u)
+	return pc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (pc *PostCreate) SetNillableID(u *uuid.UUID) *PostCreate {
+	if u != nil {
+		pc.SetID(*u)
+	}
+	return pc
 }
 
 // Mutation returns the PostMutation object of the builder.
@@ -29,6 +122,7 @@ func (pc *PostCreate) Save(ctx context.Context) (*Post, error) {
 		err  error
 		node *Post
 	)
+	pc.defaults()
 	if len(pc.hooks) == 0 {
 		if err = pc.check(); err != nil {
 			return nil, err
@@ -92,8 +186,52 @@ func (pc *PostCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (pc *PostCreate) defaults() {
+	if _, ok := pc.mutation.IsPrivate(); !ok {
+		v := post.DefaultIsPrivate
+		pc.mutation.SetIsPrivate(v)
+	}
+	if _, ok := pc.mutation.CreatedAt(); !ok {
+		v := post.DefaultCreatedAt
+		pc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := pc.mutation.Follower(); !ok {
+		v := post.DefaultFollower
+		pc.mutation.SetFollower(v)
+	}
+	if _, ok := pc.mutation.Following(); !ok {
+		v := post.DefaultFollowing
+		pc.mutation.SetFollowing(v)
+	}
+	if _, ok := pc.mutation.ID(); !ok {
+		v := post.DefaultID()
+		pc.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (pc *PostCreate) check() error {
+	if _, ok := pc.mutation.Owner(); !ok {
+		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required field "Post.owner"`)}
+	}
+	if v, ok := pc.mutation.Owner(); ok {
+		if err := post.OwnerValidator(v); err != nil {
+			return &ValidationError{Name: "owner", err: fmt.Errorf(`ent: validator failed for field "Post.owner": %w`, err)}
+		}
+	}
+	if _, ok := pc.mutation.IsPrivate(); !ok {
+		return &ValidationError{Name: "is_private", err: errors.New(`ent: missing required field "Post.is_private"`)}
+	}
+	if _, ok := pc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Post.created_at"`)}
+	}
+	if _, ok := pc.mutation.Follower(); !ok {
+		return &ValidationError{Name: "follower", err: errors.New(`ent: missing required field "Post.follower"`)}
+	}
+	if _, ok := pc.mutation.Following(); !ok {
+		return &ValidationError{Name: "following", err: errors.New(`ent: missing required field "Post.following"`)}
+	}
 	return nil
 }
 
@@ -105,8 +243,13 @@ func (pc *PostCreate) sqlSave(ctx context.Context) (*Post, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	return _node, nil
 }
 
@@ -116,11 +259,39 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: post.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: post.FieldID,
 			},
 		}
 	)
+	if id, ok := pc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
+	if value, ok := pc.mutation.Owner(); ok {
+		_spec.SetField(post.FieldOwner, field.TypeString, value)
+		_node.Owner = value
+	}
+	if value, ok := pc.mutation.IsPrivate(); ok {
+		_spec.SetField(post.FieldIsPrivate, field.TypeBool, value)
+		_node.IsPrivate = value
+	}
+	if value, ok := pc.mutation.CreatedAt(); ok {
+		_spec.SetField(post.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := pc.mutation.Follower(); ok {
+		_spec.SetField(post.FieldFollower, field.TypeInt64, value)
+		_node.Follower = value
+	}
+	if value, ok := pc.mutation.Following(); ok {
+		_spec.SetField(post.FieldFollowing, field.TypeInt64, value)
+		_node.Following = value
+	}
+	if value, ok := pc.mutation.PhotoDir(); ok {
+		_spec.SetField(post.FieldPhotoDir, field.TypeString, value)
+		_node.PhotoDir = value
+	}
 	return _node, _spec
 }
 
@@ -138,6 +309,7 @@ func (pcb *PostCreateBulk) Save(ctx context.Context) ([]*Post, error) {
 	for i := range pcb.builders {
 		func(i int, root context.Context) {
 			builder := pcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PostMutation)
 				if !ok {
@@ -164,10 +336,6 @@ func (pcb *PostCreateBulk) Save(ctx context.Context) ([]*Post, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

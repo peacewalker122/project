@@ -61,11 +61,11 @@ func (p *PostTx) DeleteQouteRetweetTX(ctx context.Context, AccountID int64, Post
 			return err
 		}
 
-		err = q.DeletePostFeature(ctx, qRetweetInfo.PostID)
+		err = q.DeletePostFeature(ctx, qRetweetInfo.ID)
 		if err != nil {
 			return err
 		}
-		err = q.DeletePost(ctx, qRetweetInfo.PostID)
+		err = q.DeletePost(ctx, qRetweetInfo.ID)
 		if err != nil {
 			return err
 		}

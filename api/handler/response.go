@@ -189,7 +189,7 @@ func postfeatureresp(input db2.PostFeature) postfeatureresponse {
 
 func PostResponse(input db2.Post, input2 db2.PostFeature) CreatePostResponse {
 	return CreatePostResponse{
-		ID:                 input.PostID,
+		ID:                 input.ID,
 		PictureDescription: input.PictureDescription,
 		PostFeature:        postfeatureresp(input2),
 		IsRetweet:          input.IsRetweet,
@@ -198,7 +198,7 @@ func PostResponse(input db2.Post, input2 db2.PostFeature) CreatePostResponse {
 }
 func PostResponsePointer(input *db2.Post, input2 db2.PostFeature) CreatePostResponse {
 	return CreatePostResponse{
-		ID:                 input.PostID,
+		ID:                 input.ID,
 		PictureDescription: input.PictureDescription,
 		PostFeature:        postfeatureresp(input2),
 		IsRetweet:          input.IsRetweet,
@@ -207,7 +207,7 @@ func PostResponsePointer(input *db2.Post, input2 db2.PostFeature) CreatePostResp
 }
 func GetPostResponse(input db2.Post, input2 db2.PostFeature, comment []db2.ListCommentRow) GetPostResponses {
 	return GetPostResponses{
-		ID:                 input.PostID,
+		ID:                 input.ID,
 		PictureDescription: input.PictureDescription,
 		PostFeature:        input2,
 		PostComment:        commentconverter(comment),
@@ -234,7 +234,7 @@ func commentResponse(comment string, arg db2.PostFeature) CommentPostResp {
 
 func retweetResponse(postFeature db2.PostFeature, post db2.Post) RetweetPostResp {
 	return RetweetPostResp{
-		PostID:      post.PostID,
+		PostID:      post.ID,
 		Postfeature: PostResponse(post, postFeature),
 		RetweetAt:   post.CreatedAt.Unix(),
 	}

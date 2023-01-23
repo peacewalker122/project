@@ -44,6 +44,7 @@ func (p *PostTx) CreateQouteRetweet(ctx context.Context, arg *request.CreateQout
 		}
 
 		postArg := db.CreatePostParams{
+			ID:        uuid.New(),
 			AccountID: arg.AccountID,
 			IsRetweet: true,
 			PhotoDir:  util.InputSqlString(postData.PhotoDir.String),
@@ -53,7 +54,7 @@ func (p *PostTx) CreateQouteRetweet(ctx context.Context, arg *request.CreateQout
 			return err
 		}
 
-		_, err = q.CreatePost_feature(ctx, postResult.PostID)
+		_, err = q.CreatePost_feature(ctx, postResult.ID)
 		if err != nil {
 			return err
 		}
@@ -97,7 +98,7 @@ func (p *PostTx) CreateQouteRetweet(ctx context.Context, arg *request.CreateQout
 			return err
 		}
 
-		postID = postResult.PostID
+		postID = postResult.ID
 
 		return err
 	})

@@ -217,32 +217,32 @@ func (q *Queries) GetLikeRows(ctx context.Context, arg GetLikeRowsParams) (int64
 
 const getLikejoin = `-- name: GetLikejoin :one
 SELECT like_feature.is_like from like_feature
-INNER JOIN post ON post.post_id = like_feature.post_id
-WHERE post.post_id = $1
+INNER JOIN post ON post.id = like_feature.post_id
+WHERE post.id = $1
 `
 
-func (q *Queries) GetLikejoin(ctx context.Context, postID uuid.UUID) (bool, error) {
-	row := q.db.QueryRowContext(ctx, getLikejoin, postID)
+func (q *Queries) GetLikejoin(ctx context.Context, postid uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, getLikejoin, postid)
 	var is_like bool
 	err := row.Scan(&is_like)
 	return is_like, err
 }
 
 const getPostJoin = `-- name: GetPostJoin :one
-SELECT post.post_id,post.account_id FROM post
-INNER JOIN post_feature ON post_feature.post_id = post.post_id
-WHERE post.post_id = $1
+SELECT p.id,p.account_id FROM post p
+INNER JOIN post_feature ON post_feature.post_id = p.post_id
+WHERE p.id = $1
 `
 
 type GetPostJoinRow struct {
-	PostID    uuid.UUID `json:"post_id"`
+	ID        uuid.UUID `json:"id"`
 	AccountID int64     `json:"account_id"`
 }
 
-func (q *Queries) GetPostJoin(ctx context.Context, postID uuid.UUID) (GetPostJoinRow, error) {
-	row := q.db.QueryRowContext(ctx, getPostJoin, postID)
+func (q *Queries) GetPostJoin(ctx context.Context, id uuid.UUID) (GetPostJoinRow, error) {
+	row := q.db.QueryRowContext(ctx, getPostJoin, id)
 	var i GetPostJoinRow
-	err := row.Scan(&i.PostID, &i.AccountID)
+	err := row.Scan(&i.ID, &i.AccountID)
 	return i, err
 }
 
@@ -367,8 +367,8 @@ func (q *Queries) GetRetweet(ctx context.Context, arg GetRetweetParams) (Retweet
 
 const getRetweetJoin = `-- name: GetRetweetJoin :one
 SELECT rf.retweet from retweet_feature rf
-INNER JOIN post ON post.post_id = rf.post_id
-WHERE post.post_id = $1 and rf.from_account_id  = $2
+INNER JOIN post ON post.id = rf.post_id
+WHERE post.id = $1 and rf.from_account_id  = $2
 `
 
 type GetRetweetJoinParams struct {
