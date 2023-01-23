@@ -20,7 +20,7 @@ jobs:
           POSTGRES_PASSWORD: rootpass
           POSTGRES_DB: project
         ports:
-          - 4321:5432
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
