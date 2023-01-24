@@ -65,10 +65,7 @@ type (
 		AccesToken            string             `json:"acc_token"`
 		AccesTokenExpiresAt   time.Time          `json:"acces_token_expire_sat"`
 	}
-	AccesTokenResp struct {
-		AccesToken          string    `json:"access_token"`
-		AccesTokenExpiresAt time.Time `json:"access_token_expires_at"`
-	}
+
 	LikePostResp struct {
 		PostID  uuid.UUID `json:"id"`
 		SumLike int64     `json:"like"`

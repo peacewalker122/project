@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/peacewalker122/project/api/handler/account"
 	"github.com/peacewalker122/project/api/handler/post"
+	tokenhandler "github.com/peacewalker122/project/api/handler/token"
 	"github.com/peacewalker122/project/api/handler/user"
 	db "github.com/peacewalker122/project/service/db/repository/postgres"
 	"github.com/peacewalker122/project/service/db/repository/redis"
@@ -11,6 +12,7 @@ import (
 	account2 "github.com/peacewalker122/project/usecase/account"
 	auth2 "github.com/peacewalker122/project/usecase/auth"
 	post2 "github.com/peacewalker122/project/usecase/post"
+	tokenusecase "github.com/peacewalker122/project/usecase/token"
 	user2 "github.com/peacewalker122/project/usecase/user"
 	"os"
 	"time"
@@ -39,6 +41,7 @@ type Server struct {
 	account    *account.AccountHandler
 	user       *user.UserHandler
 	post       *post.PostHandler
+	token      *tokenhandler.TokenHandler
 	apiutil.UtilTools
 	gcp.GCPService
 }
@@ -77,6 +80,10 @@ func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, se
 		server.handler,
 	)
 
+	server.token = tokenhandler.NewTokenHandler(
+		tokenusecase.NewTokenUsecase(newtoken, store, c),
+	)
+
 	server.routerhandle()
 
 	return server, nil
@@ -91,8 +98,8 @@ func (s *Server) routerhandle() {
 	userGroup := router.Group("/user")
 	s.user.Router(userGroup)
 	s.post.PostRouter(router)
+	s.token.TokenRouter(router)
 
-	router.POST("/token/renew", s.handler.RenewToken)
 	OauthRouter := router.Group("/oauth")
 	OauthRouter.GET("/google", s.Oauth.GoogleVerif)
 	OauthRouter.GET("/google/callback", s.Oauth.GoogleToken)
@@ -143,7 +150,7 @@ func (s *Server) Testrouterhandle() {
 	// router.HTTPErrorHandler = HTTPErrorHandler
 	// router.Use(middleware.LoggerWithConfig(Logger()))
 	// router.Binder = new(CustomBinder)
-	router.POST("/user", s.handler.CreateUser)
+	//router.POST("/user", s.handler.CreateUser)
 
 	//AuthMethod := router.Group("", auth.AuthMiddleware(s.Token))
 
