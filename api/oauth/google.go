@@ -97,13 +97,13 @@ func (s *Handler) GoogleToken(c echo.Context) error {
 		}
 	default:
 	}
-	wg.Wait()
 
 	ok, err := s.store.IsTokenExist(ctx, payload.Email)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
+	wg.Wait()
 	if !ok {
 		_, err = s.store.SetUsersOauth(ctx, &params.CreateUsersOauthParam{
 			User: &users.UsersParam{

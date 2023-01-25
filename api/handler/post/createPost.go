@@ -22,7 +22,9 @@ func (p *PostHandler) CreatePost(c echo.Context) error {
 
 	postFile, postFileHeader, err := c.Request().FormFile("file")
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		if err != http.ErrMissingFile {
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
 	}
 
 	postRequest := post.CreatePostRequest{
