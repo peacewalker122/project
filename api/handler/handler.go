@@ -30,9 +30,6 @@ type Handler struct {
 }
 
 type HandlerService interface {
-	tokenService
-	userService
-	AuthHandler
 	Helper
 }
 

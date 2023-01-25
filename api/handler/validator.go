@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
-	"mime/multipart"
 	"net/http"
 	"net/mail"
 	"regexp"
@@ -14,7 +13,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/peacewalker122/project/token"
 )
 
@@ -192,17 +190,6 @@ func ValidateURI[T int64 | int](context echo.Context, URIparam string) (T, error
 	return id, nil
 }
 
-func ValidateNum(num int) error {
-	s := []byte("num")
-	if NumCheckByte(s) {
-		return errors.New("must be integer")
-	}
-	if num < 1 {
-		return errors.New("must be integer that greater than 0")
-	}
-	return nil
-}
-
 func GetErrorValidator(c echo.Context, err error, tag string) (int, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -212,26 +199,4 @@ func GetErrorValidator(c echo.Context, err error, tag string) (int, error) {
 		return http.StatusInternalServerError, err
 	}
 	return 0, err
-}
-
-func CreateErrorValidator(c echo.Context, err error) error {
-	if err != nil {
-		c.Error(err)
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-	return nil
-}
-
-func ValidateFileType(input multipart.File) error {
-	byte := make([]byte, 512)
-	if _, err := input.Read(byte); err != nil {
-		return err
-	}
-	file := http.DetectContentType(byte)
-	log.Error(file)
-	//
-	if file == "image/jpg" || file == "image/jpeg" || file == "image/gif" || file == "image/png" || file == "image/webp" || file == "video/mp4" {
-		return nil
-	}
-	return errors.New("invalid type! must be jpeg/jpg/gif/png/mp4")
 }

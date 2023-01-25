@@ -24,19 +24,21 @@ func (p *PostTx) CreatePostGCPTx(ctx context.Context, arg *request.CreatePostPar
 	err := p.DBnTx(ctx, arg.DelFunc, func(q *db.Queries) (string, error) {
 		var err error
 
-		res.FileURL, err = arg.GcpFunc(ctx, arg.FileRequest)
-		if err != nil {
-			log.Println("gcp error: ", err)
-			res.Err = err
-			return res.FileURL, err
+		if arg.FileRequest.File != nil {
+			res.FileURL, err = arg.GcpFunc(ctx, arg.FileRequest)
+			if err != nil {
+				log.Println("gcp error: ", err)
+				res.Err = err
+				return res.FileURL, err
+			}
+			select {
+			case <-ctx.Done():
+				res.Err = ctx.Err()
+				return res.FileURL, ctx.Err()
+			default:
+			}
+			log.Println("file url: ", res.FileURL)
 		}
-		select {
-		case <-ctx.Done():
-			res.Err = ctx.Err()
-			return res.FileURL, ctx.Err()
-		default:
-		}
-		log.Println("file url: ", res.FileURL)
 
 		res.Post, err = p.CreatePost(ctx, db.CreatePostParams{
 			ID:                 uuid.New(),
