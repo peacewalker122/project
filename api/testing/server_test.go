@@ -31,6 +31,7 @@ func NewTestServer(t *testing.T, store db.PostgresStore) *router.Server {
 		Store:  store,
 	}
 
-	server.Testrouterhandle()
+	server.Routerhandle()
+
 	return server
 }

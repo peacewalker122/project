@@ -84,12 +84,12 @@ func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, se
 		tokenusecase.NewTokenUsecase(newtoken, store, c),
 	)
 
-	server.routerhandle()
+	server.Routerhandle()
 
 	return server, nil
 }
 
-func (s *Server) routerhandle() {
+func (s *Server) Routerhandle() {
 	router := echo.New()
 	router.Use(middlewareLogging)
 	router.Validator = s.Auth.Validator
