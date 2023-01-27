@@ -12,11 +12,17 @@ type Account func(*sql.Selector)
 // AccountNotifs is the predicate function for accountnotifs builders.
 type AccountNotifs func(*sql.Selector)
 
-// NotifRead is the predicate function for notifread builders.
-type NotifRead func(*sql.Selector)
+// LikeFeature is the predicate function for likefeature builders.
+type LikeFeature func(*sql.Selector)
 
 // Post is the predicate function for post builders.
 type Post func(*sql.Selector)
+
+// Qoute_retweet_feature is the predicate function for qoute_retweet_feature builders.
+type Qoute_retweet_feature func(*sql.Selector)
+
+// Retweet_feature is the predicate function for retweet_feature builders.
+type Retweet_feature func(*sql.Selector)
 
 // Tokens is the predicate function for tokens builders.
 type Tokens func(*sql.Selector)

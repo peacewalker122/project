@@ -12,9 +12,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/likefeature"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/predicate"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/qoute_retweet_feature"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/retweet_feature"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 
@@ -30,12 +32,14 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAccount       = "Account"
-	TypeAccountNotifs = "AccountNotifs"
-	TypeNotifRead     = "NotifRead"
-	TypePost          = "Post"
-	TypeTokens        = "Tokens"
-	TypeUsers         = "Users"
+	TypeAccount               = "Account"
+	TypeAccountNotifs         = "AccountNotifs"
+	TypeLikeFeature           = "LikeFeature"
+	TypePost                  = "Post"
+	TypeQoute_retweet_feature = "Qoute_retweet_feature"
+	TypeRetweet_feature       = "Retweet_feature"
+	TypeTokens                = "Tokens"
+	TypeUsers                 = "Users"
 )
 
 // AccountMutation represents an operation that mutates the Account nodes in the graph.
@@ -1492,33 +1496,34 @@ func (m *AccountNotifsMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AccountNotifs edge %s", name)
 }
 
-// NotifReadMutation represents an operation that mutates the NotifRead nodes in the graph.
-type NotifReadMutation struct {
+// LikeFeatureMutation represents an operation that mutates the LikeFeature nodes in the graph.
+type LikeFeatureMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	notif_id      *uuid.UUID
-	account_id    *int64
-	addaccount_id *int64
-	read_at       *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*NotifRead, error)
-	predicates    []predicate.NotifRead
+	op                 Op
+	typ                string
+	id                 *int
+	from_account_id    *int64
+	addfrom_account_id *int64
+	is_like            *bool
+	post_id            *uuid.UUID
+	created_at         *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*LikeFeature, error)
+	predicates         []predicate.LikeFeature
 }
 
-var _ ent.Mutation = (*NotifReadMutation)(nil)
+var _ ent.Mutation = (*LikeFeatureMutation)(nil)
 
-// notifreadOption allows management of the mutation configuration using functional options.
-type notifreadOption func(*NotifReadMutation)
+// likefeatureOption allows management of the mutation configuration using functional options.
+type likefeatureOption func(*LikeFeatureMutation)
 
-// newNotifReadMutation creates new mutation for the NotifRead entity.
-func newNotifReadMutation(c config, op Op, opts ...notifreadOption) *NotifReadMutation {
-	m := &NotifReadMutation{
+// newLikeFeatureMutation creates new mutation for the LikeFeature entity.
+func newLikeFeatureMutation(c config, op Op, opts ...likefeatureOption) *LikeFeatureMutation {
+	m := &LikeFeatureMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeNotifRead,
+		typ:           TypeLikeFeature,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -1527,20 +1532,20 @@ func newNotifReadMutation(c config, op Op, opts ...notifreadOption) *NotifReadMu
 	return m
 }
 
-// withNotifReadID sets the ID field of the mutation.
-func withNotifReadID(id int) notifreadOption {
-	return func(m *NotifReadMutation) {
+// withLikeFeatureID sets the ID field of the mutation.
+func withLikeFeatureID(id int) likefeatureOption {
+	return func(m *LikeFeatureMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *NotifRead
+			value *LikeFeature
 		)
-		m.oldValue = func(ctx context.Context) (*NotifRead, error) {
+		m.oldValue = func(ctx context.Context) (*LikeFeature, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().NotifRead.Get(ctx, id)
+					value, err = m.Client().LikeFeature.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -1549,10 +1554,10 @@ func withNotifReadID(id int) notifreadOption {
 	}
 }
 
-// withNotifRead sets the old NotifRead of the mutation.
-func withNotifRead(node *NotifRead) notifreadOption {
-	return func(m *NotifReadMutation) {
-		m.oldValue = func(context.Context) (*NotifRead, error) {
+// withLikeFeature sets the old LikeFeature of the mutation.
+func withLikeFeature(node *LikeFeature) likefeatureOption {
+	return func(m *LikeFeatureMutation) {
+		m.oldValue = func(context.Context) (*LikeFeature, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -1561,7 +1566,7 @@ func withNotifRead(node *NotifRead) notifreadOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m NotifReadMutation) Client() *Client {
+func (m LikeFeatureMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -1569,7 +1574,7 @@ func (m NotifReadMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m NotifReadMutation) Tx() (*Tx, error) {
+func (m LikeFeatureMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -1580,7 +1585,7 @@ func (m NotifReadMutation) Tx() (*Tx, error) {
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *NotifReadMutation) ID() (id int, exists bool) {
+func (m *LikeFeatureMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1591,7 +1596,7 @@ func (m *NotifReadMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *NotifReadMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *LikeFeatureMutation) IDs(ctx context.Context) ([]int, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -1600,168 +1605,207 @@ func (m *NotifReadMutation) IDs(ctx context.Context) ([]int, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().NotifRead.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().LikeFeature.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
-// SetNotifID sets the "notif_id" field.
-func (m *NotifReadMutation) SetNotifID(u uuid.UUID) {
-	m.notif_id = &u
+// SetFromAccountID sets the "from_account_id" field.
+func (m *LikeFeatureMutation) SetFromAccountID(i int64) {
+	m.from_account_id = &i
+	m.addfrom_account_id = nil
 }
 
-// NotifID returns the value of the "notif_id" field in the mutation.
-func (m *NotifReadMutation) NotifID() (r uuid.UUID, exists bool) {
-	v := m.notif_id
+// FromAccountID returns the value of the "from_account_id" field in the mutation.
+func (m *LikeFeatureMutation) FromAccountID() (r int64, exists bool) {
+	v := m.from_account_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldNotifID returns the old "notif_id" field's value of the NotifRead entity.
-// If the NotifRead object wasn't provided to the builder, the object is fetched from the database.
+// OldFromAccountID returns the old "from_account_id" field's value of the LikeFeature entity.
+// If the LikeFeature object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotifReadMutation) OldNotifID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *LikeFeatureMutation) OldFromAccountID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNotifID is only allowed on UpdateOne operations")
+		return v, errors.New("OldFromAccountID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNotifID requires an ID field in the mutation")
+		return v, errors.New("OldFromAccountID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNotifID: %w", err)
+		return v, fmt.Errorf("querying old value for OldFromAccountID: %w", err)
 	}
-	return oldValue.NotifID, nil
+	return oldValue.FromAccountID, nil
 }
 
-// ResetNotifID resets all changes to the "notif_id" field.
-func (m *NotifReadMutation) ResetNotifID() {
-	m.notif_id = nil
-}
-
-// SetAccountID sets the "account_id" field.
-func (m *NotifReadMutation) SetAccountID(i int64) {
-	m.account_id = &i
-	m.addaccount_id = nil
-}
-
-// AccountID returns the value of the "account_id" field in the mutation.
-func (m *NotifReadMutation) AccountID() (r int64, exists bool) {
-	v := m.account_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldAccountID returns the old "account_id" field's value of the NotifRead entity.
-// If the NotifRead object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotifReadMutation) OldAccountID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAccountID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAccountID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAccountID: %w", err)
-	}
-	return oldValue.AccountID, nil
-}
-
-// AddAccountID adds i to the "account_id" field.
-func (m *NotifReadMutation) AddAccountID(i int64) {
-	if m.addaccount_id != nil {
-		*m.addaccount_id += i
+// AddFromAccountID adds i to the "from_account_id" field.
+func (m *LikeFeatureMutation) AddFromAccountID(i int64) {
+	if m.addfrom_account_id != nil {
+		*m.addfrom_account_id += i
 	} else {
-		m.addaccount_id = &i
+		m.addfrom_account_id = &i
 	}
 }
 
-// AddedAccountID returns the value that was added to the "account_id" field in this mutation.
-func (m *NotifReadMutation) AddedAccountID() (r int64, exists bool) {
-	v := m.addaccount_id
+// AddedFromAccountID returns the value that was added to the "from_account_id" field in this mutation.
+func (m *LikeFeatureMutation) AddedFromAccountID() (r int64, exists bool) {
+	v := m.addfrom_account_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetAccountID resets all changes to the "account_id" field.
-func (m *NotifReadMutation) ResetAccountID() {
-	m.account_id = nil
-	m.addaccount_id = nil
+// ResetFromAccountID resets all changes to the "from_account_id" field.
+func (m *LikeFeatureMutation) ResetFromAccountID() {
+	m.from_account_id = nil
+	m.addfrom_account_id = nil
 }
 
-// SetReadAt sets the "read_at" field.
-func (m *NotifReadMutation) SetReadAt(t time.Time) {
-	m.read_at = &t
+// SetIsLike sets the "is_like" field.
+func (m *LikeFeatureMutation) SetIsLike(b bool) {
+	m.is_like = &b
 }
 
-// ReadAt returns the value of the "read_at" field in the mutation.
-func (m *NotifReadMutation) ReadAt() (r time.Time, exists bool) {
-	v := m.read_at
+// IsLike returns the value of the "is_like" field in the mutation.
+func (m *LikeFeatureMutation) IsLike() (r bool, exists bool) {
+	v := m.is_like
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldReadAt returns the old "read_at" field's value of the NotifRead entity.
-// If the NotifRead object wasn't provided to the builder, the object is fetched from the database.
+// OldIsLike returns the old "is_like" field's value of the LikeFeature entity.
+// If the LikeFeature object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotifReadMutation) OldReadAt(ctx context.Context) (v *time.Time, err error) {
+func (m *LikeFeatureMutation) OldIsLike(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldReadAt is only allowed on UpdateOne operations")
+		return v, errors.New("OldIsLike is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldReadAt requires an ID field in the mutation")
+		return v, errors.New("OldIsLike requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldReadAt: %w", err)
+		return v, fmt.Errorf("querying old value for OldIsLike: %w", err)
 	}
-	return oldValue.ReadAt, nil
+	return oldValue.IsLike, nil
 }
 
-// ResetReadAt resets all changes to the "read_at" field.
-func (m *NotifReadMutation) ResetReadAt() {
-	m.read_at = nil
+// ResetIsLike resets all changes to the "is_like" field.
+func (m *LikeFeatureMutation) ResetIsLike() {
+	m.is_like = nil
 }
 
-// Where appends a list predicates to the NotifReadMutation builder.
-func (m *NotifReadMutation) Where(ps ...predicate.NotifRead) {
+// SetPostID sets the "post_id" field.
+func (m *LikeFeatureMutation) SetPostID(u uuid.UUID) {
+	m.post_id = &u
+}
+
+// PostID returns the value of the "post_id" field in the mutation.
+func (m *LikeFeatureMutation) PostID() (r uuid.UUID, exists bool) {
+	v := m.post_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPostID returns the old "post_id" field's value of the LikeFeature entity.
+// If the LikeFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LikeFeatureMutation) OldPostID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPostID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPostID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPostID: %w", err)
+	}
+	return oldValue.PostID, nil
+}
+
+// ResetPostID resets all changes to the "post_id" field.
+func (m *LikeFeatureMutation) ResetPostID() {
+	m.post_id = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LikeFeatureMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LikeFeatureMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LikeFeature entity.
+// If the LikeFeature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LikeFeatureMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LikeFeatureMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the LikeFeatureMutation builder.
+func (m *LikeFeatureMutation) Where(ps ...predicate.LikeFeature) {
 	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
-func (m *NotifReadMutation) Op() Op {
+func (m *LikeFeatureMutation) Op() Op {
 	return m.op
 }
 
-// Type returns the node type of this mutation (NotifRead).
-func (m *NotifReadMutation) Type() string {
+// Type returns the node type of this mutation (LikeFeature).
+func (m *LikeFeatureMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *NotifReadMutation) Fields() []string {
-	fields := make([]string, 0, 3)
-	if m.notif_id != nil {
-		fields = append(fields, notifread.FieldNotifID)
+func (m *LikeFeatureMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.from_account_id != nil {
+		fields = append(fields, likefeature.FieldFromAccountID)
 	}
-	if m.account_id != nil {
-		fields = append(fields, notifread.FieldAccountID)
+	if m.is_like != nil {
+		fields = append(fields, likefeature.FieldIsLike)
 	}
-	if m.read_at != nil {
-		fields = append(fields, notifread.FieldReadAt)
+	if m.post_id != nil {
+		fields = append(fields, likefeature.FieldPostID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, likefeature.FieldCreatedAt)
 	}
 	return fields
 }
@@ -1769,14 +1813,16 @@ func (m *NotifReadMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *NotifReadMutation) Field(name string) (ent.Value, bool) {
+func (m *LikeFeatureMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case notifread.FieldNotifID:
-		return m.NotifID()
-	case notifread.FieldAccountID:
-		return m.AccountID()
-	case notifread.FieldReadAt:
-		return m.ReadAt()
+	case likefeature.FieldFromAccountID:
+		return m.FromAccountID()
+	case likefeature.FieldIsLike:
+		return m.IsLike()
+	case likefeature.FieldPostID:
+		return m.PostID()
+	case likefeature.FieldCreatedAt:
+		return m.CreatedAt()
 	}
 	return nil, false
 }
@@ -1784,54 +1830,63 @@ func (m *NotifReadMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *NotifReadMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *LikeFeatureMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case notifread.FieldNotifID:
-		return m.OldNotifID(ctx)
-	case notifread.FieldAccountID:
-		return m.OldAccountID(ctx)
-	case notifread.FieldReadAt:
-		return m.OldReadAt(ctx)
+	case likefeature.FieldFromAccountID:
+		return m.OldFromAccountID(ctx)
+	case likefeature.FieldIsLike:
+		return m.OldIsLike(ctx)
+	case likefeature.FieldPostID:
+		return m.OldPostID(ctx)
+	case likefeature.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
 	}
-	return nil, fmt.Errorf("unknown NotifRead field %s", name)
+	return nil, fmt.Errorf("unknown LikeFeature field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *NotifReadMutation) SetField(name string, value ent.Value) error {
+func (m *LikeFeatureMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case notifread.FieldNotifID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNotifID(v)
-		return nil
-	case notifread.FieldAccountID:
+	case likefeature.FieldFromAccountID:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetAccountID(v)
+		m.SetFromAccountID(v)
 		return nil
-	case notifread.FieldReadAt:
+	case likefeature.FieldIsLike:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsLike(v)
+		return nil
+	case likefeature.FieldPostID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPostID(v)
+		return nil
+	case likefeature.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetReadAt(v)
+		m.SetCreatedAt(v)
 		return nil
 	}
-	return fmt.Errorf("unknown NotifRead field %s", name)
+	return fmt.Errorf("unknown LikeFeature field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *NotifReadMutation) AddedFields() []string {
+func (m *LikeFeatureMutation) AddedFields() []string {
 	var fields []string
-	if m.addaccount_id != nil {
-		fields = append(fields, notifread.FieldAccountID)
+	if m.addfrom_account_id != nil {
+		fields = append(fields, likefeature.FieldFromAccountID)
 	}
 	return fields
 }
@@ -1839,10 +1894,10 @@ func (m *NotifReadMutation) AddedFields() []string {
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *NotifReadMutation) AddedField(name string) (ent.Value, bool) {
+func (m *LikeFeatureMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case notifread.FieldAccountID:
-		return m.AddedAccountID()
+	case likefeature.FieldFromAccountID:
+		return m.AddedFromAccountID()
 	}
 	return nil, false
 }
@@ -1850,101 +1905,104 @@ func (m *NotifReadMutation) AddedField(name string) (ent.Value, bool) {
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *NotifReadMutation) AddField(name string, value ent.Value) error {
+func (m *LikeFeatureMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case notifread.FieldAccountID:
+	case likefeature.FieldFromAccountID:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddAccountID(v)
+		m.AddFromAccountID(v)
 		return nil
 	}
-	return fmt.Errorf("unknown NotifRead numeric field %s", name)
+	return fmt.Errorf("unknown LikeFeature numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *NotifReadMutation) ClearedFields() []string {
+func (m *LikeFeatureMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *NotifReadMutation) FieldCleared(name string) bool {
+func (m *LikeFeatureMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *NotifReadMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown NotifRead nullable field %s", name)
+func (m *LikeFeatureMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LikeFeature nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *NotifReadMutation) ResetField(name string) error {
+func (m *LikeFeatureMutation) ResetField(name string) error {
 	switch name {
-	case notifread.FieldNotifID:
-		m.ResetNotifID()
+	case likefeature.FieldFromAccountID:
+		m.ResetFromAccountID()
 		return nil
-	case notifread.FieldAccountID:
-		m.ResetAccountID()
+	case likefeature.FieldIsLike:
+		m.ResetIsLike()
 		return nil
-	case notifread.FieldReadAt:
-		m.ResetReadAt()
+	case likefeature.FieldPostID:
+		m.ResetPostID()
+		return nil
+	case likefeature.FieldCreatedAt:
+		m.ResetCreatedAt()
 		return nil
 	}
-	return fmt.Errorf("unknown NotifRead field %s", name)
+	return fmt.Errorf("unknown LikeFeature field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *NotifReadMutation) AddedEdges() []string {
+func (m *LikeFeatureMutation) AddedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *NotifReadMutation) AddedIDs(name string) []ent.Value {
+func (m *LikeFeatureMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *NotifReadMutation) RemovedEdges() []string {
+func (m *LikeFeatureMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *NotifReadMutation) RemovedIDs(name string) []ent.Value {
+func (m *LikeFeatureMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *NotifReadMutation) ClearedEdges() []string {
+func (m *LikeFeatureMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *NotifReadMutation) EdgeCleared(name string) bool {
+func (m *LikeFeatureMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *NotifReadMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown NotifRead unique edge %s", name)
+func (m *LikeFeatureMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LikeFeature unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *NotifReadMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown NotifRead edge %s", name)
+func (m *LikeFeatureMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LikeFeature edge %s", name)
 }
 
 // PostMutation represents an operation that mutates the Post nodes in the graph.
@@ -2623,6 +2681,1078 @@ func (m *PostMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *PostMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Post edge %s", name)
+}
+
+// QouteRetweetFeatureMutation represents an operation that mutates the Qoute_retweet_feature nodes in the graph.
+type QouteRetweetFeatureMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	from_account_id    *int64
+	addfrom_account_id *int64
+	qoute_retweet      *bool
+	qoute              *string
+	post_id            *uuid.UUID
+	created_at         *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*Qoute_retweet_feature, error)
+	predicates         []predicate.Qoute_retweet_feature
+}
+
+var _ ent.Mutation = (*QouteRetweetFeatureMutation)(nil)
+
+// qouteRetweetFeatureOption allows management of the mutation configuration using functional options.
+type qouteRetweetFeatureOption func(*QouteRetweetFeatureMutation)
+
+// newQouteRetweetFeatureMutation creates new mutation for the Qoute_retweet_feature entity.
+func newQouteRetweetFeatureMutation(c config, op Op, opts ...qouteRetweetFeatureOption) *QouteRetweetFeatureMutation {
+	m := &QouteRetweetFeatureMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeQoute_retweet_feature,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withQoute_retweet_featureID sets the ID field of the mutation.
+func withQoute_retweet_featureID(id int) qouteRetweetFeatureOption {
+	return func(m *QouteRetweetFeatureMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Qoute_retweet_feature
+		)
+		m.oldValue = func(ctx context.Context) (*Qoute_retweet_feature, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Qoute_retweet_feature.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withQoute_retweet_feature sets the old Qoute_retweet_feature of the mutation.
+func withQoute_retweet_feature(node *Qoute_retweet_feature) qouteRetweetFeatureOption {
+	return func(m *QouteRetweetFeatureMutation) {
+		m.oldValue = func(context.Context) (*Qoute_retweet_feature, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m QouteRetweetFeatureMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m QouteRetweetFeatureMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *QouteRetweetFeatureMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *QouteRetweetFeatureMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Qoute_retweet_feature.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFromAccountID sets the "from_account_id" field.
+func (m *QouteRetweetFeatureMutation) SetFromAccountID(i int64) {
+	m.from_account_id = &i
+	m.addfrom_account_id = nil
+}
+
+// FromAccountID returns the value of the "from_account_id" field in the mutation.
+func (m *QouteRetweetFeatureMutation) FromAccountID() (r int64, exists bool) {
+	v := m.from_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromAccountID returns the old "from_account_id" field's value of the Qoute_retweet_feature entity.
+// If the Qoute_retweet_feature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QouteRetweetFeatureMutation) OldFromAccountID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromAccountID: %w", err)
+	}
+	return oldValue.FromAccountID, nil
+}
+
+// AddFromAccountID adds i to the "from_account_id" field.
+func (m *QouteRetweetFeatureMutation) AddFromAccountID(i int64) {
+	if m.addfrom_account_id != nil {
+		*m.addfrom_account_id += i
+	} else {
+		m.addfrom_account_id = &i
+	}
+}
+
+// AddedFromAccountID returns the value that was added to the "from_account_id" field in this mutation.
+func (m *QouteRetweetFeatureMutation) AddedFromAccountID() (r int64, exists bool) {
+	v := m.addfrom_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFromAccountID resets all changes to the "from_account_id" field.
+func (m *QouteRetweetFeatureMutation) ResetFromAccountID() {
+	m.from_account_id = nil
+	m.addfrom_account_id = nil
+}
+
+// SetQouteRetweet sets the "qoute_retweet" field.
+func (m *QouteRetweetFeatureMutation) SetQouteRetweet(b bool) {
+	m.qoute_retweet = &b
+}
+
+// QouteRetweet returns the value of the "qoute_retweet" field in the mutation.
+func (m *QouteRetweetFeatureMutation) QouteRetweet() (r bool, exists bool) {
+	v := m.qoute_retweet
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQouteRetweet returns the old "qoute_retweet" field's value of the Qoute_retweet_feature entity.
+// If the Qoute_retweet_feature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QouteRetweetFeatureMutation) OldQouteRetweet(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQouteRetweet is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQouteRetweet requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQouteRetweet: %w", err)
+	}
+	return oldValue.QouteRetweet, nil
+}
+
+// ResetQouteRetweet resets all changes to the "qoute_retweet" field.
+func (m *QouteRetweetFeatureMutation) ResetQouteRetweet() {
+	m.qoute_retweet = nil
+}
+
+// SetQoute sets the "qoute" field.
+func (m *QouteRetweetFeatureMutation) SetQoute(s string) {
+	m.qoute = &s
+}
+
+// Qoute returns the value of the "qoute" field in the mutation.
+func (m *QouteRetweetFeatureMutation) Qoute() (r string, exists bool) {
+	v := m.qoute
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQoute returns the old "qoute" field's value of the Qoute_retweet_feature entity.
+// If the Qoute_retweet_feature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QouteRetweetFeatureMutation) OldQoute(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQoute is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQoute requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQoute: %w", err)
+	}
+	return oldValue.Qoute, nil
+}
+
+// ResetQoute resets all changes to the "qoute" field.
+func (m *QouteRetweetFeatureMutation) ResetQoute() {
+	m.qoute = nil
+}
+
+// SetPostID sets the "post_id" field.
+func (m *QouteRetweetFeatureMutation) SetPostID(u uuid.UUID) {
+	m.post_id = &u
+}
+
+// PostID returns the value of the "post_id" field in the mutation.
+func (m *QouteRetweetFeatureMutation) PostID() (r uuid.UUID, exists bool) {
+	v := m.post_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPostID returns the old "post_id" field's value of the Qoute_retweet_feature entity.
+// If the Qoute_retweet_feature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QouteRetweetFeatureMutation) OldPostID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPostID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPostID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPostID: %w", err)
+	}
+	return oldValue.PostID, nil
+}
+
+// ResetPostID resets all changes to the "post_id" field.
+func (m *QouteRetweetFeatureMutation) ResetPostID() {
+	m.post_id = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *QouteRetweetFeatureMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *QouteRetweetFeatureMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Qoute_retweet_feature entity.
+// If the Qoute_retweet_feature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QouteRetweetFeatureMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *QouteRetweetFeatureMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the QouteRetweetFeatureMutation builder.
+func (m *QouteRetweetFeatureMutation) Where(ps ...predicate.Qoute_retweet_feature) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *QouteRetweetFeatureMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Qoute_retweet_feature).
+func (m *QouteRetweetFeatureMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *QouteRetweetFeatureMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.from_account_id != nil {
+		fields = append(fields, qoute_retweet_feature.FieldFromAccountID)
+	}
+	if m.qoute_retweet != nil {
+		fields = append(fields, qoute_retweet_feature.FieldQouteRetweet)
+	}
+	if m.qoute != nil {
+		fields = append(fields, qoute_retweet_feature.FieldQoute)
+	}
+	if m.post_id != nil {
+		fields = append(fields, qoute_retweet_feature.FieldPostID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, qoute_retweet_feature.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *QouteRetweetFeatureMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case qoute_retweet_feature.FieldFromAccountID:
+		return m.FromAccountID()
+	case qoute_retweet_feature.FieldQouteRetweet:
+		return m.QouteRetweet()
+	case qoute_retweet_feature.FieldQoute:
+		return m.Qoute()
+	case qoute_retweet_feature.FieldPostID:
+		return m.PostID()
+	case qoute_retweet_feature.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *QouteRetweetFeatureMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case qoute_retweet_feature.FieldFromAccountID:
+		return m.OldFromAccountID(ctx)
+	case qoute_retweet_feature.FieldQouteRetweet:
+		return m.OldQouteRetweet(ctx)
+	case qoute_retweet_feature.FieldQoute:
+		return m.OldQoute(ctx)
+	case qoute_retweet_feature.FieldPostID:
+		return m.OldPostID(ctx)
+	case qoute_retweet_feature.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Qoute_retweet_feature field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QouteRetweetFeatureMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case qoute_retweet_feature.FieldFromAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromAccountID(v)
+		return nil
+	case qoute_retweet_feature.FieldQouteRetweet:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQouteRetweet(v)
+		return nil
+	case qoute_retweet_feature.FieldQoute:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQoute(v)
+		return nil
+	case qoute_retweet_feature.FieldPostID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPostID(v)
+		return nil
+	case qoute_retweet_feature.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Qoute_retweet_feature field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *QouteRetweetFeatureMutation) AddedFields() []string {
+	var fields []string
+	if m.addfrom_account_id != nil {
+		fields = append(fields, qoute_retweet_feature.FieldFromAccountID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *QouteRetweetFeatureMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case qoute_retweet_feature.FieldFromAccountID:
+		return m.AddedFromAccountID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QouteRetweetFeatureMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case qoute_retweet_feature.FieldFromAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFromAccountID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Qoute_retweet_feature numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *QouteRetweetFeatureMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *QouteRetweetFeatureMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *QouteRetweetFeatureMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Qoute_retweet_feature nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *QouteRetweetFeatureMutation) ResetField(name string) error {
+	switch name {
+	case qoute_retweet_feature.FieldFromAccountID:
+		m.ResetFromAccountID()
+		return nil
+	case qoute_retweet_feature.FieldQouteRetweet:
+		m.ResetQouteRetweet()
+		return nil
+	case qoute_retweet_feature.FieldQoute:
+		m.ResetQoute()
+		return nil
+	case qoute_retweet_feature.FieldPostID:
+		m.ResetPostID()
+		return nil
+	case qoute_retweet_feature.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Qoute_retweet_feature field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *QouteRetweetFeatureMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *QouteRetweetFeatureMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *QouteRetweetFeatureMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *QouteRetweetFeatureMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *QouteRetweetFeatureMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *QouteRetweetFeatureMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *QouteRetweetFeatureMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Qoute_retweet_feature unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *QouteRetweetFeatureMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Qoute_retweet_feature edge %s", name)
+}
+
+// RetweetFeatureMutation represents an operation that mutates the Retweet_feature nodes in the graph.
+type RetweetFeatureMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	from_account_id    *int64
+	addfrom_account_id *int64
+	retweet            *bool
+	post_id            *uuid.UUID
+	created_at         *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*Retweet_feature, error)
+	predicates         []predicate.Retweet_feature
+}
+
+var _ ent.Mutation = (*RetweetFeatureMutation)(nil)
+
+// retweetFeatureOption allows management of the mutation configuration using functional options.
+type retweetFeatureOption func(*RetweetFeatureMutation)
+
+// newRetweetFeatureMutation creates new mutation for the Retweet_feature entity.
+func newRetweetFeatureMutation(c config, op Op, opts ...retweetFeatureOption) *RetweetFeatureMutation {
+	m := &RetweetFeatureMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeRetweet_feature,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRetweet_featureID sets the ID field of the mutation.
+func withRetweet_featureID(id int) retweetFeatureOption {
+	return func(m *RetweetFeatureMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Retweet_feature
+		)
+		m.oldValue = func(ctx context.Context) (*Retweet_feature, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Retweet_feature.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withRetweet_feature sets the old Retweet_feature of the mutation.
+func withRetweet_feature(node *Retweet_feature) retweetFeatureOption {
+	return func(m *RetweetFeatureMutation) {
+		m.oldValue = func(context.Context) (*Retweet_feature, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RetweetFeatureMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RetweetFeatureMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RetweetFeatureMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RetweetFeatureMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Retweet_feature.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFromAccountID sets the "from_account_id" field.
+func (m *RetweetFeatureMutation) SetFromAccountID(i int64) {
+	m.from_account_id = &i
+	m.addfrom_account_id = nil
+}
+
+// FromAccountID returns the value of the "from_account_id" field in the mutation.
+func (m *RetweetFeatureMutation) FromAccountID() (r int64, exists bool) {
+	v := m.from_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromAccountID returns the old "from_account_id" field's value of the Retweet_feature entity.
+// If the Retweet_feature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RetweetFeatureMutation) OldFromAccountID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromAccountID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromAccountID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromAccountID: %w", err)
+	}
+	return oldValue.FromAccountID, nil
+}
+
+// AddFromAccountID adds i to the "from_account_id" field.
+func (m *RetweetFeatureMutation) AddFromAccountID(i int64) {
+	if m.addfrom_account_id != nil {
+		*m.addfrom_account_id += i
+	} else {
+		m.addfrom_account_id = &i
+	}
+}
+
+// AddedFromAccountID returns the value that was added to the "from_account_id" field in this mutation.
+func (m *RetweetFeatureMutation) AddedFromAccountID() (r int64, exists bool) {
+	v := m.addfrom_account_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFromAccountID resets all changes to the "from_account_id" field.
+func (m *RetweetFeatureMutation) ResetFromAccountID() {
+	m.from_account_id = nil
+	m.addfrom_account_id = nil
+}
+
+// SetRetweet sets the "retweet" field.
+func (m *RetweetFeatureMutation) SetRetweet(b bool) {
+	m.retweet = &b
+}
+
+// Retweet returns the value of the "retweet" field in the mutation.
+func (m *RetweetFeatureMutation) Retweet() (r bool, exists bool) {
+	v := m.retweet
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRetweet returns the old "retweet" field's value of the Retweet_feature entity.
+// If the Retweet_feature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RetweetFeatureMutation) OldRetweet(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRetweet is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRetweet requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRetweet: %w", err)
+	}
+	return oldValue.Retweet, nil
+}
+
+// ResetRetweet resets all changes to the "retweet" field.
+func (m *RetweetFeatureMutation) ResetRetweet() {
+	m.retweet = nil
+}
+
+// SetPostID sets the "post_id" field.
+func (m *RetweetFeatureMutation) SetPostID(u uuid.UUID) {
+	m.post_id = &u
+}
+
+// PostID returns the value of the "post_id" field in the mutation.
+func (m *RetweetFeatureMutation) PostID() (r uuid.UUID, exists bool) {
+	v := m.post_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPostID returns the old "post_id" field's value of the Retweet_feature entity.
+// If the Retweet_feature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RetweetFeatureMutation) OldPostID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPostID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPostID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPostID: %w", err)
+	}
+	return oldValue.PostID, nil
+}
+
+// ResetPostID resets all changes to the "post_id" field.
+func (m *RetweetFeatureMutation) ResetPostID() {
+	m.post_id = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *RetweetFeatureMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *RetweetFeatureMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Retweet_feature entity.
+// If the Retweet_feature object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RetweetFeatureMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *RetweetFeatureMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the RetweetFeatureMutation builder.
+func (m *RetweetFeatureMutation) Where(ps ...predicate.Retweet_feature) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *RetweetFeatureMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Retweet_feature).
+func (m *RetweetFeatureMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RetweetFeatureMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.from_account_id != nil {
+		fields = append(fields, retweet_feature.FieldFromAccountID)
+	}
+	if m.retweet != nil {
+		fields = append(fields, retweet_feature.FieldRetweet)
+	}
+	if m.post_id != nil {
+		fields = append(fields, retweet_feature.FieldPostID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, retweet_feature.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RetweetFeatureMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case retweet_feature.FieldFromAccountID:
+		return m.FromAccountID()
+	case retweet_feature.FieldRetweet:
+		return m.Retweet()
+	case retweet_feature.FieldPostID:
+		return m.PostID()
+	case retweet_feature.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RetweetFeatureMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case retweet_feature.FieldFromAccountID:
+		return m.OldFromAccountID(ctx)
+	case retweet_feature.FieldRetweet:
+		return m.OldRetweet(ctx)
+	case retweet_feature.FieldPostID:
+		return m.OldPostID(ctx)
+	case retweet_feature.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Retweet_feature field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RetweetFeatureMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case retweet_feature.FieldFromAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromAccountID(v)
+		return nil
+	case retweet_feature.FieldRetweet:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRetweet(v)
+		return nil
+	case retweet_feature.FieldPostID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPostID(v)
+		return nil
+	case retweet_feature.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Retweet_feature field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RetweetFeatureMutation) AddedFields() []string {
+	var fields []string
+	if m.addfrom_account_id != nil {
+		fields = append(fields, retweet_feature.FieldFromAccountID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RetweetFeatureMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case retweet_feature.FieldFromAccountID:
+		return m.AddedFromAccountID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RetweetFeatureMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case retweet_feature.FieldFromAccountID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFromAccountID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Retweet_feature numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RetweetFeatureMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RetweetFeatureMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RetweetFeatureMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Retweet_feature nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RetweetFeatureMutation) ResetField(name string) error {
+	switch name {
+	case retweet_feature.FieldFromAccountID:
+		m.ResetFromAccountID()
+		return nil
+	case retweet_feature.FieldRetweet:
+		m.ResetRetweet()
+		return nil
+	case retweet_feature.FieldPostID:
+		m.ResetPostID()
+		return nil
+	case retweet_feature.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Retweet_feature field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RetweetFeatureMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RetweetFeatureMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RetweetFeatureMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RetweetFeatureMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RetweetFeatureMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RetweetFeatureMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RetweetFeatureMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Retweet_feature unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RetweetFeatureMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Retweet_feature edge %s", name)
 }
 
 // TokensMutation represents an operation that mutates the Tokens nodes in the graph.

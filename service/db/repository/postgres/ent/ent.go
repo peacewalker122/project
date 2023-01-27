@@ -12,8 +12,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/likefeature"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/qoute_retweet_feature"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/retweet_feature"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 )
@@ -36,12 +38,14 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		account.Table:       account.ValidColumn,
-		accountnotifs.Table: accountnotifs.ValidColumn,
-		notifread.Table:     notifread.ValidColumn,
-		post.Table:          post.ValidColumn,
-		tokens.Table:        tokens.ValidColumn,
-		users.Table:         users.ValidColumn,
+		account.Table:               account.ValidColumn,
+		accountnotifs.Table:         accountnotifs.ValidColumn,
+		likefeature.Table:           likefeature.ValidColumn,
+		post.Table:                  post.ValidColumn,
+		qoute_retweet_feature.Table: qoute_retweet_feature.ValidColumn,
+		retweet_feature.Table:       retweet_feature.ValidColumn,
+		tokens.Table:                tokens.ValidColumn,
+		users.Table:                 users.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

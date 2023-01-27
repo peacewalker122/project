@@ -6,26 +6,10 @@ dropdb:
 	docker exec -it postgres12 dropdb project
 createdb:
 	docker exec -it postgres12 createdb --username=root --owner=root project
-migrateup:
-	migrate -path db/migration -database "resql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose up
-migrateup1:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose up 1
-migrateup2:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose up 2
-migrateup3:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose up 3
-migrateup4:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose up 4
-migratedown:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose down
-migratedown1:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose down 1
-migratedown2:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose down 2
-migratedown3:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose down 3
-migratedown4:
-	migrate -path db/migration -database "postgresql://root:rootpass@localhost:4321/project?sslmode=disable" -verbose down 4
+ent:
+	entc generate ./service/db/repository/postgres/ent/schema/*.go
+schema:
+	go run -mod=mod entgo.io/ent/cmd/ent init --target ./service/db/repository/postgres/schema $1
 sqlc:
 	sqlc generate
 startdb:

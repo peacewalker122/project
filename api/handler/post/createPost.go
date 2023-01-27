@@ -15,10 +15,10 @@ func (p *PostHandler) CreatePost(c echo.Context) error {
 		return err
 	}
 
-	// errNum, payload, err := p.helper.AuthAccount(c)
-	// if err != nil {
-	// 	return c.JSON(errNum, err)
-	// }
+	errNum, payload, err := p.helper.AuthAccount(c)
+	if err != nil {
+		return c.JSON(errNum, err)
+	}
 
 	postFile, postFileHeader, err := c.Request().FormFile("file")
 	if err != nil {
@@ -30,7 +30,7 @@ func (p *PostHandler) CreatePost(c echo.Context) error {
 	postRequest := post.CreatePostRequest{
 		File:               postFile,
 		FileHeader:         postFileHeader,
-		AccountID:          req.AccountID,
+		AccountID:          payload.AccountID,
 		PictureDescription: req.PictureDescription,
 	}
 

@@ -8,11 +8,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/likefeature"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/schema"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/qoute_retweet_feature"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/retweet_feature"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
+	"github.com/peacewalker122/project/service/db/repository/postgres/schema"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -75,12 +77,16 @@ func init() {
 	accountnotifsDescID := accountnotifsFields[0].Descriptor()
 	// accountnotifs.DefaultID holds the default value on creation for the id field.
 	accountnotifs.DefaultID = accountnotifsDescID.Default.(func() uuid.UUID)
-	notifreadFields := schema.NotifRead{}.Fields()
-	_ = notifreadFields
-	// notifreadDescNotifID is the schema descriptor for notif_id field.
-	notifreadDescNotifID := notifreadFields[0].Descriptor()
-	// notifread.DefaultNotifID holds the default value on creation for the notif_id field.
-	notifread.DefaultNotifID = notifreadDescNotifID.Default.(func() uuid.UUID)
+	likefeatureFields := schema.LikeFeature{}.Fields()
+	_ = likefeatureFields
+	// likefeatureDescIsLike is the schema descriptor for is_like field.
+	likefeatureDescIsLike := likefeatureFields[1].Descriptor()
+	// likefeature.DefaultIsLike holds the default value on creation for the is_like field.
+	likefeature.DefaultIsLike = likefeatureDescIsLike.Default.(bool)
+	// likefeatureDescCreatedAt is the schema descriptor for created_at field.
+	likefeatureDescCreatedAt := likefeatureFields[3].Descriptor()
+	// likefeature.DefaultCreatedAt holds the default value on creation for the created_at field.
+	likefeature.DefaultCreatedAt = likefeatureDescCreatedAt.Default.(time.Time)
 	postFields := schema.Post{}.Fields()
 	_ = postFields
 	// postDescOwner is the schema descriptor for owner field.
@@ -107,6 +113,26 @@ func init() {
 	postDescID := postFields[0].Descriptor()
 	// post.DefaultID holds the default value on creation for the id field.
 	post.DefaultID = postDescID.Default.(func() uuid.UUID)
+	qoute_retweet_featureFields := schema.Qoute_retweet_feature{}.Fields()
+	_ = qoute_retweet_featureFields
+	// qoute_retweet_featureDescQouteRetweet is the schema descriptor for qoute_retweet field.
+	qoute_retweet_featureDescQouteRetweet := qoute_retweet_featureFields[1].Descriptor()
+	// qoute_retweet_feature.DefaultQouteRetweet holds the default value on creation for the qoute_retweet field.
+	qoute_retweet_feature.DefaultQouteRetweet = qoute_retweet_featureDescQouteRetweet.Default.(bool)
+	// qoute_retweet_featureDescQoute is the schema descriptor for qoute field.
+	qoute_retweet_featureDescQoute := qoute_retweet_featureFields[2].Descriptor()
+	// qoute_retweet_feature.QouteValidator is a validator for the "qoute" field. It is called by the builders before save.
+	qoute_retweet_feature.QouteValidator = qoute_retweet_featureDescQoute.Validators[0].(func(string) error)
+	retweet_featureFields := schema.Retweet_feature{}.Fields()
+	_ = retweet_featureFields
+	// retweet_featureDescRetweet is the schema descriptor for retweet field.
+	retweet_featureDescRetweet := retweet_featureFields[1].Descriptor()
+	// retweet_feature.DefaultRetweet holds the default value on creation for the retweet field.
+	retweet_feature.DefaultRetweet = retweet_featureDescRetweet.Default.(bool)
+	// retweet_featureDescCreatedAt is the schema descriptor for created_at field.
+	retweet_featureDescCreatedAt := retweet_featureFields[3].Descriptor()
+	// retweet_feature.DefaultCreatedAt holds the default value on creation for the created_at field.
+	retweet_feature.DefaultCreatedAt = retweet_featureDescCreatedAt.Default.(time.Time)
 	tokensFields := schema.Tokens{}.Fields()
 	_ = tokensFields
 	// tokensDescEmail is the schema descriptor for email field.

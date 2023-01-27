@@ -19,13 +19,13 @@ func (p *PostHandler) CreateComment(c echo.Context) error {
 		return c.JSON(400, err.Error())
 	}
 
-	//errNum, payload, err := p.helper.AuthAccount(c)
-	//if err != nil {
-	//	return c.JSON(errNum, err)
-	//}
+	errNum, payload, err := p.helper.AuthAccount(c)
+	if err != nil {
+		return c.JSON(errNum, err)
+	}
 
 	errComment := p.post.CreateComment(c.Request().Context(), &post.CommentRequest{
-		AccountID: req.AccountID,
+		AccountID: payload.AccountID,
 		PostID:    postID,
 		Comment:   req.Comment,
 	})

@@ -16,10 +16,14 @@ type Tx struct {
 	Account *AccountClient
 	// AccountNotifs is the client for interacting with the AccountNotifs builders.
 	AccountNotifs *AccountNotifsClient
-	// NotifRead is the client for interacting with the NotifRead builders.
-	NotifRead *NotifReadClient
+	// LikeFeature is the client for interacting with the LikeFeature builders.
+	LikeFeature *LikeFeatureClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
+	// Qoute_retweet_feature is the client for interacting with the Qoute_retweet_feature builders.
+	Qoute_retweet_feature *Qoute_retweet_featureClient
+	// Retweet_feature is the client for interacting with the Retweet_feature builders.
+	Retweet_feature *Retweet_featureClient
 	// Tokens is the client for interacting with the Tokens builders.
 	Tokens *TokensClient
 	// Users is the client for interacting with the Users builders.
@@ -157,8 +161,10 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
 	tx.AccountNotifs = NewAccountNotifsClient(tx.config)
-	tx.NotifRead = NewNotifReadClient(tx.config)
+	tx.LikeFeature = NewLikeFeatureClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
+	tx.Qoute_retweet_feature = NewQoute_retweet_featureClient(tx.config)
+	tx.Retweet_feature = NewRetweet_featureClient(tx.config)
 	tx.Tokens = NewTokensClient(tx.config)
 	tx.Users = NewUsersClient(tx.config)
 }
