@@ -30,9 +30,9 @@ func (s *EmailHelper) SendEmail(types NotifType, params ...string) error {
 	case NotifTypeLogin:
 		str = string(NotifBodyLogin.Format(params[1]))
 	case NotifTypeSignUp:
-		str = string(NotifBodySignUp.Format(params[1], params[2]))
+		str = string(NotifBodySignUp.Format(params[1], s.cfg.BaseURL, params[2]))
 	case NotifTypeChangePass:
-		str = string(NotifBodyChangePass.Format(params[1], params[2]))
+		str = string(NotifBodyChangePass.Format(params[1], s.cfg.BaseURL, params[2]))
 	case NotifTypePassChanging:
 		str = string(NotifBodyPassChanging.Format(params[1]))
 	}

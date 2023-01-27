@@ -20,13 +20,13 @@ func (p *PostHandler) LikePost(c echo.Context) error {
 		return c.JSON(400, err.Error())
 	}
 
-	//errNum, payload, err := p.helper.AuthAccount(c)
-	//if err != nil {
-	//	return c.JSON(errNum, err)
-	//}
+	errNum, payload, err := p.helper.AuthAccount(c)
+	if err != nil {
+		return c.JSON(errNum, err)
+	}
 
 	err = p.post.LikePost(c.Request().Context(), &post.LikeRequest{
-		AccountID: req.AccountID,
+		AccountID: payload.AccountID,
 		PostID:    postID,
 	})
 	if err != nil {

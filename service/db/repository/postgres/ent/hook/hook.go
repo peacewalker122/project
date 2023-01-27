@@ -35,15 +35,15 @@ func (f AccountNotifsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return f(ctx, mv)
 }
 
-// The NotifReadFunc type is an adapter to allow the use of ordinary
-// function as NotifRead mutator.
-type NotifReadFunc func(context.Context, *ent.NotifReadMutation) (ent.Value, error)
+// The LikeFeatureFunc type is an adapter to allow the use of ordinary
+// function as LikeFeature mutator.
+type LikeFeatureFunc func(context.Context, *ent.LikeFeatureMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f NotifReadFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.NotifReadMutation)
+func (f LikeFeatureFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.LikeFeatureMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NotifReadMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LikeFeatureMutation", m)
 	}
 	return f(ctx, mv)
 }
@@ -57,6 +57,32 @@ func (f PostFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	mv, ok := m.(*ent.PostMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PostMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The Qoute_retweet_featureFunc type is an adapter to allow the use of ordinary
+// function as Qoute_retweet_feature mutator.
+type Qoute_retweet_featureFunc func(context.Context, *ent.QouteRetweetFeatureMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f Qoute_retweet_featureFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.QouteRetweetFeatureMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QouteRetweetFeatureMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The Retweet_featureFunc type is an adapter to allow the use of ordinary
+// function as Retweet_feature mutator.
+type Retweet_featureFunc func(context.Context, *ent.RetweetFeatureMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f Retweet_featureFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.RetweetFeatureMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RetweetFeatureMutation", m)
 	}
 	return f(ctx, mv)
 }

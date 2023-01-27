@@ -24,12 +24,14 @@ type config struct {
 
 // hooks per client, for fast access.
 type hooks struct {
-	Account       []ent.Hook
-	AccountNotifs []ent.Hook
-	NotifRead     []ent.Hook
-	Post          []ent.Hook
-	Tokens        []ent.Hook
-	Users         []ent.Hook
+	Account               []ent.Hook
+	AccountNotifs         []ent.Hook
+	LikeFeature           []ent.Hook
+	Post                  []ent.Hook
+	Qoute_retweet_feature []ent.Hook
+	Retweet_feature       []ent.Hook
+	Tokens                []ent.Hook
+	Users                 []ent.Hook
 }
 
 // Options applies the options on the config object.

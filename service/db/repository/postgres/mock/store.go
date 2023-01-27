@@ -431,6 +431,20 @@ func (mr *MockPostgresStoreMockRecorder) DeleteAcoountsQueue(arg0, arg1 interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAcoountsQueue", reflect.TypeOf((*MockPostgresStore)(nil).DeleteAcoountsQueue), arg0, arg1)
 }
 
+// DeleteLike mocks base method.
+func (m *MockPostgresStore) DeleteLike(arg0 context.Context, arg1 uuid.UUID, arg2 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteLike", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteLike indicates an expected call of DeleteLike.
+func (mr *MockPostgresStoreMockRecorder) DeleteLike(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLike", reflect.TypeOf((*MockPostgresStore)(nil).DeleteLike), arg0, arg1, arg2)
+}
+
 // DeleteNotif mocks base method.
 func (m *MockPostgresStore) DeleteNotif(arg0 context.Context, arg1 uuid.UUID) error {
 	m.ctrl.T.Helper()
@@ -797,6 +811,21 @@ func (mr *MockPostgresStoreMockRecorder) GetLikejoin(arg0, arg1 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLikejoin", reflect.TypeOf((*MockPostgresStore)(nil).GetLikejoin), arg0, arg1)
 }
 
+// GetLikesByPost mocks base method.
+func (m *MockPostgresStore) GetLikesByPost(arg0 context.Context, arg1 uuid.UUID) ([]*ent.LikeFeature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLikesByPost", arg0, arg1)
+	ret0, _ := ret[0].([]*ent.LikeFeature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLikesByPost indicates an expected call of GetLikesByPost.
+func (mr *MockPostgresStoreMockRecorder) GetLikesByPost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLikesByPost", reflect.TypeOf((*MockPostgresStore)(nil).GetLikesByPost), arg0, arg1)
+}
+
 // GetNotifByAccount mocks base method.
 func (m *MockPostgresStore) GetNotifByAccount(arg0 context.Context, arg1 int64) ([]*ent.AccountNotifs, error) {
 	m.ctrl.T.Helper()
@@ -917,6 +946,21 @@ func (mr *MockPostgresStoreMockRecorder) GetQouteRetweet(arg0, arg1 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQouteRetweet", reflect.TypeOf((*MockPostgresStore)(nil).GetQouteRetweet), arg0, arg1)
 }
 
+// GetQouteRetweetByPost mocks base method.
+func (m *MockPostgresStore) GetQouteRetweetByPost(arg0 context.Context, arg1 uuid.UUID) ([]*ent.Qoute_retweet_feature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetQouteRetweetByPost", arg0, arg1)
+	ret0, _ := ret[0].([]*ent.Qoute_retweet_feature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetQouteRetweetByPost indicates an expected call of GetQouteRetweetByPost.
+func (mr *MockPostgresStoreMockRecorder) GetQouteRetweetByPost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQouteRetweetByPost", reflect.TypeOf((*MockPostgresStore)(nil).GetQouteRetweetByPost), arg0, arg1)
+}
+
 // GetQouteRetweetJoin mocks base method.
 func (m *MockPostgresStore) GetQouteRetweetJoin(arg0 context.Context, arg1 uuid.UUID) (bool, error) {
 	m.ctrl.T.Helper()
@@ -975,6 +1019,21 @@ func (m *MockPostgresStore) GetRetweet(arg0 context.Context, arg1 db.GetRetweetP
 func (mr *MockPostgresStoreMockRecorder) GetRetweet(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRetweet", reflect.TypeOf((*MockPostgresStore)(nil).GetRetweet), arg0, arg1)
+}
+
+// GetRetweetByPost mocks base method.
+func (m *MockPostgresStore) GetRetweetByPost(arg0 context.Context, arg1 uuid.UUID) ([]*ent.Retweet_feature, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRetweetByPost", arg0, arg1)
+	ret0, _ := ret[0].([]*ent.Retweet_feature)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRetweetByPost indicates an expected call of GetRetweetByPost.
+func (mr *MockPostgresStoreMockRecorder) GetRetweetByPost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRetweetByPost", reflect.TypeOf((*MockPostgresStore)(nil).GetRetweetByPost), arg0, arg1)
 }
 
 // GetRetweetJoin mocks base method.
@@ -1199,6 +1258,20 @@ func (m *MockPostgresStore) PrivateAccount(arg0 context.Context, arg1 db.Private
 func (mr *MockPostgresStoreMockRecorder) PrivateAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrivateAccount", reflect.TypeOf((*MockPostgresStore)(nil).PrivateAccount), arg0, arg1)
+}
+
+// PurgePost mocks base method.
+func (m *MockPostgresStore) PurgePost(arg0 context.Context, arg1 uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PurgePost", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PurgePost indicates an expected call of PurgePost.
+func (mr *MockPostgresStoreMockRecorder) PurgePost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PurgePost", reflect.TypeOf((*MockPostgresStore)(nil).PurgePost), arg0, arg1)
 }
 
 // SetAccount mocks base method.

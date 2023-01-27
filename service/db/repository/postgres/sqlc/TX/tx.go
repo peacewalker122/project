@@ -28,7 +28,7 @@ func NewTx(project *sql.DB) *Tx {
 		Store: db.NewStore(project),
 		DB:    project,
 	}
-	res.PostTx = post.NewPostTx(res.Store)
+	res.PostTx = post.NewPostTx(res.Store, res.DB)
 	res.UserTx = user.NewUserTx(res.Store)
 	res.AccountTx = account.NewAccountTx(res.Store)
 	return res

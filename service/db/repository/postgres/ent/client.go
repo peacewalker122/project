@@ -13,8 +13,10 @@ import (
 
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/account"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/accountnotifs"
-	"github.com/peacewalker122/project/service/db/repository/postgres/ent/notifread"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/likefeature"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/post"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/qoute_retweet_feature"
+	"github.com/peacewalker122/project/service/db/repository/postgres/ent/retweet_feature"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/tokens"
 	"github.com/peacewalker122/project/service/db/repository/postgres/ent/users"
 
@@ -31,10 +33,14 @@ type Client struct {
 	Account *AccountClient
 	// AccountNotifs is the client for interacting with the AccountNotifs builders.
 	AccountNotifs *AccountNotifsClient
-	// NotifRead is the client for interacting with the NotifRead builders.
-	NotifRead *NotifReadClient
+	// LikeFeature is the client for interacting with the LikeFeature builders.
+	LikeFeature *LikeFeatureClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
+	// Qoute_retweet_feature is the client for interacting with the Qoute_retweet_feature builders.
+	Qoute_retweet_feature *Qoute_retweet_featureClient
+	// Retweet_feature is the client for interacting with the Retweet_feature builders.
+	Retweet_feature *Retweet_featureClient
 	// Tokens is the client for interacting with the Tokens builders.
 	Tokens *TokensClient
 	// Users is the client for interacting with the Users builders.
@@ -54,8 +60,10 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Account = NewAccountClient(c.config)
 	c.AccountNotifs = NewAccountNotifsClient(c.config)
-	c.NotifRead = NewNotifReadClient(c.config)
+	c.LikeFeature = NewLikeFeatureClient(c.config)
 	c.Post = NewPostClient(c.config)
+	c.Qoute_retweet_feature = NewQoute_retweet_featureClient(c.config)
+	c.Retweet_feature = NewRetweet_featureClient(c.config)
 	c.Tokens = NewTokensClient(c.config)
 	c.Users = NewUsersClient(c.config)
 }
@@ -89,14 +97,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		Account:       NewAccountClient(cfg),
-		AccountNotifs: NewAccountNotifsClient(cfg),
-		NotifRead:     NewNotifReadClient(cfg),
-		Post:          NewPostClient(cfg),
-		Tokens:        NewTokensClient(cfg),
-		Users:         NewUsersClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		Account:               NewAccountClient(cfg),
+		AccountNotifs:         NewAccountNotifsClient(cfg),
+		LikeFeature:           NewLikeFeatureClient(cfg),
+		Post:                  NewPostClient(cfg),
+		Qoute_retweet_feature: NewQoute_retweet_featureClient(cfg),
+		Retweet_feature:       NewRetweet_featureClient(cfg),
+		Tokens:                NewTokensClient(cfg),
+		Users:                 NewUsersClient(cfg),
 	}, nil
 }
 
@@ -114,14 +124,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		Account:       NewAccountClient(cfg),
-		AccountNotifs: NewAccountNotifsClient(cfg),
-		NotifRead:     NewNotifReadClient(cfg),
-		Post:          NewPostClient(cfg),
-		Tokens:        NewTokensClient(cfg),
-		Users:         NewUsersClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		Account:               NewAccountClient(cfg),
+		AccountNotifs:         NewAccountNotifsClient(cfg),
+		LikeFeature:           NewLikeFeatureClient(cfg),
+		Post:                  NewPostClient(cfg),
+		Qoute_retweet_feature: NewQoute_retweet_featureClient(cfg),
+		Retweet_feature:       NewRetweet_featureClient(cfg),
+		Tokens:                NewTokensClient(cfg),
+		Users:                 NewUsersClient(cfg),
 	}, nil
 }
 
@@ -152,8 +164,10 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Account.Use(hooks...)
 	c.AccountNotifs.Use(hooks...)
-	c.NotifRead.Use(hooks...)
+	c.LikeFeature.Use(hooks...)
 	c.Post.Use(hooks...)
+	c.Qoute_retweet_feature.Use(hooks...)
+	c.Retweet_feature.Use(hooks...)
 	c.Tokens.Use(hooks...)
 	c.Users.Use(hooks...)
 }
@@ -338,84 +352,84 @@ func (c *AccountNotifsClient) Hooks() []Hook {
 	return c.hooks.AccountNotifs
 }
 
-// NotifReadClient is a client for the NotifRead schema.
-type NotifReadClient struct {
+// LikeFeatureClient is a client for the LikeFeature schema.
+type LikeFeatureClient struct {
 	config
 }
 
-// NewNotifReadClient returns a client for the NotifRead from the given config.
-func NewNotifReadClient(c config) *NotifReadClient {
-	return &NotifReadClient{config: c}
+// NewLikeFeatureClient returns a client for the LikeFeature from the given config.
+func NewLikeFeatureClient(c config) *LikeFeatureClient {
+	return &LikeFeatureClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `notifread.Hooks(f(g(h())))`.
-func (c *NotifReadClient) Use(hooks ...Hook) {
-	c.hooks.NotifRead = append(c.hooks.NotifRead, hooks...)
+// A call to `Use(f, g, h)` equals to `likefeature.Hooks(f(g(h())))`.
+func (c *LikeFeatureClient) Use(hooks ...Hook) {
+	c.hooks.LikeFeature = append(c.hooks.LikeFeature, hooks...)
 }
 
-// Create returns a builder for creating a NotifRead entity.
-func (c *NotifReadClient) Create() *NotifReadCreate {
-	mutation := newNotifReadMutation(c.config, OpCreate)
-	return &NotifReadCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a LikeFeature entity.
+func (c *LikeFeatureClient) Create() *LikeFeatureCreate {
+	mutation := newLikeFeatureMutation(c.config, OpCreate)
+	return &LikeFeatureCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of NotifRead entities.
-func (c *NotifReadClient) CreateBulk(builders ...*NotifReadCreate) *NotifReadCreateBulk {
-	return &NotifReadCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of LikeFeature entities.
+func (c *LikeFeatureClient) CreateBulk(builders ...*LikeFeatureCreate) *LikeFeatureCreateBulk {
+	return &LikeFeatureCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for NotifRead.
-func (c *NotifReadClient) Update() *NotifReadUpdate {
-	mutation := newNotifReadMutation(c.config, OpUpdate)
-	return &NotifReadUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for LikeFeature.
+func (c *LikeFeatureClient) Update() *LikeFeatureUpdate {
+	mutation := newLikeFeatureMutation(c.config, OpUpdate)
+	return &LikeFeatureUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *NotifReadClient) UpdateOne(nr *NotifRead) *NotifReadUpdateOne {
-	mutation := newNotifReadMutation(c.config, OpUpdateOne, withNotifRead(nr))
-	return &NotifReadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *LikeFeatureClient) UpdateOne(lf *LikeFeature) *LikeFeatureUpdateOne {
+	mutation := newLikeFeatureMutation(c.config, OpUpdateOne, withLikeFeature(lf))
+	return &LikeFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *NotifReadClient) UpdateOneID(id int) *NotifReadUpdateOne {
-	mutation := newNotifReadMutation(c.config, OpUpdateOne, withNotifReadID(id))
-	return &NotifReadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *LikeFeatureClient) UpdateOneID(id int) *LikeFeatureUpdateOne {
+	mutation := newLikeFeatureMutation(c.config, OpUpdateOne, withLikeFeatureID(id))
+	return &LikeFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for NotifRead.
-func (c *NotifReadClient) Delete() *NotifReadDelete {
-	mutation := newNotifReadMutation(c.config, OpDelete)
-	return &NotifReadDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for LikeFeature.
+func (c *LikeFeatureClient) Delete() *LikeFeatureDelete {
+	mutation := newLikeFeatureMutation(c.config, OpDelete)
+	return &LikeFeatureDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *NotifReadClient) DeleteOne(nr *NotifRead) *NotifReadDeleteOne {
-	return c.DeleteOneID(nr.ID)
+func (c *LikeFeatureClient) DeleteOne(lf *LikeFeature) *LikeFeatureDeleteOne {
+	return c.DeleteOneID(lf.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *NotifReadClient) DeleteOneID(id int) *NotifReadDeleteOne {
-	builder := c.Delete().Where(notifread.ID(id))
+func (c *LikeFeatureClient) DeleteOneID(id int) *LikeFeatureDeleteOne {
+	builder := c.Delete().Where(likefeature.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &NotifReadDeleteOne{builder}
+	return &LikeFeatureDeleteOne{builder}
 }
 
-// Query returns a query builder for NotifRead.
-func (c *NotifReadClient) Query() *NotifReadQuery {
-	return &NotifReadQuery{
+// Query returns a query builder for LikeFeature.
+func (c *LikeFeatureClient) Query() *LikeFeatureQuery {
+	return &LikeFeatureQuery{
 		config: c.config,
 	}
 }
 
-// Get returns a NotifRead entity by its id.
-func (c *NotifReadClient) Get(ctx context.Context, id int) (*NotifRead, error) {
-	return c.Query().Where(notifread.ID(id)).Only(ctx)
+// Get returns a LikeFeature entity by its id.
+func (c *LikeFeatureClient) Get(ctx context.Context, id int) (*LikeFeature, error) {
+	return c.Query().Where(likefeature.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *NotifReadClient) GetX(ctx context.Context, id int) *NotifRead {
+func (c *LikeFeatureClient) GetX(ctx context.Context, id int) *LikeFeature {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -424,8 +438,8 @@ func (c *NotifReadClient) GetX(ctx context.Context, id int) *NotifRead {
 }
 
 // Hooks returns the client hooks.
-func (c *NotifReadClient) Hooks() []Hook {
-	return c.hooks.NotifRead
+func (c *LikeFeatureClient) Hooks() []Hook {
+	return c.hooks.LikeFeature
 }
 
 // PostClient is a client for the Post schema.
@@ -516,6 +530,186 @@ func (c *PostClient) GetX(ctx context.Context, id uuid.UUID) *Post {
 // Hooks returns the client hooks.
 func (c *PostClient) Hooks() []Hook {
 	return c.hooks.Post
+}
+
+// Qoute_retweet_featureClient is a client for the Qoute_retweet_feature schema.
+type Qoute_retweet_featureClient struct {
+	config
+}
+
+// NewQoute_retweet_featureClient returns a client for the Qoute_retweet_feature from the given config.
+func NewQoute_retweet_featureClient(c config) *Qoute_retweet_featureClient {
+	return &Qoute_retweet_featureClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `qoute_retweet_feature.Hooks(f(g(h())))`.
+func (c *Qoute_retweet_featureClient) Use(hooks ...Hook) {
+	c.hooks.Qoute_retweet_feature = append(c.hooks.Qoute_retweet_feature, hooks...)
+}
+
+// Create returns a builder for creating a Qoute_retweet_feature entity.
+func (c *Qoute_retweet_featureClient) Create() *QouteRetweetFeatureCreate {
+	mutation := newQouteRetweetFeatureMutation(c.config, OpCreate)
+	return &QouteRetweetFeatureCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Qoute_retweet_feature entities.
+func (c *Qoute_retweet_featureClient) CreateBulk(builders ...*QouteRetweetFeatureCreate) *QouteRetweetFeatureCreateBulk {
+	return &QouteRetweetFeatureCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Qoute_retweet_feature.
+func (c *Qoute_retweet_featureClient) Update() *QouteRetweetFeatureUpdate {
+	mutation := newQouteRetweetFeatureMutation(c.config, OpUpdate)
+	return &QouteRetweetFeatureUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *Qoute_retweet_featureClient) UpdateOne(qrf *Qoute_retweet_feature) *QouteRetweetFeatureUpdateOne {
+	mutation := newQouteRetweetFeatureMutation(c.config, OpUpdateOne, withQoute_retweet_feature(qrf))
+	return &QouteRetweetFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *Qoute_retweet_featureClient) UpdateOneID(id int) *QouteRetweetFeatureUpdateOne {
+	mutation := newQouteRetweetFeatureMutation(c.config, OpUpdateOne, withQoute_retweet_featureID(id))
+	return &QouteRetweetFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Qoute_retweet_feature.
+func (c *Qoute_retweet_featureClient) Delete() *QouteRetweetFeatureDelete {
+	mutation := newQouteRetweetFeatureMutation(c.config, OpDelete)
+	return &QouteRetweetFeatureDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *Qoute_retweet_featureClient) DeleteOne(qrf *Qoute_retweet_feature) *QouteRetweetFeatureDeleteOne {
+	return c.DeleteOneID(qrf.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *Qoute_retweet_featureClient) DeleteOneID(id int) *QouteRetweetFeatureDeleteOne {
+	builder := c.Delete().Where(qoute_retweet_feature.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &QouteRetweetFeatureDeleteOne{builder}
+}
+
+// Query returns a query builder for Qoute_retweet_feature.
+func (c *Qoute_retweet_featureClient) Query() *QouteRetweetFeatureQuery {
+	return &QouteRetweetFeatureQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Qoute_retweet_feature entity by its id.
+func (c *Qoute_retweet_featureClient) Get(ctx context.Context, id int) (*Qoute_retweet_feature, error) {
+	return c.Query().Where(qoute_retweet_feature.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *Qoute_retweet_featureClient) GetX(ctx context.Context, id int) *Qoute_retweet_feature {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *Qoute_retweet_featureClient) Hooks() []Hook {
+	return c.hooks.Qoute_retweet_feature
+}
+
+// Retweet_featureClient is a client for the Retweet_feature schema.
+type Retweet_featureClient struct {
+	config
+}
+
+// NewRetweet_featureClient returns a client for the Retweet_feature from the given config.
+func NewRetweet_featureClient(c config) *Retweet_featureClient {
+	return &Retweet_featureClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `retweet_feature.Hooks(f(g(h())))`.
+func (c *Retweet_featureClient) Use(hooks ...Hook) {
+	c.hooks.Retweet_feature = append(c.hooks.Retweet_feature, hooks...)
+}
+
+// Create returns a builder for creating a Retweet_feature entity.
+func (c *Retweet_featureClient) Create() *RetweetFeatureCreate {
+	mutation := newRetweetFeatureMutation(c.config, OpCreate)
+	return &RetweetFeatureCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Retweet_feature entities.
+func (c *Retweet_featureClient) CreateBulk(builders ...*RetweetFeatureCreate) *RetweetFeatureCreateBulk {
+	return &RetweetFeatureCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Retweet_feature.
+func (c *Retweet_featureClient) Update() *RetweetFeatureUpdate {
+	mutation := newRetweetFeatureMutation(c.config, OpUpdate)
+	return &RetweetFeatureUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *Retweet_featureClient) UpdateOne(rf *Retweet_feature) *RetweetFeatureUpdateOne {
+	mutation := newRetweetFeatureMutation(c.config, OpUpdateOne, withRetweet_feature(rf))
+	return &RetweetFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *Retweet_featureClient) UpdateOneID(id int) *RetweetFeatureUpdateOne {
+	mutation := newRetweetFeatureMutation(c.config, OpUpdateOne, withRetweet_featureID(id))
+	return &RetweetFeatureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Retweet_feature.
+func (c *Retweet_featureClient) Delete() *RetweetFeatureDelete {
+	mutation := newRetweetFeatureMutation(c.config, OpDelete)
+	return &RetweetFeatureDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *Retweet_featureClient) DeleteOne(rf *Retweet_feature) *RetweetFeatureDeleteOne {
+	return c.DeleteOneID(rf.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *Retweet_featureClient) DeleteOneID(id int) *RetweetFeatureDeleteOne {
+	builder := c.Delete().Where(retweet_feature.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RetweetFeatureDeleteOne{builder}
+}
+
+// Query returns a query builder for Retweet_feature.
+func (c *Retweet_featureClient) Query() *RetweetFeatureQuery {
+	return &RetweetFeatureQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Retweet_feature entity by its id.
+func (c *Retweet_featureClient) Get(ctx context.Context, id int) (*Retweet_feature, error) {
+	return c.Query().Where(retweet_feature.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *Retweet_featureClient) GetX(ctx context.Context, id int) *Retweet_feature {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *Retweet_featureClient) Hooks() []Hook {
+	return c.hooks.Retweet_feature
 }
 
 // TokensClient is a client for the Tokens schema.

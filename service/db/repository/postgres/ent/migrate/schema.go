@@ -48,18 +48,19 @@ var (
 			},
 		},
 	}
-	// NotifReadsColumns holds the columns for the "notif_reads" table.
-	NotifReadsColumns = []*schema.Column{
+	// LikeFeaturesColumns holds the columns for the "like_features" table.
+	LikeFeaturesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "notif_id", Type: field.TypeUUID, Unique: true},
-		{Name: "account_id", Type: field.TypeInt64},
-		{Name: "read_at", Type: field.TypeTime},
+		{Name: "from_account_id", Type: field.TypeInt64},
+		{Name: "is_like", Type: field.TypeBool, Default: false},
+		{Name: "post_id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
 	}
-	// NotifReadsTable holds the schema information for the "notif_reads" table.
-	NotifReadsTable = &schema.Table{
-		Name:       "notif_reads",
-		Columns:    NotifReadsColumns,
-		PrimaryKey: []*schema.Column{NotifReadsColumns[0]},
+	// LikeFeaturesTable holds the schema information for the "like_features" table.
+	LikeFeaturesTable = &schema.Table{
+		Name:       "like_features",
+		Columns:    LikeFeaturesColumns,
+		PrimaryKey: []*schema.Column{LikeFeaturesColumns[0]},
 	}
 	// PostsColumns holds the columns for the "posts" table.
 	PostsColumns = []*schema.Column{
@@ -76,6 +77,35 @@ var (
 		Name:       "posts",
 		Columns:    PostsColumns,
 		PrimaryKey: []*schema.Column{PostsColumns[0]},
+	}
+	// QouteRetweetFeaturesColumns holds the columns for the "qoute_retweet_features" table.
+	QouteRetweetFeaturesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "from_account_id", Type: field.TypeInt64},
+		{Name: "qoute_retweet", Type: field.TypeBool, Default: false},
+		{Name: "qoute", Type: field.TypeString},
+		{Name: "post_id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// QouteRetweetFeaturesTable holds the schema information for the "qoute_retweet_features" table.
+	QouteRetweetFeaturesTable = &schema.Table{
+		Name:       "qoute_retweet_features",
+		Columns:    QouteRetweetFeaturesColumns,
+		PrimaryKey: []*schema.Column{QouteRetweetFeaturesColumns[0]},
+	}
+	// RetweetFeaturesColumns holds the columns for the "retweet_features" table.
+	RetweetFeaturesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "from_account_id", Type: field.TypeInt64},
+		{Name: "retweet", Type: field.TypeBool, Default: false},
+		{Name: "post_id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// RetweetFeaturesTable holds the schema information for the "retweet_features" table.
+	RetweetFeaturesTable = &schema.Table{
+		Name:       "retweet_features",
+		Columns:    RetweetFeaturesColumns,
+		PrimaryKey: []*schema.Column{RetweetFeaturesColumns[0]},
 	}
 	// TokensColumns holds the columns for the "tokens" table.
 	TokensColumns = []*schema.Column{
@@ -113,8 +143,10 @@ var (
 	Tables = []*schema.Table{
 		AccountsTable,
 		AccountNotifsTable,
-		NotifReadsTable,
+		LikeFeaturesTable,
 		PostsTable,
+		QouteRetweetFeaturesTable,
+		RetweetFeaturesTable,
 		TokensTable,
 		UsersTable,
 	}
