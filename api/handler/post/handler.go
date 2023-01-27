@@ -18,7 +18,7 @@ func NewPostHandler(post post.PostContract, helper handler.Helper) *PostHandler 
 	}
 }
 
-func (p *PostHandler) PostRouter(e *echo.Echo) {
+func (p *PostHandler) PostRouter(e *echo.Group) {
 	e.POST("/post", p.CreatePost)
 	e.POST("/post/retweet", p.CreateRetweet)
 	e.POST("/post/like", p.LikePost)

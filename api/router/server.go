@@ -95,10 +95,10 @@ func (s *Server) routerhandle() {
 	router.Validator = s.Auth.Validator
 	router.HTTPErrorHandler = s.Auth.HTTPErrorHandler
 
+	s.token.TokenRouter(router)
+
 	userGroup := router.Group("/user")
 	s.user.Router(userGroup)
-	s.post.PostRouter(router)
-	s.token.TokenRouter(router)
 
 	OauthRouter := router.Group("/oauth")
 	OauthRouter.GET("/google", s.Oauth.GoogleVerif)
@@ -106,15 +106,8 @@ func (s *Server) routerhandle() {
 
 	authRouter := router.Group("/auth", auth.AuthMiddleware(s.Token))
 
+	s.post.PostRouter(authRouter)
 	s.account.Router(authRouter)
-
-	//authRouter.POST("/post", s.handler.CreatePost, middleware.TimeoutWithConfig(s.TimeoutPost()))
-	//authRouter.GET("/post/:id", s.handler.GetPost)
-	//authRouter.POST("/post/like", s.handler.LikePost)
-	//authRouter.POST("/post/comment", s.handler.CommentPost)
-	//authRouter.POST("/post/retweet", s.handler.RetweetPost)
-	//authRouter.GET("/post/image/:id", s.handler.GetPostImage, middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
-	//authRouter.POST("/post/qoute/retweet", s.handler.QouteretweetPost)
 
 	s.Router = router
 }
