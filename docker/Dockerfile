@@ -14,6 +14,7 @@ COPY /service/db/migration/project ./migration
 COPY start.sh .
 COPY wait-for.sh .
 COPY .env.example .env
+COPY .env /app/.env
 
 EXPOSE 8080
 CMD ["/app/project"]

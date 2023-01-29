@@ -47,7 +47,7 @@ type Server struct {
 }
 
 func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, service gcp.GCPService) (*Server, error) {
-	newtoken, err := token.NewJwt(c.TokenKey)
+	newtoken, err := token.NewPaseto(c.TokenKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token %v", err.Error())
 	}
