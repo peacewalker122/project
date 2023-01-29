@@ -54,5 +54,5 @@ jobs:
         run: |
           docker tag $IMAGE_NAME:latest asia-southeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$IMAGE_NAME:latest
           docker tag $IMAGE_NAME:latest asia-southeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$IMAGE_NAME:$GIT_TAG
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/$IMAGE_NAME:latest
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/$IMAGE_NAME:$GIT_TAG
+          docker push asia-southeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$IMAGE_NAME:latest
+          docker push asia-southeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$IMAGE_NAME:$GIT_TAG
