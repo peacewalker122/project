@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/labstack/echo/v4"
+	api "github.com/peacewalker122/project/api/handler"
 	"github.com/peacewalker122/project/usecase/user"
 	"net/http"
 )
@@ -27,5 +28,14 @@ func (u *UserHandler) Login(c echo.Context) error {
 		return c.JSON(errLogin.Error())
 	}
 
-	return c.JSON(http.StatusOK, res)
+	loginResult := &api.LoginResp{
+		SessionID:             res.Session.ID,
+		RefreshToken:          res.RefreshToken,
+		RefreshTokenExpiresAt: res.RefreshPayload.ExpiredAt,
+		User:                  api.UserResponse(res.User, res.Account),
+		AccesToken:            res.AccessToken,
+		AccesTokenExpiresAt:   res.AccessPayload.ExpiredAt,
+	}
+
+	return c.JSON(http.StatusOK, loginResult)
 }

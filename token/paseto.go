@@ -3,6 +3,8 @@ package token
 import (
 	"fmt"
 	"github.com/o1egl/paseto"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/chacha20poly1305"
 )
 
 type PasetoMaker struct {
@@ -11,7 +13,7 @@ type PasetoMaker struct {
 }
 
 func NewPaseto(secretkey string) (Maker, error) {
-	if len(secretkey) < minSecretkeySize {
+	if len(secretkey) < chacha20poly1305.KeySize {
 		return nil, fmt.Errorf("invalid Key Size must be %v length", minSecretkeySize)
 	}
 
@@ -19,7 +21,7 @@ func NewPaseto(secretkey string) (Maker, error) {
 		paseto:       paseto.NewV2(),
 		symmetricKey: []byte(secretkey),
 	}
-
+	log.Info("PasetoMaker created")
 	return pasetoMaker, nil
 }
 

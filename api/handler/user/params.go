@@ -23,3 +23,9 @@ type ValidateChangePassRequest struct {
 type ChangePasswordRequest struct {
 	Password string `json:"password" form:"password" validate:"required"`
 }
+
+type UpdateUserParam struct {
+	Username string `json:"username" validate:"required,min=4,max=100"`
+	Fullname string `json:"fullname" validate:"required,min=3,max=100"`
+	Email    string `json:"email" validate:"required,email"`
+}

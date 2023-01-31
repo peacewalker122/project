@@ -10,10 +10,10 @@ func (p *PostHandler) LikePost(c echo.Context) error {
 	req := new(LikeParams)
 
 	if err := c.Bind(req); err != nil {
-		return err
+		return c.JSON(400, err.Error())
 	}
 	if err := c.Validate(req); err != nil {
-		return err
+		return c.JSON(400, err.Error())
 	}
 	postID, err := uuid.Parse(req.PostID)
 	if err != nil {

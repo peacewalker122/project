@@ -32,10 +32,6 @@ func (t *TokenUsecase) RefreshToken(ctx context.Context, token string) (*AccesTo
 		return nil, errors.New("incorrect session user")
 	}
 
-	if session.RefreshToken != token {
-		return nil, fmt.Errorf("mismatch session token")
-	}
-
 	if time.Now().After(session.ExpiresAt) {
 		return nil, fmt.Errorf("expired session")
 	}

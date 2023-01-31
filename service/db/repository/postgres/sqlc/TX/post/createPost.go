@@ -48,7 +48,7 @@ func (p *PostTx) CreatePostGCPTx(ctx context.Context, arg *request.CreatePostPar
 			PhotoDir:           util.InputSqlString(res.FileURL),
 		})
 		if err != nil {
-			log.Println(err)
+			log.Println("create post: ", err)
 			return res.FileURL, err
 		}
 

@@ -15,6 +15,8 @@ COPY start.sh .
 COPY wait-for.sh .
 COPY .env.example .env
 COPY .env /app/.env
+COPY ./script/env.sh .
+RUN chmod +x env.sh
 
 EXPOSE 8080
-CMD ["/app/project"]
+CMD ["/bin/sh", "-c", "./env.sh && /app/project"]

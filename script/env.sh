@@ -4,10 +4,8 @@
 export DB_DRIVER="postgres"
 
 # Export DB_SOURCE from GitHub secrets
+# postgres
 export DB_SOURCE=${{ secrets.DB_SOURCE }}
-
-# Export NOTIFDB_SOURCE from GitHub secrets
-export NOTIFDB_SOURCE=${{ secrets.NOTIFDB_SOURCE }}
 
 # Export REDIS_ADDR from GitHub secrets
 export REDIS_ADDR=${{ secrets.REDIS_ADDR }}
@@ -50,9 +48,6 @@ export GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
 
 # Export GOOGLE_OAUTH_SECRET from GitHub secrets
 export GOOGLE_OAUTH_SECRET=${{ secrets.GOOGLE_OAUTH_SECRET }}
-
-# Export USER_DIR from GitHub secrets
-export USER_DIR=${{ secrets.USER_DIR }}
 
 # Export GCP_BUCKET_NAME from GitHub secrets
 export GCP_BUCKET_NAME=${{ secrets.GCP_BUCKET_NAME }}

@@ -22,7 +22,7 @@ func (u *UserUsecase) Login(ctx context.Context, params *LoginParams) (*SessionR
 	// 	TimeSend:  time.Now().UTC().Local(),
 	// })
 
-	username, err := u.postgre.GetUser(ctx, params.Username)
+	userData, err := u.postgre.GetUser(ctx, params.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, util.NewError(http.StatusNotFound, "user not found")
@@ -38,7 +38,7 @@ func (u *UserUsecase) Login(ctx context.Context, params *LoginParams) (*SessionR
 		return nil, util.NewError(http.StatusInternalServerError, err.Error())
 	}
 
-	err = util.CheckPassword(params.Password, username.HashedPassword)
+	err = util.CheckPassword(params.Password, userData.HashedPassword)
 	if err != nil {
 		return nil, util.NewError(http.StatusUnauthorized, "password is incorrect")
 	}
@@ -62,7 +62,7 @@ func (u *UserUsecase) Login(ctx context.Context, params *LoginParams) (*SessionR
 	}
 
 	arg := db.CreateSessionParams{
-		ID:           refreshPayload.ID,
+		ID:           Accespayload.ID,
 		Username:     params.Username,
 		RefreshToken: refreshToken,
 		UserAgent:    params.UserAgent,
@@ -80,7 +80,7 @@ func (u *UserUsecase) Login(ctx context.Context, params *LoginParams) (*SessionR
 		AccessToken:    accesstoken,
 		RefreshToken:   refreshToken,
 		Account:        account,
-		User:           username,
+		User:           userData,
 		AccessPayload:  Accespayload,
 		RefreshPayload: refreshPayload,
 		Session:        session,
