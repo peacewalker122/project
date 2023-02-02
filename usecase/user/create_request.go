@@ -10,9 +10,14 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *UserUsecase) CreateNewUserRequest(ctx context.Context, req db.CreateUserParams) (uuid.UUID, error) {
+func (s *UserUsecase) CreateNewUserRequest(ctx context.Context, req *PayloadCreateUser) (uuid.UUID, error) {
 
 	// multierror := &util.Error{}
+
+	if err := req.Validate(); err.HasError() {
+		return uuid.Nil, errors.New("failed to create new user request: " + err.Error())
+	}
+
 	errs := map[string]string{}
 
 	_, err := s.postgre.GetEmail(ctx, db.GetEmailParams{Email: req.Email})

@@ -6,12 +6,21 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"regexp"
 	"strings"
 	"time"
 )
 
 const (
 	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+)
+
+var (
+	AlphaNumCheck = regexp.MustCompile(`^[a-zA-Z0-9_\s]+$`).MatchString
+	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z_\s]+$`).MatchString
+	NumCheckByte  = regexp.MustCompile(`^[0-9]+$`).Match
+	NumCheck      = regexp.MustCompile(`^[0-9]+$`).MatchString
+	StringsCheck  = regexp.MustCompile(`^[a-zA-Z0-9_\s'"?!,.&%$@-]+$`).MatchString
 )
 
 func init() {
@@ -46,6 +55,11 @@ func Randomint(min, max int64) int64 {
 
 func Randomuint() []uint8 {
 	return []uint8(Randomstring(90))
+}
+
+type sqlInterface interface {
+	sql.NullString
+	sql.NullInt64
 }
 
 func InputSqlString(input string) (sql sql.NullString) {

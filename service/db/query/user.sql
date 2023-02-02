@@ -21,3 +21,13 @@ SELECT * FROM users
 ORDER BY username
 LIMIT $1
 OFFSET $2;
+
+-- name: UpdateUserData :exec
+UPDATE users
+SET
+    hashed_password = COALESCE(sqlc.narg(hashed_password), hashed_password),
+    full_name = COALESCE(sqlc.narg(full_name), full_name),
+    email = COALESCE(sqlc.narg(email), email),
+    username = COALESCE(sqlc.narg(username), username)
+WHERE username = sqlc.arg(username)
+RETURNING *;

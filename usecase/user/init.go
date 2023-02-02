@@ -16,10 +16,7 @@ type UserUsecase struct {
 	config  util.Config
 }
 
-func NewUserUsecase(postgre db.PostgresStore, redis redis.Store, cfg util.Config) *UserUsecase {
-
-	token, _ := token.NewJwt(cfg.TokenKey)
-
+func NewUserUsecase(postgre db.PostgresStore, redis redis.Store, cfg util.Config, token token.Maker) *UserUsecase {
 	return &UserUsecase{
 		postgre: postgre,
 		redis:   redis,

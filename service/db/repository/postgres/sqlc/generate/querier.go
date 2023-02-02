@@ -6,6 +6,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -70,6 +71,7 @@ type Querier interface {
 	PrivateAccount(ctx context.Context, arg PrivateAccountParams) error
 	UpdateAccountFollower(ctx context.Context, arg UpdateAccountFollowerParams) (Account, error)
 	UpdateAccountFollowing(ctx context.Context, arg UpdateAccountFollowingParams) (Account, error)
+	UpdateAccountOwner(ctx context.Context, username sql.NullString) error
 	UpdateAccountQueue(ctx context.Context, arg UpdateAccountQueueParams) error
 	UpdateLike(ctx context.Context, arg UpdateLikeParams) error
 	UpdatePhoto(ctx context.Context, arg UpdatePhotoParams) error
@@ -77,6 +79,7 @@ type Querier interface {
 	UpdatePost_feature(ctx context.Context, arg UpdatePost_featureParams) (PostFeature, error)
 	UpdateQouteRetweet(ctx context.Context, arg UpdateQouteRetweetParams) error
 	UpdateRetweet(ctx context.Context, arg UpdateRetweetParams) error
+	UpdateUserData(ctx context.Context, arg UpdateUserDataParams) error
 }
 
 var _ Querier = (*Queries)(nil)

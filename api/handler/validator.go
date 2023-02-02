@@ -6,9 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/peacewalker122/project/service/db/repository/postgres/sqlc/generate"
+	"github.com/peacewalker122/project/util"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"net/mail"
-	"regexp"
 	"strconv"
 	"time"
 
@@ -19,13 +20,6 @@ import (
 type H = map[string]interface{}
 
 // A for Allow
-var (
-	AlphaNumCheck = regexp.MustCompile(`^[a-zA-Z0-9_\s]+$`).MatchString
-	AlphaCheck    = regexp.MustCompile(`^[a-zA-Z_\s]+$`).MatchString
-	NumCheckByte  = regexp.MustCompile(`^[0-9]+$`).Match
-	NumCheck      = regexp.MustCompile(`^[0-9]+$`).MatchString
-	StringsCheck  = regexp.MustCompile(`^[a-zA-Z0-9_\s'"?!,.&%$@-]+$`).MatchString
-)
 
 const (
 	Like       = "like"
@@ -57,7 +51,8 @@ func (s *Handler) AuthAccount(c echo.Context) (int, *token.Payload, error) {
 	// Here we get from our redis cache value
 	session, err := s.redis.Get(c.Request().Context(), key)
 	if err != nil {
-		// if it doesn't exist then query it from thes postgres
+		// if it doesn't exist then query it from thes
+		log.Info(authParam)
 		sessionS, err := s.store.GetSession(c.Request().Context(), authParam.ID)
 		if num, err := GetErrorValidator(c, err, Accountag); err != nil {
 			return num, nil, err
@@ -112,7 +107,7 @@ func ValidateAlphanum(username string, min, max int) error {
 		return err
 	}
 
-	if !AlphaNumCheck(username) {
+	if !util.AlphaNumCheck(username) {
 		return fmt.Errorf("illegal type must be string and number")
 	}
 	return nil
@@ -122,7 +117,7 @@ func ValidateAlpha(fullname string, min, max int) error {
 	if err := validateString(fullname, min, max); err != nil {
 		return err
 	}
-	if !AlphaCheck(fullname) {
+	if !util.AlphaCheck(fullname) {
 		return fmt.Errorf("illegal type must be string")
 	}
 	return nil
@@ -155,14 +150,14 @@ func ValidateString(strings string, min, max int) error {
 		return err
 	}
 
-	if !StringsCheck(strings) {
+	if !util.StringsCheck(strings) {
 		return errors.New("invalid character must be alphabet,num and symbol")
 	}
 	return nil
 }
 
 func ConverterParam(context echo.Context, param string) int {
-	if !NumCheck(param) {
+	if !util.NumCheck(param) {
 		id := context.Param(param)
 
 		num, err := strconv.Atoi(id)

@@ -18,26 +18,18 @@ func NewError(code int, message string) *Error {
 	}
 }
 
-//
-//func PointerConvertMultiError(multiErr *MultiError) MultiError {
-//	if multiErr == nil {
-//		return MultiError{}
-//	}
-//	return *multiErr
-//}
-
 type MultiError struct {
-	Errors []error
+	Errors []*Error
 }
 
-func (e *MultiError) Add(err error) {
-	e.Errors = append(e.Errors, err)
+func (e *MultiError) Add(err error, code ...int) {
+	e.Errors = append(e.Errors, NewError(code[0], err.Error()))
 }
 
 func (e *MultiError) Error() string {
 	var s []string
 	for _, e := range e.Errors {
-		s = append(s, e.Error())
+		s = append(s, e.Message)
 	}
 	return strings.Join(s, ", ")
 }
@@ -47,7 +39,7 @@ func (e *MultiError) HasError() bool {
 }
 func (e *MultiError) Has(errors string) bool {
 	for _, err := range e.Errors {
-		if err.Error() == errors {
+		if err.Message == errors {
 			return true
 		}
 	}

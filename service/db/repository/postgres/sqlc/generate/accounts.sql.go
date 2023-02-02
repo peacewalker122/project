@@ -366,6 +366,18 @@ func (q *Queries) UpdateAccountFollowing(ctx context.Context, arg UpdateAccountF
 	return i, err
 }
 
+const updateAccountOwner = `-- name: UpdateAccountOwner :exec
+UPDATE accounts
+SET
+    owner = COALESCE($1, owner)
+where owner = $1
+`
+
+func (q *Queries) UpdateAccountOwner(ctx context.Context, username sql.NullString) error {
+	_, err := q.db.ExecContext(ctx, updateAccountOwner, username)
+	return err
+}
+
 const updateAccountQueue = `-- name: UpdateAccountQueue :exec
 UPDATE accounts_queue
 SET queue = $1

@@ -1,23 +1,24 @@
 package post
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/peacewalker122/project/usecase/post"
-	"net/http"
 )
 
 func (p *PostHandler) CreatePost(c echo.Context) error {
 	req := new(CreatePostParams)
 	if err := c.Bind(req); err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	if err := c.Validate(req); err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	errNum, payload, err := p.helper.AuthAccount(c)
 	if err != nil {
-		return c.JSON(errNum, err)
+		return c.JSON(errNum, err.Error())
 	}
 
 	postFile, postFileHeader, err := c.Request().FormFile("file")
