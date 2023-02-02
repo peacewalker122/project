@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/peacewalker122/project/api/handler/account"
 	"github.com/peacewalker122/project/api/handler/post"
 	tokenhandler "github.com/peacewalker122/project/api/handler/token"
@@ -14,8 +16,6 @@ import (
 	post2 "github.com/peacewalker122/project/usecase/post"
 	tokenusecase "github.com/peacewalker122/project/usecase/token"
 	user2 "github.com/peacewalker122/project/usecase/user"
-	"os"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -47,7 +47,7 @@ type Server struct {
 }
 
 func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, service gcp.GCPService) (*Server, error) {
-	newtoken, err := token.NewJwt(c.TokenKey)
+	newtoken, err := token.NewPaseto(c.TokenKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token %v", err.Error())
 	}
@@ -72,7 +72,8 @@ func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, se
 
 	server.user = user.NewUserHandler(
 		auth2.NewAuthUsecase(store, redisStore, c),
-		user2.NewUserUsecase(store, redisStore, c),
+		user2.NewUserUsecase(store, redisStore, c, newtoken),
+		server.handler,
 	)
 
 	server.post = post.NewPostHandler(
@@ -91,12 +92,12 @@ func Newserver(c util.Config, store db.PostgresStore, redisStore redis.Store, se
 
 func (s *Server) routerhandle() {
 	router := echo.New()
+	router.HideBanner = true
 	router.Use(middlewareLogging)
 	router.Validator = s.Auth.Validator
 	router.HTTPErrorHandler = s.Auth.HTTPErrorHandler
 
 	s.token.TokenRouter(router)
-
 	userGroup := router.Group("/user")
 	s.user.Router(userGroup)
 
@@ -106,8 +107,9 @@ func (s *Server) routerhandle() {
 
 	authRouter := router.Group("/auth", auth.AuthMiddleware(s.Token))
 
-	s.post.PostRouter(authRouter)
 	s.account.Router(authRouter)
+	s.user.AuthRouter(authRouter)
+	s.post.PostRouter(authRouter)
 
 	s.Router = router
 }
@@ -115,21 +117,20 @@ func (s *Server) routerhandle() {
 func (s *Server) StartHTTPS(path string) error {
 	return s.Router.StartAutoTLS(path)
 }
+
 func (s *Server) StartHTTP(path string) error {
-	s.Router.Logger.Info("server is running on ", path)
 	return s.Router.Start(path)
 }
+
 func (s *Server) timeout(c echo.Context) error {
 	return c.JSON(echo.ErrRequestTimeout.Code, "timeout")
 }
+
 func (s *Server) TimeoutPost() middleware.TimeoutConfig {
 	return middleware.TimeoutConfig{
 		ErrorMessage: "timeout",
 		OnTimeoutRouteErrorHandler: func(err error, c echo.Context) {
 			// we delete the file if its already timeout
-			if _, err := os.Stat(s.FileString); err == nil {
-				os.Remove(s.FileString)
-			}
 			c.Error(err)
 			c.SetHandler(s.timeout)
 		},

@@ -12,7 +12,7 @@ import (
 )
 
 func (p *PostTx) CreateComment(ctx context.Context, param *request.CreateCommentParams) *util.MultiError {
-	multiErr := &util.MultiError{Errors: make([]error, 0)}
+	multiErr := &util.MultiError{Errors: make([]*util.Error, 0)}
 	if param == nil {
 		multiErr.Add(errors.New("param is nil"))
 		return multiErr

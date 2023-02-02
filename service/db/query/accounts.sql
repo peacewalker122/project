@@ -88,3 +88,10 @@ WHERE owner = @username or id = @AccountID;
 SELECT a.id,owner,is_private,follower,following,photo_dir from accounts a
 left join users u on a.owner = u.username
 where u.email = @Email LIMIT 1;
+
+-- name: UpdateAccountOwner :exec
+UPDATE accounts
+SET
+    owner = COALESCE(sqlc.narg(Username), owner)
+where owner = @Username;
+

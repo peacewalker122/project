@@ -2,6 +2,7 @@ package token
 
 import (
 	"errors"
+	"golang.org/x/crypto/sha3"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,10 +28,9 @@ type PayloadRequest struct {
 }
 
 func Newpayload(param *PayloadRequest) (*Payload, error) {
-	token, err := uuid.NewRandom()
-	if err != nil {
-		return nil, err
-	}
+	uid, _ := uuid.NewRandom()
+	token := uuid.NewHash(sha3.New256(), uid, nil, 4)
+
 	payload := &Payload{
 		ID:        token,
 		Username:  param.Username,

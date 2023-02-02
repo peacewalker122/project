@@ -11,6 +11,7 @@ type AccountQuery interface {
 	GetAccount(ctx context.Context, owner string) (*ent2.Account, error)
 	UpdateAccount(ctx context.Context, Params *AccountParam) error
 	GetAccountID(ctx context.Context, owner string) (int64, error)
+	UpdateOwner(ctx context.Context, owner string) error
 }
 
 type AccountQueries struct {
@@ -38,6 +39,15 @@ func (s *AccountQueries) GetAccountID(ctx context.Context, owner string) (int64,
 		Query().
 		Where(account.Owner(owner)).
 		OnlyID(ctx)
+}
+
+func (s *AccountQueries) UpdateOwner(ctx context.Context, owner string) error {
+	err := s.client.Account.
+		Update().
+		Where(account.Owner(owner)).
+		SetOwner(owner).
+		Exec(ctx)
+	return err
 }
 
 func (s *AccountQueries) UpdateAccount(ctx context.Context, Params *AccountParam) error {

@@ -57,7 +57,7 @@ type (
 		PostComment        []commentresp   `json:"post_comment"`
 		CreatedAt          int64           `json:"created_at"`
 	}
-	loginResp struct {
+	LoginResp struct {
 		SessionID             uuid.UUID          `json:"session_id"`
 		RefreshToken          string             `json:"refresh_token"`
 		RefreshTokenExpiresAt time.Time          `json:"refresh_token_expires_at"`

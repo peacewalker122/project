@@ -71,6 +71,7 @@ type LikeFeature struct {
 	IsLike        bool      `json:"is_like"`
 	PostID        uuid.UUID `json:"post_id"`
 	CreatedAt     time.Time `json:"created_at"`
+	ID            int32     `json:"id"`
 }
 
 type Post struct {
@@ -97,6 +98,7 @@ type QouteRetweetFeature struct {
 	Qoute         string    `json:"qoute"`
 	PostID        uuid.UUID `json:"post_id"`
 	CreatedAt     time.Time `json:"created_at"`
+	ID            int32     `json:"id"`
 }
 
 type RetweetFeature struct {
@@ -104,6 +106,7 @@ type RetweetFeature struct {
 	Retweet       bool      `json:"retweet"`
 	PostID        uuid.UUID `json:"post_id"`
 	CreatedAt     time.Time `json:"created_at"`
+	ID            int32     `json:"id"`
 }
 
 type Session struct {

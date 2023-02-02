@@ -128,7 +128,7 @@ func (q *Queries) GetPostidretweetJoin(ctx context.Context, arg GetPostidretweet
 }
 
 const getRetweetRows = `-- name: GetRetweetRows :execrows
-SELECT from_account_id, retweet, post_id, created_at from retweet_feature
+SELECT from_account_id, retweet, post_id, created_at, id from retweet_feature
 WHERE from_account_id=$1 and post_id = $2 LIMIT 1
 `
 

@@ -177,7 +177,7 @@ func (q *Queries) DeleteRetweet(ctx context.Context, arg DeleteRetweetParams) er
 }
 
 const getLikeInfo = `-- name: GetLikeInfo :one
-SELECT from_account_id, is_like, post_id, created_at from like_feature
+SELECT from_account_id, is_like, post_id, created_at, id from like_feature
 WHERE from_account_id = $1 and post_id = $2 LIMIT 1
 `
 
@@ -194,6 +194,7 @@ func (q *Queries) GetLikeInfo(ctx context.Context, arg GetLikeInfoParams) (LikeF
 		&i.IsLike,
 		&i.PostID,
 		&i.CreatedAt,
+		&i.ID,
 	)
 	return i, err
 }
@@ -291,7 +292,7 @@ func (q *Queries) GetPost_feature_Update(ctx context.Context, postID uuid.UUID) 
 }
 
 const getQouteRetweet = `-- name: GetQouteRetweet :one
-SELECT from_account_id, qoute_retweet, qoute, post_id, created_at from qoute_retweet_feature
+SELECT from_account_id, qoute_retweet, qoute, post_id, created_at, id from qoute_retweet_feature
 WHERE from_account_id=$1 and post_id = $2 LIMIT 1
 `
 
@@ -309,6 +310,7 @@ func (q *Queries) GetQouteRetweet(ctx context.Context, arg GetQouteRetweetParams
 		&i.Qoute,
 		&i.PostID,
 		&i.CreatedAt,
+		&i.ID,
 	)
 	return i, err
 }
@@ -344,7 +346,7 @@ func (q *Queries) GetQouteRetweetRows(ctx context.Context, arg GetQouteRetweetRo
 }
 
 const getRetweet = `-- name: GetRetweet :one
-SELECT from_account_id, retweet, post_id, created_at from retweet_feature
+SELECT from_account_id, retweet, post_id, created_at, id from retweet_feature
 WHERE from_account_id = $1 and post_id = $2 LIMIT 1
 `
 
@@ -361,6 +363,7 @@ func (q *Queries) GetRetweet(ctx context.Context, arg GetRetweetParams) (Retweet
 		&i.Retweet,
 		&i.PostID,
 		&i.CreatedAt,
+		&i.ID,
 	)
 	return i, err
 }
