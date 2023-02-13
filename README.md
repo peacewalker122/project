@@ -1,6 +1,8 @@
-[Go Social Media API]
+# Go Social Media API
 
-[Go Social Media API] built using Golang and backed by GCP for storage, PostgreSQL and Redis for database, and Paseto for authentication. The app aims to [briefly describe the app's purpose and target audience].
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+
+Go Social Media API built using Golang and backed by GCP for storage, PostgreSQL and Redis for database, and Paseto for authentication. The app aims to [briefly describe the app's purpose and target audience].
 Getting Started
 Prerequisites
 
@@ -9,32 +11,24 @@ Prerequisites
     PostgreSQL 10 or higher
     Redis 4 or higher
 
-Installing
+## Installing
 
-    Clone the repository
+Clone the repository
 
-git clone https://github.com/username/repo.git
-
+    git clone https://github.com/username/repo.git
+    
 Install dependencies
-
-sh
-
-go mod download
-
+    
+    go mod download
+    
 Set environment variables
-
+    
     cp .env.example .env
-
+    
 Run the app
-
+    
     make server
 
-Usage
-
-[Provide instructions on how to use the app, including any relevant command-line arguments, API endpoints, or UI features]
-Contributing
-
-Contributions are welcome. Please read CONTRIBUTING.md for details on the development process and the code of conduct.
-License
+## Usage
 
 This project is licensed under the MIT License.
