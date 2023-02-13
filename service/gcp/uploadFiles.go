@@ -35,7 +35,7 @@ func (g *gcpService) UploadPhoto(ctx context.Context, req *request.UploadFilesRe
 		return "", err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
 	upload := g.Client.Bucket(g.BUCKET).Object(req.FileHeader.Filename).NewWriter(ctx)
